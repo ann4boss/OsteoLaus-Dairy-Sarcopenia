@@ -1,32 +1,36 @@
 ---
-title: Time-Varying Dairy Intake and Muscle Ageing in Older Women: A Prospective Analysis from the OsteoLaus Cohort
-subtitle: A Short Subtitle
+title: "Time-Varying Dairy Intake and Muscle Ageing in Older Women: A Prospective Analysis from the OsteoLaus Cohort"
 author:
   - name: Anna Boss
-    email: anna.boss@students.unibe.ch
-    affiliations: 
-        - id: some-tech
-          name: Some Institute of Technology
-          department: Department Name
-          address: Street Address
-          city: City
-          state: State
-          postal-code: Postal Code
+    affiliation: University of Fribourg
 abstract: |
-  This is the abstract. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum augue turpis, dictum non malesuada a, volutpat eget velit. Nam placerat turpis purus, eu tristique ex tincidunt et. Mauris sed augue eget turpis ultrices tincidunt. Sed et mi in leo porta egestas. Aliquam non laoreet velit. Nunc quis ex vitae eros aliquet auctor nec ac libero. Duis laoreet sapien eu mi luctus, in bibendum leo molestie. Sed hendrerit diam diam, ac dapibus nisl volutpat vitae. Aliquam bibendum varius libero, eu efficitur justo rutrum at. Sed at tempus elit.
+  This is the abstract.
+
 date: last-modified
-bibliography: bibliography.bib
+
+bibliography: sections/references.bib
+csl: csl/nlm-citation-sequence-brackets.csl
+
 format:
-  # docx: default
-  elsevier-pdf:
+  pdf:
+    number-sections: true
+    toc: false
     keep-tex: true
-    journal:
-      name: Journal Name
-      formatting: preprint
-      model: 3p
-      layout: onecolumn
-      cite-style: number
+    fontsize: 11pt
+    linestretch: 1.2
+    geometry:
+      - margin=2.5cm
+    colorlinks: true
+
+header-includes:
+  - \usepackage{setspace}
+  - \usepackage{titlesec}
+  - \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+  - \titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
+  - \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
+  - \titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{1em}{}
 ---
+
 
 {{< include sections/01_introduction.qmd >}}
 
@@ -35,5 +39,7 @@ format:
 {{< include sections/03_results.qmd >}}
 
 {{< include sections/04_discussion.qmd >}}
+
+
 
 # References
