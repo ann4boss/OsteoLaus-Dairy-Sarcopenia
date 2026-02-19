@@ -2,3 +2,10 @@
 .Rhistory
 .RData
 .Ruserdata
+.DS_Store
+.Rprofile
+02_data_raw/
+03_data_processed/
+*.csv
+*.xlsx
+*.sav
