@@ -1,0 +1,39 @@
+---
+title: Time-Varying Dairy Intake and Muscle Ageing in Older Women: A Prospective Analysis from the OsteoLaus Cohort
+subtitle: A Short Subtitle
+author:
+  - name: Anna Boss
+    email: anna.boss@students.unibe.ch
+    affiliations: 
+        - id: some-tech
+          name: Some Institute of Technology
+          department: Department Name
+          address: Street Address
+          city: City
+          state: State
+          postal-code: Postal Code
+abstract: |
+  This is the abstract. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vestibulum augue turpis, dictum non malesuada a, volutpat eget velit. Nam placerat turpis purus, eu tristique ex tincidunt et. Mauris sed augue eget turpis ultrices tincidunt. Sed et mi in leo porta egestas. Aliquam non laoreet velit. Nunc quis ex vitae eros aliquet auctor nec ac libero. Duis laoreet sapien eu mi luctus, in bibendum leo molestie. Sed hendrerit diam diam, ac dapibus nisl volutpat vitae. Aliquam bibendum varius libero, eu efficitur justo rutrum at. Sed at tempus elit.
+date: last-modified
+bibliography: bibliography.bib
+format:
+  # docx: default
+  elsevier-pdf:
+    keep-tex: true
+    journal:
+      name: Journal Name
+      formatting: preprint
+      model: 3p
+      layout: onecolumn
+      cite-style: number
+---
+
+{{< include sections/01_introduction.qmd >}}
+
+{{< include sections/02_methods.qmd >}}
+
+{{< include sections/03_results.qmd >}}
+
+{{< include sections/04_discussion.qmd >}}
+
+# References
