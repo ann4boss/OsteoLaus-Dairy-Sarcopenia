@@ -1,0 +1,70 @@
+---
+bibliography: references.bib
+#csl: csl/nlm-citation-sequence-brackets.csl
+---
+
+# Methods
+
+## Study design and population
+
+The OsteoLaus study includs a subgroup of the CoLaus \textbar{} PsyCoLaus study participants, including 1474 postmenopausal women aged 50 to 80 years at baseline @shevroja2019. The detailed description of the recruitment process and methodology for CoLaus and OsteoLaus has been described elsewhere @firmann2008 @shevroja2019 and can be found at [www.colaus-psycolaus.ch](http://www.colaus-psycolaus.ch/). In summary,
+
+OsteoLaus was initiated to focus on bone health and is a population-based prospective cohort from Lausanne, Switzerland. Participants were recruited between September 2009 and September 2012 if they participated in the baseline measurement of the CoLaus study. Women with the following inclusion criteria were selected: written informed consent, BMI between 15 kg/m^2^ and 40 kg/m^2^, at least two vertebrae and the femur accessible for measurement, available information on previous osteoporotic fractures, QUS of the heel accessible for measurement, no known disease affecting bone metabolism, and no known disorders affecting skeletal sites. On average, measurements were taken every 2.5 years, including the baseline and follow-ups. The timeline was as follows: F1: Follow-up 2009–2013, F2: Follow-up 2014–2018, F3: Follow-up 2018–2021, F4: Follow-up 2022–2026.
+
+### Exclusion Criteria
+
+Figure 1 illustrates the study population.
+
+## Exposure
+
+FFQ self-reported food questionnaire
+
+## Covariates
+
+### Sociodemographic
+
+Educational level was self-reported and expressed as the highest level achieved. The levels are divided in three categories corresponding to International Standard Classification of Education (ISCED) 0-2, ISCED 3, and ISCED 4-8, which are labelled low, medium, and high, respectively [@ISCED].
+
+### Lifestyle
+
+Participants’ smoking history was assessed via self-report. Individuals were categorized as current smokers if they reported active tobacco <!--# only tabacco or other nicotine containing things? --> use at the time of the study. Those who reported a history of smoking but had ceased use prior to the study were classified as former smokers. Participants with no history of tobacco initiation were defined as never smokers.
+
+Alcohol intake was assessed using a self-reported questionnaire covering consumption patterns over the previous month <!--# or 7 days like this study: https://www.atherosclerosis-journal.com/article/S0021-9150(12)00124-4/fulltext ?? -->. Intake was quantified as the number of standard drinks consumed. Following Swiss national guidelines, a standard drink was defined as a single glass of wine, a bottle of beer, or a shot of spirits, each containing approximately 10–12g of pure ethanol [@standardglas]. Participants were categorized into four groups based on their total weekly intake:
+
+-   Non-drinkers (0 drinks/week)
+
+-   Light drinkers (1–6 drinks/week)
+
+-   Moderate drinkers (7–13 drinks/week)
+
+-   Heavy drinkers (14 or more drinks/week)
+
+While this categorization provides a structured metric for analysis, it is noted that self-reported dietary and alcohol questionnaires often slightly underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative food frequency questionnaires (FFQs) tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
+
+<!--# Or alternative text: Alcohol consumption was analyzed as both a categorical and a continuous variable. Participants were categorized into four groups based on their self-reported weekly intake: Non-drinkers (0 units/week), Light drinkers (1–6 units/week), Moderate drinkers (7–13 units/week), and Heavy drinkers (≥14 units/week). To ensure international comparability and biological precision, these values were converted to grams of pure ethanol per day, assuming a Swiss standard unit of 12g per drink [@standardglas; @morabia1994]. Consequently, the 'Light drinker' category corresponds to an average intake of <10.3g/day, 'Moderate' to 10.3–22.3g/day, and 'Heavy' to >22.3g/day. -->
+
+Physical activity
+
+### Dietary assessment
+
+xxx
+
+### Clinical
+
+xxxx
+
+## Outcome Variables
+
+Handgrip strength (kg), measured using a JAMAR dynamometer
+
+Appendicular lean mass (ALM) and derived indices (ALMI and ALM/BMI for sensitivity analysis), measured by DXA (GE Lunar iDXA™)
+
+Gait speed (m/s), assessed using a 6-meter walk test
+
+## Statistical Methods
+
+Participants were classified into quartiles according to their baseline daily intake of dairy products (grams per day) for descriptive analysis.
+
+## Ethics
+
+xx

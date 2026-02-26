@@ -7,39 +7,12 @@ abstract: |
   This is the abstract.
 
 date: last-modified
-
-bibliography: sections/references.bib
-csl: csl/nlm-citation-sequence-brackets.csl
-
-format:
-  pdf:
-    number-sections: true
-    toc: false
-    keep-tex: true
-    fontsize: 11pt
-    linestretch: 1.2
-    geometry:
-      - margin=2.5cm
-    colorlinks: true
-
-header-includes:
-  - \usepackage{setspace}
-  - \usepackage{titlesec}
-  - \usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
-  - \titleformat{\section}{\large\bfseries}{\thesection}{1em}{}
-  - \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{1em}{}
-  - \titleformat{\subsubsection}{\normalsize\itshape}{\thesubsubsection}{1em}{}
 ---
 
+{{< include sections/02_introduction.qmd >}}
 
-{{< include sections/01_introduction.qmd >}}
+{{< include sections/03_methods.qmd >}}
 
-{{< include sections/02_methods.qmd >}}
+{{< include sections/04_results.qmd >}}
 
-{{< include sections/03_results.qmd >}}
-
-{{< include sections/04_discussion.qmd >}}
-
-
-
-# References
+{{< include sections/05_discussion.qmd >}}
