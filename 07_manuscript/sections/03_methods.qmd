@@ -7,7 +7,7 @@ bibliography: references.bib
 
 ## Study design and population
 
-The OsteoLaus study includs a subgroup of the CoLaus \textbar{} PsyCoLaus study participants, including 1474 postmenopausal women aged 50 to 80 years at baseline @shevroja2019. The detailed description of the recruitment process and methodology for CoLaus and OsteoLaus has been described elsewhere @firmann2008 @shevroja2019 and can be found at [www.colaus-psycolaus.ch](http://www.colaus-psycolaus.ch/). In summary,
+The OsteoLaus study includs a subgroup of the CoLaus \textbar{} PsyCoLaus study participants, including 1474 postmenopausal women aged 50 to 80 years at baseline @shevroja2019. The detailed description of the recruitment process and methodology for CoLaus and OsteoLaus has been described elsewhere @firmann2008 @shevroja2019 and can be found at [www.colaus-psycolaus.ch](http://www.colaus-psycolaus.ch/). In summary, ... <!--# continue here -->
 
 OsteoLaus was initiated to focus on bone health and is a population-based prospective cohort from Lausanne, Switzerland. Participants were recruited between September 2009 and September 2012 if they participated in the baseline measurement of the CoLaus study. Women with the following inclusion criteria were selected: written informed consent, BMI between 15 kg/m^2^ and 40 kg/m^2^, at least two vertebrae and the femur accessible for measurement, available information on previous osteoporotic fractures, QUS of the heel accessible for measurement, no known disease affecting bone metabolism, and no known disorders affecting skeletal sites. On average, measurements were taken every 2.5 years, including the baseline and follow-ups. The timeline was as follows: F1: Follow-up 2009–2013, F2: Follow-up 2014–2018, F3: Follow-up 2018–2021, F4: Follow-up 2022–2026.
 
@@ -21,37 +21,59 @@ FFQ self-reported food questionnaire
 
 ## Covariates
 
+Figure 2 shows the DAG.
+
 ### Sociodemographic
 
 Educational level was self-reported and expressed as the highest level achieved. The levels are divided in three categories corresponding to International Standard Classification of Education (ISCED) 0-2, ISCED 3, and ISCED 4-8, which are labelled low, medium, and high, respectively [@ISCED].
 
 ### Lifestyle
 
-Participants’ smoking history was assessed via self-report. Individuals were categorized as current smokers if they reported active tobacco <!--# only tabacco or other nicotine containing things? --> use at the time of the study. Those who reported a history of smoking but had ceased use prior to the study were classified as former smokers. Participants with no history of tobacco initiation were defined as never smokers.
+Smoking has been recognised as a risk factor for muscle wasting *\[SOURCE:* [10.1164/rccm.201410-1830PP](https://doi.org/10.1164/rccm.201410-1830PP)*\].* Participants’ smoking history was assessed via self-report. Individuals were categorized as current smokers if they reported active tobacco <!--# only tabacco or other nicotine containing things? --> use at the time of the study. Those who reported a history of smoking but had ceased use prior to the study were classified as former smokers. Participants with no history of tobacco initiation were defined as never smokers. <!--# Check if the smoking status changes over the approx. 10 years of study in any participants, e.g. going from current to former -->
 
-Alcohol intake was assessed using a self-reported questionnaire covering consumption patterns over the previous month <!--# or 7 days like this study: https://www.atherosclerosis-journal.com/article/S0021-9150(12)00124-4/fulltext ?? -->. Intake was quantified as the number of standard drinks consumed. Following Swiss national guidelines, a standard drink was defined as a single glass of wine, a bottle of beer, or a shot of spirits, each containing approximately 10–12g of pure ethanol [@standardglas]. Participants were categorized into four groups based on their total weekly intake:
+<!--# Why is smoking used as covariant? -->
 
--   Non-drinkers (0 drinks/week)
+Alcohol intake was assessed using a self-reported questionnaire covering consumption patterns over the previous month <!--# or 7 days like this study: https://www.atherosclerosis-journal.com/article/S0021-9150(12)00124-4/fulltext ?? -->. Alcohol consumption was analyzed as both a categorical and a continuous variable. Following Swiss national guidelines, a standard drink was defined as a single glass of wine, a bottle of beer, or a shot of spirits, each containing approximately 10–12g of pure ethanol [@standardglas]. Participants were categorized into four groups based on their total weekly intake to reflect sex-specific physiological thresholds:
 
--   Light drinkers (1–6 drinks/week)
+-   Non-drinkers: 0 g/day (0 units/week). <!--# included both lifetime and current abstainers. -->
 
--   Moderate drinkers (7–13 drinks/week)
+<!-- -->
 
--   Heavy drinkers (14 or more drinks/week)
+-   Light drinkers: \>0 to 6 g/day (1–3 units/week), representing occasional consumption.
+
+-   Moderate drinkers: \>6 to 12 g/day (4–7 units/week), representing frequent consumption within the Swiss low-risk limit for women.
+
+-   Heavy drinkers: \>12 g/day (\>7 units/week), categorized as hazardous consumption exceeding the Swiss national guidelines for women.
+
+<!--# or Light drinkers: >0 to 12 g/day (1–7 units/week), representing consumption of up to one standard drink per day. Moderate drinkers: 12 g/day (8–11 units/week), representing the upper limit of recommended low-risk consumption for women in Switzerland.Heavy drinkers: >12 g/day (>11 units/week), categorized as hazardous consumption exceeding the Swiss national guidelines for women.-->
 
 While this categorization provides a structured metric for analysis, it is noted that self-reported dietary and alcohol questionnaires often slightly underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative food frequency questionnaires (FFQs) tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
 
-<!--# Or alternative text: Alcohol consumption was analyzed as both a categorical and a continuous variable. Participants were categorized into four groups based on their self-reported weekly intake: Non-drinkers (0 units/week), Light drinkers (1–6 units/week), Moderate drinkers (7–13 units/week), and Heavy drinkers (≥14 units/week). To ensure international comparability and biological precision, these values were converted to grams of pure ethanol per day, assuming a Swiss standard unit of 12g per drink [@standardglas; @morabia1994]. Consequently, the 'Light drinker' category corresponds to an average intake of <10.3g/day, 'Moderate' to 10.3–22.3g/day, and 'Heavy' to >22.3g/day. -->
+<!--# Why is alcohol intake used as covariant? -->
 
 Physical activity
 
 ### Dietary assessment
 
-xxx
+Total energy intake
+
+Vitamin D
 
 ### Clinical
 
-xxxx
+The relationship between **diabetes mellitus** and muscle mass is complex and varies substantially by diabetes type and patient characteristics. Type 1 diabetes demonstrates the most pronounced effects, with untreated patients experiencing dramatic muscle loss and experimental models showing 20-30% decreases in muscle mass and myofiber area *D. Sala et al., 2015*. In contrast, the effects of type 2 diabetes on muscle mass are more heterogeneous, with most patients showing no changes or even increases in muscle mass *D. Sala et al., 2015*. However, longitudinal studies reveal that certain populations, particularly older adults, experience accelerated muscle mass decline compared to non-diabetic controls *A. Koster et al., 2015.*
+
+The relationship between type 2 diabetes and sarcopenia is bidirectional and multifactorial [@chen2023]. While diabetes can promote muscle deterioration through insulin resistance, chronic inflammation, oxidative stress, and hyperglycemia-induced protein breakdown pathways *Y. Hirata et al., 2019*, reduced muscle mass conversely increases diabetes risk and worsens glucose metabolism *D. Sizoo et al., 2022.* Clinical evidence demonstrates that muscle deterioration in type 2 diabetes patients occurs independently of disease duration, metabolic control, and microvascular complications, suggesting intrinsic pathophysiological mechanisms beyond traditional diabetic complications *N. Guerrero et al., 2016.* Importantly, therapeutic interventions including glycemic control optimization and insulin therapy can improve muscle mass outcomes, indicating the potential reversibility of diabetes-associated muscle changes *K. Sugimoto et al., 2020.*
+
+Based on these findings, patients are allocated in the following 4 categories:
+
+-   **No diabetes** (negative on all diagnostic criteria)
+
+-   **Diabetes, no insulin** (positive on FPG/HbA1c criteria, oral medications only)
+
+-   **Diabetes with insulin** (insulin use regardless of other treatments)
+
+-   **IGT/prediabetes** (IGT positive but not meeting full diabetes criteria)
 
 ## Outcome Variables
 
