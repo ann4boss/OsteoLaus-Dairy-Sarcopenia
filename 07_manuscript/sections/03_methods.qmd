@@ -9,7 +9,9 @@ bibliography: references.bib
 
 The OsteoLaus study includs a subgroup of the CoLaus \textbar{} PsyCoLaus study participants, including 1474 postmenopausal women aged 50 to 80 years at baseline @shevroja2019. The detailed description of the recruitment process and methodology for CoLaus and OsteoLaus has been described elsewhere @firmann2008 @shevroja2019 and can be found at [www.colaus-psycolaus.ch](http://www.colaus-psycolaus.ch/). In summary, ... <!--# continue here -->
 
-OsteoLaus was initiated to focus on bone health and is a population-based prospective cohort from Lausanne, Switzerland. Participants were recruited between September 2009 and September 2012 if they participated in the baseline measurement of the CoLaus study. Women with the following inclusion criteria were selected: written informed consent, BMI between 15 kg/m^2^ and 40 kg/m^2^, at least two vertebrae and the femur accessible for measurement, available information on previous osteoporotic fractures, QUS of the heel accessible for measurement, no known disease affecting bone metabolism, and no known disorders affecting skeletal sites. On average, measurements were taken every 2.5 years, including the baseline and follow-ups. The timeline was as follows: F1: Follow-up 2009–2013, F2: Follow-up 2014–2018, F3: Follow-up 2018–2021, F4: Follow-up 2022–2026.
+CoLaus conducted at Centre Hospitalier Universitaire Vaudois
+
+OsteoLaus (conducted at Centre for Bone Diseases at the LUMC) was initiated to focus on bone health and is a population-based prospective cohort from Lausanne, Switzerland. Participants were recruited between September 2009 and September 2012 if they participated in the baseline measurement of the CoLaus study. Women with the following inclusion criteria were selected: written informed consent, BMI between 15 kg/m^2^ and 40 kg/m^2^, at least two vertebrae and the femur accessible for measurement, available information on previous osteoporotic fractures, QUS of the heel accessible for measurement, no known disease affecting bone metabolism, and no known disorders affecting skeletal sites. On average, measurements were taken every 2.5 years, including the baseline and follow-ups. The timeline was as follows: F1: Follow-up 2009–2013, F2: Follow-up 2014–2018, F3: Follow-up 2018–2021, F4: Follow-up 2022–2026.
 
 ### Exclusion Criteria
 
@@ -33,16 +35,11 @@ Smoking has been recognised as a risk factor for muscle wasting *\[SOURCE:* [10.
 
 <!--# Why is smoking used as covariant? -->
 
-Alcohol intake was assessed using a self-reported questionnaire covering consumption patterns over the previous month <!--# or 7 days like this study: https://www.atherosclerosis-journal.com/article/S0021-9150(12)00124-4/fulltext ?? -->. Alcohol consumption was analyzed as both a categorical and a continuous variable. Following Swiss national guidelines, a standard drink was defined as a single glass of wine, a bottle of beer, or a shot of spirits, each containing approximately 10–12g of pure ethanol [@standardglas]. Participants were categorized into four groups based on their total weekly intake to reflect sex-specific physiological thresholds:
+Alcohol intake was assessed using a self-reported questionnaire covering consumption patterns over the previous 7 days. Alcohol consumption was analyzed as both a categorical and a continuous variable. Following Swiss national guidelines, a standard drink was defined as a single glass of wine, a bottle of beer, or a shot of spirits, each containing approximately 10 g to 12 g of pure ethanol [@standardglas]. Participants were categorized into four groups based on their total weekly intake to reflect sex-specific physiological thresholds:
 
--   Non-drinkers: 0 g/day (0 units/week). <!--# included both lifetime and current abstainers. -->
-
-<!-- -->
-
+-   Non-drinkers: 0 g/day (0 units/week). <!--# includes both lifetime and current abstainers. -->
 -   Light drinkers: \>0 to 6 g/day (1–3 units/week), representing occasional consumption.
-
 -   Moderate drinkers: \>6 to 12 g/day (4–7 units/week), representing frequent consumption within the Swiss low-risk limit for women.
-
 -   Heavy drinkers: \>12 g/day (\>7 units/week), categorized as hazardous consumption exceeding the Swiss national guidelines for women.
 
 <!--# or Light drinkers: >0 to 12 g/day (1–7 units/week), representing consumption of up to one standard drink per day. Moderate drinkers: 12 g/day (8–11 units/week), representing the upper limit of recommended low-risk consumption for women in Switzerland.Heavy drinkers: >12 g/day (>11 units/week), categorized as hazardous consumption exceeding the Swiss national guidelines for women.-->
@@ -74,6 +71,10 @@ Based on these findings, patients are allocated in the following 4 categories:
 -   **Diabetes with insulin** (insulin use regardless of other treatments)
 
 -   **IGT/prediabetes** (IGT positive but not meeting full diabetes criteria)
+
+### **Anthropometric**
+
+All participants had their height measured using the same portable stadiometer (Seca version 216, Seca, Chino, CA, USA) with precision 0.1 cm, and body weight with the same electronic scale (Seca Clara 803, Seca, Chino, CA, USA) with precision 0.1 kg. Both measurements were performed with the participant barefoot and in minimum clothing. Body mass index (BMI) was calculated as weight/height^2^. BMI was categorized into underweight (\< 18.5 kg/m^2^), normal (18.5-24.9 kg/m^2^), overweight (25.0–29.9 kg/m^2^), and obese (\$≥\$ 30.0 kg/m^2^) according to WHO guidelines \[SOURCE\].
 
 ## Outcome Variables
 
