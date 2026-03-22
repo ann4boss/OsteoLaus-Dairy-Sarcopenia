@@ -1,0 +1,487 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+  11pt,
+]{article}
+\usepackage{xcolor}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{5}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\usepackage{setspace}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
+  \fi
+  % set entry spacing
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{titletoc}
+
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\centering}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{0pt}{40pt}
+  
+  % Section formatting
+\titleformat{\section}
+  {\normalfont\Large\bfseries\raggedright}
+  {\thesection}{1em}{}
+\titlespacing*{\section}{0pt}{3.5ex plus 1ex minus .2ex}{2.3ex plus .2ex}
+  
+% Subsection formatting
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\raggedright}
+  {\thesubsection}{1em}{}
+\titlespacing*{\subsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% Subsubsection formatting
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\raggedright}
+  {\thesubsubsection}{1em}{}
+\titlespacing*{\subsubsection}{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
+% Paragraph formatting (if needed)
+\titleformat{\paragraph}[runin]
+  {\normalfont\normalsize\bfseries}
+  {\theparagraph}{1em}{}
+\titlespacing*{\paragraph}{0pt}{3.25ex plus 1ex minus .2ex}{1em}
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\author{}
+\date{}
+\begin{document}
+
+
+\setstretch{1.2}
+\section{Methods}\label{methods}
+
+\subsection{Study design and
+population}\label{study-design-and-population}
+
+The OsteoLaus study includs a subgroup of the CoLaus \textbar{}
+PsyCoLaus study participants, including 1474 postmenopausal women aged
+50 to 80 years at baseline {[}\citeproc{ref-shevroja2019}{1}{]}. The
+detailed description of the recruitment process and methodology for
+CoLaus and OsteoLaus has been described elsewhere
+{[}\citeproc{ref-firmann2008}{2}{]} {[}\citeproc{ref-shevroja2019}{1}{]}
+and can be found at
+\href{http://www.colaus-psycolaus.ch/}{www.colaus-psycolaus.ch}. In
+summary, \ldots{}
+
+CoLaus conducted at Centre Hospitalier Universitaire Vaudois
+
+OsteoLaus (conducted at Centre for Bone Diseases at the LUMC) was
+initiated to focus on bone health and is a population-based prospective
+cohort from Lausanne, Switzerland. Participants were recruited between
+September 2009 and September 2012 if they participated in the baseline
+measurement of the CoLaus study. Women with the following inclusion
+criteria were selected: written informed consent, BMI between 15
+kg/m\textsuperscript{2} and 40 kg/m\textsuperscript{2}, at least two
+vertebrae and the femur accessible for measurement, available
+information on previous osteoporotic fractures, QUS of the heel
+accessible for measurement, no known disease affecting bone metabolism,
+and no known disorders affecting skeletal sites. On average,
+measurements were taken every 2.5 years, including the baseline and
+follow-ups. The timeline was as follows: F1: Follow-up 2009--2013, F2:
+Follow-up 2014--2018, F3: Follow-up 2018--2021, F4: Follow-up
+2022--2026.
+
+\subsubsection{Exclusion Criteria}\label{exclusion-criteria}
+
+Figure 1 illustrates the study population.
+
+\subsection{Exposure}\label{exposure}
+
+FFQ self-reported food questionnaire
+
+\subsection{Covariates}\label{covariates}
+
+Figure 2 shows the DAG.
+
+\subsubsection{Sociodemographic}\label{sociodemographic}
+
+Educational level was self-reported and expressed as the highest level
+achieved. The levels are divided in three categories corresponding to
+International Standard Classification of Education (ISCED) 0-2, ISCED 3,
+and ISCED 4-8, which are labelled low, medium, and high, respectively
+{[}\citeproc{ref-ISCED}{3}{]}.
+
+\subsubsection{Lifestyle}\label{lifestyle}
+
+Smoking has been recognised as a risk factor for muscle wasting
+\emph{{[}SOURCE:}
+\href{https://doi.org/10.1164/rccm.201410-1830PP}{10.1164/rccm.201410-1830PP}\emph{{]}.}
+Participants' smoking history was assessed via self-report. Individuals
+were categorized as current smokers if they reported active tobacco use
+at the time of the study. Those who reported a history of smoking but
+had ceased use prior to the study were classified as former smokers.
+Participants with no history of tobacco initiation were defined as never
+smokers.
+
+Alcohol intake was assessed using a self-reported questionnaire covering
+consumption patterns over the previous 7 days. Alcohol consumption was
+analyzed as both a categorical and a continuous variable. Following
+Swiss national guidelines, a standard drink was defined as a single
+glass of wine, a bottle of beer, or a shot of spirits, each containing
+approximately 10 g to 12 g of pure ethanol
+{[}\citeproc{ref-standardglas}{4}{]}. Participants were categorized into
+four groups based on their total weekly intake to reflect sex-specific
+physiological thresholds:
+
+\begin{itemize}
+\tightlist
+\item
+  Non-drinkers: 0 g/day (0 units/week).
+\item
+  Light drinkers: \textgreater0 to 6 g/day (1--3 units/week),
+  representing occasional consumption.
+\item
+  Moderate drinkers: \textgreater6 to 12 g/day (4--7 units/week),
+  representing frequent consumption within the Swiss low-risk limit for
+  women.
+\item
+  Heavy drinkers: \textgreater12 g/day (\textgreater7 units/week),
+  categorized as hazardous consumption exceeding the Swiss national
+  guidelines for women.
+\end{itemize}
+
+While this categorization provides a structured metric for analysis, it
+is noted that self-reported dietary and alcohol questionnaires often
+slightly underestimate absolute intake levels
+{[}\citeproc{ref-kerr2012}{5},\citeproc{ref-morabia1994}{6}{]}.
+Validation studies in the Swiss population (Geneva) have specifically
+demonstrated that semi-quantitative food frequency questionnaires (FFQs)
+tend to underestimate absolute alcohol consumption when compared to more
+intensive 24-hour recall methods {[}\citeproc{ref-morabia1994}{6}{]}.
+
+Physical activity
+
+\subsubsection{Dietary assessment}\label{dietary-assessment}
+
+Total energy intake
+
+Vitamin D
+
+\subsubsection{Clinical}\label{clinical}
+
+The relationship between \textbf{diabetes mellitus} and muscle mass is
+complex and varies substantially by diabetes type and patient
+characteristics. Type 1 diabetes demonstrates the most pronounced
+effects, with untreated patients experiencing dramatic muscle loss and
+experimental models showing 20-30\% decreases in muscle mass and
+myofiber area \emph{D. Sala et al., 2015}. In contrast, the effects of
+type 2 diabetes on muscle mass are more heterogeneous, with most
+patients showing no changes or even increases in muscle mass \emph{D.
+Sala et al., 2015}. However, longitudinal studies reveal that certain
+populations, particularly older adults, experience accelerated muscle
+mass decline compared to non-diabetic controls \emph{A. Koster et al.,
+2015.}
+
+The relationship between type 2 diabetes and sarcopenia is bidirectional
+and multifactorial {[}\citeproc{ref-chen2023}{7}{]}. While diabetes can
+promote muscle deterioration through insulin resistance, chronic
+inflammation, oxidative stress, and hyperglycemia-induced protein
+breakdown pathways \emph{Y. Hirata et al., 2019}, reduced muscle mass
+conversely increases diabetes risk and worsens glucose metabolism
+\emph{D. Sizoo et al., 2022.} Clinical evidence demonstrates that muscle
+deterioration in type 2 diabetes patients occurs independently of
+disease duration, metabolic control, and microvascular complications,
+suggesting intrinsic pathophysiological mechanisms beyond traditional
+diabetic complications \emph{N. Guerrero et al., 2016.} Importantly,
+therapeutic interventions including glycemic control optimization and
+insulin therapy can improve muscle mass outcomes, indicating the
+potential reversibility of diabetes-associated muscle changes \emph{K.
+Sugimoto et al., 2020.}
+
+Based on these findings, patients are allocated in the following 4
+categories:
+
+\begin{itemize}
+\item
+  \textbf{No diabetes} (negative on all diagnostic criteria)
+\item
+  \textbf{Diabetes, no insulin} (positive on FPG/HbA1c criteria, oral
+  medications only)
+\item
+  \textbf{Diabetes with insulin} (insulin use regardless of other
+  treatments)
+\item
+  \textbf{IGT/prediabetes} (IGT positive but not meeting full diabetes
+  criteria)
+\end{itemize}
+
+\subsubsection{\texorpdfstring{\textbf{Anthropometric}}{Anthropometric}}\label{anthropometric}
+
+All participants had their height measured using the same portable
+stadiometer (Seca version 216, Seca, Chino, CA, USA) with precision 0.1
+cm, and body weight with the same electronic scale (Seca Clara 803,
+Seca, Chino, CA, USA) with precision 0.1 kg. Both measurements were
+performed with the participant barefoot and in minimum clothing. Body
+mass index (BMI) was calculated as weight/height\textsuperscript{2}. BMI
+was categorized into underweight (\textless{} 18.5
+kg/m\textsuperscript{2}), normal (18.5-24.9 kg/m\textsuperscript{2}),
+overweight (25.0--29.9 kg/m\textsuperscript{2}), and obese (≥ 30.0
+kg/m\textsuperscript{2}).
+
+\subsection{Outcome Variables}\label{outcome-variables}
+
+Handgrip strength (kg), measured using a JAMAR dynamometer
+
+Appendicular lean mass (ALM) and derived indices (ALMI and ALM/BMI for
+sensitivity analysis), measured by DXA (GE Lunar iDXA™)
+
+Gait speed (m/s), assessed using a 6-meter walk test
+
+\subsection{Statistical Methods}\label{statistical-methods}
+
+Participants were classified into quartiles according to their baseline
+daily intake of dairy products (grams per day) for descriptive analysis.
+
+\subsection{Ethics}\label{ethics}
+
+xx
+
+\section*{References}\label{bibliography}
+\addcontentsline{toc}{section}{References}
+
+\phantomsection\label{refs}
+\begin{CSLReferences}{0}{1}
+\bibitem[\citeproctext]{ref-shevroja2019}
+\CSLLeftMargin{1. }%
+\CSLRightInline{Enisa Shevroja, Pedro Marques-Vidal, Bérengère
+Aubry-Rozier, Gabriel Hans, Fernando Rivadeneira, Olivier Lamy, Didier
+Hans. Cohort {Profile}: {The OsteoLaus} study. International Journal of
+Epidemiology. 2019 Aug;48(4):1046--1047g.
+doi:\href{https://doi.org/10.1093/ije/dyy276}{10.1093/ije/dyy276}}
+
+\bibitem[\citeproctext]{ref-firmann2008}
+\CSLLeftMargin{2. }%
+\CSLRightInline{Mathieu Firmann, Vladimir Mayor, Pedro Marques Vidal,
+Murielle Bochud, Alain Pécoud, Daniel Hayoz, Fred Paccaud, Martin
+Preisig, Kijoung S. Song, Xin Yuan, Theodore M. Danoff, Heide A.
+Stirnadel, Dawn Waterworth, Vincent Mooser, Gérard Waeber, Peter
+Vollenweider. The {CoLaus} study: A population-based study to
+investigate the epidemiology and genetic determinants of cardiovascular
+risk factors and metabolic syndrome. BMC Cardiovascular Disorders. 2008
+Mar;8(1):6.
+doi:\href{https://doi.org/10.1186/1471-2261-8-6}{10.1186/1471-2261-8-6}}
+
+\bibitem[\citeproctext]{ref-ISCED}
+\CSLLeftMargin{3. }%
+\CSLRightInline{International {Standard Classification} of {Education}
+({ISCED}).
+https://ec.europa.eu/eurostat/statistics-explained/index.php?title=International\_Standard\_Classification\_of\_Education\_(ISCED).}
+
+\bibitem[\citeproctext]{ref-standardglas}
+\CSLLeftMargin{4. }%
+\CSLRightInline{Das {Standardglas Alkohol}... - {Alcohol Facts}.
+https://www.aktionstag-alkoholprobleme.ch/de/das-standardglas-alkohol.}
+
+\bibitem[\citeproctext]{ref-kerr2012}
+\CSLLeftMargin{5. }%
+\CSLRightInline{William C. Kerr, Tim Stockwell. Understanding standard
+drinks and drinking guidelines. Drug and Alcohol Review.
+2012;31(2):200--5.
+doi:\href{https://doi.org/10.1111/j.1465-3362.2011.00374.x}{10.1111/j.1465-3362.2011.00374.x}}
+
+\bibitem[\citeproctext]{ref-morabia1994}
+\CSLLeftMargin{6. }%
+\CSLRightInline{Alfredo Morabia, Martine Bernstein, Shiriki Kumanyika,
+Ann Sorenson, Isabelle Mabiala, Bettina Prodolliet, Irène Rolfo, Ba Lau
+Luong. {Développement et validation d'un questionnaire alimentaire
+semi-quantitatif à partir d'une enquête de population}. Sozial- und
+Präventivmedizin. 1994 Nov;39(6):345--69.
+doi:\href{https://doi.org/10.1007/BF01299666}{10.1007/BF01299666}}
+
+\bibitem[\citeproctext]{ref-chen2023}
+\CSLLeftMargin{7. }%
+\CSLRightInline{Huiling Chen, Xiaojing Huang, Meiyuan Dong, Song Wen,
+Ligang Zhou, Xinlu Yuan. The {Association Between Sarcopenia} and
+{Diabetes}: {From Pathophysiology Mechanism} to {Therapeutic Strategy}.
+Diabetes, Metabolic Syndrome and Obesity. 2023 May;16:1541--54.
+doi:\href{https://doi.org/10.2147/DMSO.S410834}{10.2147/DMSO.S410834}}
+
+\end{CSLReferences}
+
+
+
+
+\end{document}
