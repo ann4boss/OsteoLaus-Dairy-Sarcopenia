@@ -1,3 +1,4 @@
+#TODO: currently all variables are treated the same. Should there be a hierarchy like in diabetes?
 # =============================================================================
 # R/05_derive_colaus_htn.R
 # =============================================================================
@@ -23,25 +24,60 @@
 #' @return df with HTN_status (factor No/Yes) added.
 derive_htn <- function(df) {
     
+    # ── Check Required Columns ------------------------------------------------
     required_vars <- c("antiHTA", "crbpmed", "HTA")
-    missing_vars  <- setdiff(required_vars, names(df))
-    if (length(missing_vars) > 0)
-        cli::cli_abort("derive_htn: required column(s) not found: {.col {missing_vars}}")
+    actual_cols   <- df$vars
     
-    # Helper: test a Yes/No factor column safely (NA -> FALSE)
-    .is_yes <- function(x) !is.na(x) & x == "Yes"
-    .is_no  <- function(x) !is.na(x) & x == "No"
+    missing_vars <- setdiff(required_vars, actual_cols)
     
-    df <- dplyr::mutate(df,
-                        HTN_status = dplyr::case_when(
-                            # Any positive indicator -> hypertensive
-                            .is_yes(antiHTA) | .is_yes(crbpmed) | .is_yes(HTA) ~ "Yes",
-                            # At least one indicator is No and none is Yes -> normotensive
-                            .is_no(antiHTA)  | .is_no(crbpmed)  | .is_no(HTA)  ~ "No",
-                            # All NA -> missing
-                            TRUE ~ NA_character_
-                        ) |> factor(levels = c("No", "Yes"))
-    )
+    if (length(missing_vars) > 0) {
+        cli::cli_abort("derive_htn: required column(s) not found: {.val {missing_vars}}")
+    }
+    
+    # ── Ensure Lazy State ------------------------------------------------
+    if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
+    
+    # ── Main Derivation ------------------------------------------------
+    df <- df %>%
+        dplyr::mutate(
+            # Internal helpers for vectorized logic (Yes/No factors/chars)
+            tmp_yes = (!is.na(antiHTA) & antiHTA == "Yes") | 
+                (!is.na(crbpmed) & crbpmed == "Yes") | 
+                (!is.na(HTA)     & HTA     == "Yes"),
+            
+            tmp_no  = (!is.na(antiHTA) & antiHTA == "No") | 
+                (!is.na(crbpmed) & crbpmed == "No") | 
+                (!is.na(HTA)     & HTA     == "No"),
+            
+            HTN_status = dplyr::case_when(
+                tmp_yes ~ "Yes",
+                tmp_no  ~ "No",
+                TRUE    ~ NA_character_
+            ) %>% factor(levels = c("No", "Yes"))
+        )
+    
+    # ── Eager Summary ------------------------------------------------
+    # Quick count of prevalence for the log
+    stats <- df %>%
+        dplyr::summarise(
+            n_total = dplyr::n(),
+            n_htn   = sum(HTN_status == "Yes", na.rm = TRUE),
+            n_miss  = sum(is.na(HTN_status)),
+            .groups = "drop"
+        ) %>%
+        dplyr::as_tibble()
+    
+    cli::cli_inform(c(
+        "v" = "derive_htn: HTN status derived.",
+        " " = "Summary: {stats$n_htn} Yes / {stats$n_total - stats$n_htn - stats$n_miss} No ({stats$n_miss} NA)"
+    ))
+    
+    # ── Cleanup ------------------------------------------------
+    df <- df %>%
+        dplyr::select(
+            -dplyr::all_of(required_vars),
+            -dplyr::starts_with("tmp_")
+        )
     
     return(df)
 }

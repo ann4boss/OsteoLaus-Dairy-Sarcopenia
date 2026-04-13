@@ -1,12 +1,12 @@
 # =============================================================================
-# R/05_derive_colaus_atc.R
+# R/derive_colaus_atc.R
 # =============================================================================
 # Derives binary medication status flags from raw ATC code columns.
 #
 # Source columns: ATC1 ... ATC21 (character, one ATC code per column).
 # Each row may have up to 21 reported medications. A flag is set to "Yes"
 # if ANY of the 21 ATC columns contains a code starting with the relevant
-# prefix. Over-the-counter drugs (ATC_OTC1 ... ATC_OTC17) are also searched.
+# prefix.
 #
 # ATC prefix -> derived variable mapping is defined in ATC_PREFIXES
 # (00_constants.R):
@@ -20,55 +20,17 @@
 # Validation:
 #   hypolip_drug_status is compared against hypolip (self-reported).
 #   Mismatches are warnings for review; some discordance is expected.
-#
 # =============================================================================
 
-
-# ATC column names present in both CoLaus raw and harmonised data
+# ATC column definitions
 .ATC_COLS     <- paste0("ATC", 1:21)
 .ATC_OTC_COLS <- paste0("ATC_OTC", 1:17)
-.ALL_ATC_COLS <- c(.ATC_COLS, .ATC_OTC_COLS)
-
-# -----------------------------------------------------------------------------
-# Internal helpers
-# -----------------------------------------------------------------------------
-
-#' Test whether any ATC column in a row starts with a given prefix.
-#'
-#' @param df      Data frame with ATC columns.
-#' @param cols    Character vector of ATC column names present in df.
-#' @param prefix  ATC prefix string, e.g. "C10".
-#' @return Logical vector, one value per row. NA when no ATC codes are present
-#'   for that row (all ATC columns empty or NA).
-.any_atc_starts_with <- function(df, cols, prefix) {
-    if (length(cols) == 0) return(rep(NA, nrow(df)))
-    mat <- as.matrix(dplyr::select(df, dplyr::all_of(cols)))
-    apply(mat, 1, function(row) {
-        vals <- row[!is.na(row) & nchar(row) > 0]
-        if (length(vals) == 0) return(NA)
-        any(startsWith(vals, prefix))
-    })
-}
-
-#' Convert a logical vector to a Yes/No factor.
-.to_yn_factor <- function(x)
-    factor(
-        dplyr::case_when(
-            is.na(x) ~ NA_character_,
-            x        ~ "Yes",
-            TRUE     ~ "No"
-        ),
-        levels = c("No", "Yes")
-    )
-
-# -----------------------------------------------------------------------------
-# Main function
-# -----------------------------------------------------------------------------
+.ALL_ATC_COLS <- c(.ATC_COLS) # TODO: if I want to add Over-the-counter drugs (ATC_OTC1 ... ATC_OTC17), add .ALT_OTC_COLS to .ALL_ATC_COLS
 
 #' Derive ATC-based medication status flags for a CoLaus long tibble.
 #'
 #' ATC prefix -> variable name mapping is read from ATC_PREFIXES in
-#' 00_constants.R. Adding a new drug class only requires updating that constant.
+#' 00_constants.R.
 #'
 #' @param df CoLaus long tibble after harmonisation and stacking.
 #' @return df with hypolip_drug_status, corticoids_status, vitD_status,
@@ -76,56 +38,91 @@
 #'   added or replaced.
 derive_atc <- function(df) {
     
-    atc_cols_present <- intersect(.ALL_ATC_COLS, names(df))
+    # ── Check Required Columns ------------------------------------------------
+    # .ALL_ATC_COLS is your constant list of atc1, atc2, etc.
+    actual_cols <- df$vars
+    atc_cols_present <- intersect(.ALL_ATC_COLS, actual_cols)
     
     if (length(atc_cols_present) == 0) {
-        cli::cli_warn(
-            "derive_atc: no ATC code columns found in data. \
-       Medication status flags will not be derived."
-        )
+        cli::cli_warn("derive_atc: No ATC code columns found. Flags not derived.")
         return(df)
     }
     
-    # ── Derive prefix-based flags from ATC_PREFIXES constant -------------------
-    for (varname in names(ATC_PREFIXES)) {
-        prefix <- ATC_PREFIXES[[varname]]
-        df[[varname]] <- .to_yn_factor(
-            .any_atc_starts_with(df, atc_cols_present, prefix)
-        )
-    }
+    # ── Ensure Lazy State ------------------------------------------------
+    if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
     
-    # ── Validation: hypolip_drug_status vs hypolip (self-reported) -------------
-    .validate_hypolip(df)
+    # ── Build Vectorized Expressions ───────────────────────────────────────
+    atc_expressions <- lapply(names(ATC_PREFIXES), function(varname) {
+        prefix <- ATC_PREFIXES[[varname]]
+        
+        # Build logic: (startsWith(atc1, "C10") | startsWith(atc2, "C10") ...)
+        detection_logic <- lapply(atc_cols_present, function(col) {
+            rlang::expr(startsWith(!!rlang::sym(col), !!prefix))
+        }) %>% 
+            purrr::reduce(function(a, b) rlang::expr(!!a | !!b))
+        
+        # Wrap in factor logic
+        rlang::expr(factor(
+            dplyr::case_when(
+                !!detection_logic ~ "Yes",
+                # Handle cases where all entries are NA
+                dplyr::across(dplyr::all_of(atc_cols_present), ~ is.na(.x)) %>% 
+                    rowSums() == !!length(atc_cols_present) ~ NA_character_,
+                TRUE ~ "No"
+            ),
+            levels = c("No", "Yes")
+        ))
+    })
+    names(atc_expressions) <- names(ATC_PREFIXES)
+    
+    # ── Apply Mutate ------------------------------------------------
+    df <- df %>% 
+        dplyr::mutate(!!!atc_expressions)
+    
+    # ── Eager Validation & Reporting ------------------------------------------------
+    # We calculate the row counts lazily to avoid a full collection
+    report_stats <- df %>%
+        dplyr::summarise(
+            total_rows = dplyr::n(),
+            # Since source cols are dropped, we check the first derived flag for NAs 
+            # as a proxy for 'rows with no ATC data'
+            n_valid = sum(!is.na(!!rlang::sym(names(ATC_PREFIXES)[1]))),
+            .groups = "drop"
+        ) %>%
+        dplyr::as_tibble()
+    
+    cli::cli_inform(c(
+        "v" = "derive_atc: ATC-based flags derived.",
+        "i" = "Processed {report_stats$total_rows} rows; {report_stats$n_valid} rows had valid ATC mapping data."
+    ))
+    
+    # ── Clean up -----------
+    df <- df %>% 
+        dplyr::select(-dplyr::any_of(c(.ATC_OTC_COLS, .ATC_COLS)))
+    
     
     return(df)
 }
 
 # -----------------------------------------------------------------------------
-# Validation helper (internal)
+# Optimized Validation
 # -----------------------------------------------------------------------------
-
-.validate_hypolip <- function(df) {
+.validate_hypolip_lazy <- function(df) {
+    if (!"hypolip" %in% names(df)) return(NULL)
     
-    if ("hypolip" %in% names(df)) {
-        n_atc_yes_self_no <- sum(
-            !is.na(df$hypolip_drug_status) & !is.na(df$hypolip) &
-                df$hypolip_drug_status == "Yes" & df$hypolip == "No",
-            na.rm = TRUE
-        )
-        n_atc_no_self_yes <- sum(
-            !is.na(df$hypolip_drug_status) & !is.na(df$hypolip) &
-                df$hypolip_drug_status == "No" & df$hypolip == "Yes",
-            na.rm = TRUE
-        )
-        if (n_atc_yes_self_no > 0)
-            cli::cli_warn(
-                "derive_atc: {n_atc_yes_self_no} row(s) with ATC C10 present but \
-         self-reported {.col hypolip} = No."
-            )
-        if (n_atc_no_self_yes > 0)
-            cli::cli_warn(
-                "derive_atc: {n_atc_no_self_yes} row(s) with no ATC C10 but \
-         self-reported {.col hypolip} = Yes."
-            )
+    # We summarize to get counts without pulling the whole dataset into memory
+    check <- df %>%
+        dplyr::filter(!is.na(hypolip_drug_status), !is.na(hypolip)) %>%
+        dplyr::summarise(
+            yes_no = sum(hypolip_drug_status == "Yes" & hypolip == "No", na.rm = TRUE),
+            no_yes = sum(hypolip_drug_status == "No" & hypolip == "Yes", na.rm = TRUE)
+        ) %>%
+        dplyr::as_tibble()
+    
+    if (check$yes_no > 0) {
+        cli::cli_inform("derive_atc: {check$yes_no} row(s) with ATC C10 but self-reported {.col hypolip} = No.")
+    }
+    if (check$no_yes > 0) {
+        cli::cli_inform("derive_atc: {check$no_yes} row(s) with no ATC C10 but self-reported {.col hypolip} = Yes.")
     }
 }

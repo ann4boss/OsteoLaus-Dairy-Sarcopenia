@@ -1,11 +1,15 @@
+# TODO: think about this missing data handling strategy
+# Missing FFQ item handling:
+#   If ALL dairy items are NA -> sub-category = NA (FFQ not completed).
+#   If at least one item is non-NA -> missing items treated as 0.
 # =============================================================================
-# R/05_derive_colaus_dairy.R
+# R/derive_colaus_dairy.R
 # =============================================================================
 # Derives dairy intake sub-categories by summing FFQ amount columns.
 #
 # FFQ amount columns are in grams/day as output from the dietary analysis.
 # Each FFQ item contributes to one or more sub-categories as specified in the
-# data dictionary. All output columns carry the _gday suffix.
+# data dictionary.
 #
 # Sub-category definitions
 # ─────────────────────────
@@ -15,96 +19,133 @@
 #   dairy_lowfat_gday        low-fat dairy items
 #   dairy_highfat_gday       high-fat dairy items
 #
-# Item -> sub-category mapping (from data dictionary):
-#   FFQ1amount  -> total, highfat, fermented        plain yogurt
-#   FFQ2amount  -> total, fermented, lowfat         low-fat yogurt
-#   FFQ3amount  -> total, fermented, highfat        fruit yogurt
-#   FFQ4amount  -> total, fermented, lowfat         cottage cheese 0%
-#   FFQ5amount  -> total, fermented, highfat        cottage cheese/ricotta
-#   FFQ6amount  -> total, fermented, highfat        feta/mozzarella
-#   FFQ7amount  -> total, fermented, highfat        gruyere/tomme/camembert
-#   FFQ8amount  -> total, fermented, highfat        cheese fondue
-#   FFQ52amount -> total                            butter
-#   FFQ53amount -> total                            cream 35%
-#   FFQ63amount -> total                            cream tart/cake
-#   FFQ68amount -> total                            ice cream/sorbet (assumed dairy)
-#   FFQ71amount -> total                            butter for cooking
-#   FFQ82amount -> total, non_fermented, lowfat     milk in coffee 0%
-#   FFQ83amount -> total, non_fermented, highfat    milk in coffee non-0%
-#   FFQ84amount -> total                            coffee creamer
-#   FFQ85amount -> total, non_fermented, lowfat     milk drink 0%
-#   FFQ86amount -> total, non_fermented, highfat    milk drink non-0%
-#
-# Items FFQ52, 53, 63, 68, 71, 84 contribute to total only (not fermented or
-# non-fermented). This means dairy_fermented + dairy_non_fermented < dairy_total
-# by design; the sanity check tests the opposite direction (exceeding total),
-# not for equality.
-#
-# Missing FFQ item handling:
-#   If ALL dairy items are NA -> sub-category = NA (FFQ not completed).
-#   If at least one item is non-NA -> missing items treated as 0.
-#
-# Depends on: nothing
+# Item -> sub-category mapping:
+#   FFQ1amount  -> total, fermented, high-fat      plain yogurt
+#   FFQ2amount  -> total, fermented, low-fat         low-fat yogurt
+#   FFQ3amount  -> total, fermented, high-fat        fruit yogurt
+#   FFQ4amount  -> total, fermented, low-fat         cottage cheese 0%
+#   FFQ5amount  -> total, fermented, high-fat        cottage cheese/ricotta
+#   FFQ6amount  -> total, fermented, high-fat        feta/mozzarella
+#   FFQ7amount  -> total, fermented, high-fat        gruyere/tomme/camembert
+#   FFQ8amount  -> total, fermented, high-fat        cheese fondue
+#   FFQ52amount -> total, non-fermented, high-fat    butter
+#   FFQ63amount -> total, non-fermented, high-fat    cream tart/cake
+#   FFQ68amount -> total, non-fermented, high-fat    ice cream/sorbet (assumed dairy)
+#   FFQ71amount -> total, non-fermented, high-fat    butter for cooking
+#   FFQ82amount -> total, non-fermented, low-fat     milk in coffee 0%
+#   FFQ83amount -> total, non-fermented, high-fat    milk in coffee non-0%
+#   FFQ84amount -> total, non-fermented, high-fat    coffee creamer
+#   FFQ85amount -> total, non-fermented, lowf-at     milk drink 0%
+#   FFQ86amount -> total, non-fermented, high-fat    milk drink non-0%
 # =============================================================================
 
 # Item membership per sub-category (base column names, no wave prefix)
 .DAIRY_TOTAL        <- paste0("FFQ", c(1:8, 52, 53, 63, 68, 71, 82:86), "amount")
 .DAIRY_FERMENTED    <- paste0("FFQ", c(1:8), "amount")
-.DAIRY_NON_FERM     <- paste0("FFQ", c(82, 83, 85, 86), "amount")
+.DAIRY_NON_FERM     <- paste0("FFQ", c(52, 53, 63, 68, 71, 82:86), "amount")
 .DAIRY_LOWFAT       <- paste0("FFQ", c(2, 4, 82, 85), "amount")
-.DAIRY_HIGHFAT      <- paste0("FFQ", c(1, 3, 5, 6, 7, 8, 83, 86), "amount")
+.DAIRY_HIGHFAT      <- paste0("FFQ", c(1, 3, 5, 6, 7, 8,52, 53, 63, 68, 71, 83, 86), "amount")
 
 # Internal helper: sum a set of FFQ amount columns, returning NA if all are NA.
-.dairy_sum <- function(df, cols) {
-    present <- intersect(cols, names(df))
-    if (length(present) == 0) return(rep(NA_real_, nrow(df)))
+.build_dairy_sum_expr <- function(df, cols) {
+    present <- intersect(cols, df$vars)
     
-    mat    <- as.matrix(dplyr::select(df, dplyr::all_of(present)))
-    all_na <- apply(is.na(mat), 1, all)
-    out    <- rowSums(mat, na.rm = TRUE)
-    out[all_na] <- NA_real_
-    out
+    if (length(present) == 0) return(rlang::expr(NA_real_))
+    
+    # Logic: If all present columns are NA, return NA. Else sum them (NA = 0).
+    # We build a chain of is.na(col1) & is.na(col2)...
+    all_na_condition <- present %>%
+        lapply(function(x) rlang::expr(is.na(.data[[!!x]]))) %>%
+        purrr::reduce(function(a, b) rlang::expr(!!a & !!b))
+    
+    # Build the row-sum expression (base rowSums is translated by dtplyr)
+    rlang::expr(dplyr::case_when(
+        !!all_na_condition ~ NA_real_,
+        TRUE ~ rowSums(dplyr::across(dplyr::all_of(!!present)), na.rm = TRUE)
+    ))
 }
 
 #' Derive dairy sub-category intakes (g/day) for a CoLaus long tibble.
-#'
-#' All output columns carry the _gday suffix to be consistent with
-#' build_exposures() column expectations. The sub-category items that
-#' contribute to total but not to fermented or non-fermented (butter, cream,
-#' ice cream, coffee creamer) mean that fermented + non_fermented < total
-#' is expected; this is NOT a data error.
-#'
+#' 
 #' @param df CoLaus long tibble after harmonisation and stacking.
 #' @return df with dairy_total_gday, dairy_fermented_gday,
 #'   dairy_non_fermented_gday, dairy_lowfat_gday, dairy_highfat_gday
 #'   (all numeric, g/day) added.
 derive_dairy <- function(df) {
     
-    df <- dplyr::mutate(df,
-                        dairy_total_gday         = .dairy_sum(df, .DAIRY_TOTAL),
-                        dairy_fermented_gday     = .dairy_sum(df, .DAIRY_FERMENTED),
-                        dairy_non_fermented_gday = .dairy_sum(df, .DAIRY_NON_FERM),
-                        dairy_lowfat_gday        = .dairy_sum(df, .DAIRY_LOWFAT),
-                        dairy_highfat_gday       = .dairy_sum(df, .DAIRY_HIGHFAT)
-    )
+    # ── Column Check ----------------------------------------------
+    # Combine all specific FFQ columns into one master list for verification
+    all_required_ffq <- unique(c(
+        .DAIRY_TOTAL, .DAIRY_FERMENTED, .DAIRY_NON_FERM, 
+        .DAIRY_LOWFAT, .DAIRY_HIGHFAT
+    ))
     
-    # ── Sanity check: fermented + non_fermented must not exceed total ----------
-    # Items FFQ52/53/63/68/71/84 go into total only, so the sum of fermented
-    # and non_fermented is always expected to be <= total. A violation indicates
-    # a mapping error, not an expected condition.
-    n_exceed <- sum(
-        !is.na(df$dairy_total_gday) &
-            !is.na(df$dairy_fermented_gday) &
-            !is.na(df$dairy_non_fermented_gday) &
-            (df$dairy_fermented_gday + df$dairy_non_fermented_gday) >
-            df$dairy_total_gday + 0.01,
-        na.rm = TRUE
-    )
-    if (n_exceed > 0)
-        cli::cli_warn(
-            "derive_dairy: {n_exceed} row(s) where fermented + non_fermented \
-       exceeds dairy_total_gday. Check FFQ item-to-category mapping."
+    actual_cols <- df$vars
+    missing_ffq <- setdiff(all_required_ffq, actual_cols)
+    
+    if (length(missing_ffq) > 0) {
+        cli::cli_abort(c(
+            "x" = "derive_dairy: Missing required FFQ amount columns.",
+            "i" = "Missing: {.val {missing_ffq}}",
+            "!" = "Dairy categories cannot be calculated without these sources."
+        ))
+    }
+    
+    # ── Ensure Lazy State ----------------------------------------------
+    if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
+    
+    
+    # ──  Main Derivation ----------------------------------------------
+    df <- df %>%
+        dplyr::mutate(
+            dairy_total_gday         = !!.build_dairy_sum_expr(., .DAIRY_TOTAL),
+            dairy_fermented_gday     = !!.build_dairy_sum_expr(., .DAIRY_FERMENTED),
+            dairy_non_fermented_gday = !!.build_dairy_sum_expr(., .DAIRY_NON_FERM),
+            dairy_lowfat_gday        = !!.build_dairy_sum_expr(., .DAIRY_LOWFAT),
+            dairy_highfat_gday       = !!.build_dairy_sum_expr(., .DAIRY_HIGHFAT)
+        )
+    
+    # ── Eager Summary & Sanity Check ----------------------------------------------
+    stats <- df %>%
+        dplyr::summarise(
+            n_exceed = sum(
+                (dairy_fermented_gday + dairy_non_fermented_gday) > (dairy_total_gday + 0.01),
+                na.rm = TRUE
+            ),
+            valid_total      = sum(!is.na(dairy_total_gday)),
+            valid_fermented  = sum(!is.na(dairy_fermented_gday)),
+            valid_non_ferm   = sum(!is.na(dairy_non_fermented_gday)),
+            valid_lowfat     = sum(!is.na(dairy_lowfat_gday)),
+            valid_highfat    = sum(!is.na(dairy_highfat_gday)),
+            .groups = "drop"
+        ) %>%
+        dplyr::as_tibble()
+    
+    # ── Reporting ----------------------------------------------
+    if (stats$n_exceed > 0) {
+        cli::cli_warn("derive_dairy: {stats$n_exceed} row(s) where fermented + non_fermented exceeds total.")
+    }
+    
+    cli::cli_h2("Dairy Intake Sub-Categories")
+    cli::cli_inform(c(
+        "v" = "derive_dairy: derived variables added.",
+        " " = "Summary of non-missing values:",
+        " " = " - total: {stats$valid_total}",
+        " " = " - fermented: {stats$valid_fermented}",
+        " " = " - non-fermented: {stats$valid_non_ferm}",
+        " " = " - low-fat: {stats$valid_lowfat}",
+        " " = " - high-fat: {stats$valid_highfat}"
+    ))
+    
+    # ── Cleanup ----------------------------------------------
+    # Drop all source FFQ and freq columns to clear memory
+    df <- df %>%
+        dplyr::select(
+            -dplyr::starts_with("FFQ"), 
+            -dplyr::starts_with("freq")
         )
     
     return(df)
 }
+
+

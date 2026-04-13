@@ -2,21 +2,15 @@
 # 03_R/00_constants.R
 # =============================================================================
 # Static lookup data shared across the entire pipeline.
-#
+# TODO: adapt to changes the following description
 # Contents:
-#   DATE_REGEX          Regex for the DDMonYYYY format used in both cohorts
 #   COHORT_META         Wave labels, CSV prefixes, wave numbers per cohort
 #   SENTINEL_NUMERIC    Per-variable numeric sentinel codes that mean "missing"
 #                       (applied in harmonise layer via apply_sentinel_numeric())
 #   ATC_PREFIXES        ATC prefix -> derived variable name mapping
-#   RANGE_LIMITS        Physiologically plausible ranges for outcome/exposure vars
 #   EWGSOP2             EWGSOP2 (2019) sarcopenia cut-offs (women only)
 #   FNIH                FNIH sarcopenia cut-offs (women only)
 # =============================================================================
-
-# Date format in both cohorts: DDMonYYYY, e.g. "21mar2025".
-# Regex accepts mixed case because SAS exports vary.
-DATE_REGEX <- "^[0-9]{2}[A-Za-z]{3}[0-9]{4}$"
 
 # -----------------------------------------------------------------------------
 # Cohort metadata
@@ -48,10 +42,10 @@ COHORT_META <- list(
             F3       = "F3"
         ),
         wave_num = c(
-            Baseline = 0L,
-            F1       = 1L,
-            F2       = 2L,
-            F3       = 3L
+            Baseline = 1L,
+            F1       = 2L,
+            F2       = 3L,
+            F3       = 4L
         )
     ),
     OsteoLaus = list(
@@ -64,11 +58,11 @@ COHORT_META <- list(
             V5       = "V5_"
         ),
         wave_num = c(
-            Baseline = 0L,
-            V2       = 1L,
-            V3       = 2L,
-            V4       = 3L,
-            V5       = 4L
+            Baseline = 1L,
+            V2       = 2L,
+            V3       = 3L,
+            V4       = 4L,
+            V5       = 5L
         )
     )
 )
@@ -77,7 +71,7 @@ COHORT_META <- list(
 # Numeric sentinel codes
 # Variables where a specific numeric value encodes "does not know" or
 # "not applicable". These are recoded to NA in the harmonise layer by
-# apply_sentinel_numeric() (defined in 00_utils_harmonise.R), which iterates
+# apply_sentinel_numeric() (defined in utils_harmonise.R), which iterates
 # over this list and applies it to each matching column after prefix-stripping.
 # Key: base column name (post-prefix-stripping). Value: vector of sentinel codes.
 # -----------------------------------------------------------------------------
@@ -86,10 +80,10 @@ SENTINEL_NUMERIC <- list(
     esthrpage = 99L    # 99 = "does not know" age at HRT start
 )
 
+
+
 # -----------------------------------------------------------------------------
 # ATC prefix -> derived variable name mapping
-# Centralised here so adding a new drug class only requires one edit.
-# Used by derive_colaus_atc.R via the ATC_PREFIXES constant.
 #
 # Prefixes:
 #   C10   lipid-lowering drugs
@@ -109,27 +103,6 @@ ATC_PREFIXES <- list(
     bisphosphonate_status = "M05BA"
 )
 
-# -----------------------------------------------------------------------------
-# Physiological range limits
-# Used in build_visits() and build_participants() to flag implausible values.
-# Values outside [lo, hi] are set to NA with a companion *_oob column = TRUE.
-#
-# energy_kcal: 500-4200 kcal/day is an exclusion criterion per variable
-#   definitions. Rows outside this range are flagged and excluded downstream.
-# -----------------------------------------------------------------------------
-
-RANGE_LIMITS <- list(
-    HGS_peak          = c(lo =  1,    hi =  90),    # kg  handgrip strength
-    ALM_HT2          = c(lo =  2,    hi =  12),    # kg/m2 appendicular lean mass index
-    ALM_BMI          = c(lo =  0.2,  hi =   1.2),  # ALM / BMI ratio
-    gait_speed       = c(lo =  0.1,  hi =   3.0),  # m/s 6-metre gait speed
-    BMI              = c(lo = 10,    hi =  70),     # kg/m2
-    Age              = c(lo = 49,    hi = 100),     # years
-    Height           = c(lo = 120,   hi = 200),     # cm
-    Weight           = c(lo = 30,    hi = 200),     # kg
-    dairy_total_gday = c(lo =  0,    hi = 1500),    # g/day total dairy
-    energy_kcal      = c(lo = 500,   hi = 4200)     # kcal/day (FFQ completeness check)
-)
 
 # -----------------------------------------------------------------------------
 # EWGSOP2 (2019) sarcopenia thresholds — women only

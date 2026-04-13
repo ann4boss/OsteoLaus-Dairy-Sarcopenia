@@ -1,83 +1,170 @@
-# TODO: needs to be simpler!!
-#=============================================================================
+# =============================================================================
 # R/derive_colaus_diabetes.R
 # =============================================================================
-# Derives diabetes_status from multiple source variables.
+# Derives a harmonised diabetes_status variable using multiple sources with a
+# predefined hierarchy and provides validation diagnostics.
 #
-# Source variables and their roles:
-#   dbtld     — self-reported diagnosis
-#   dbdrg     — self-reported diabetes drug history
-#   orldrg    — oral diabetes drug
-#   insn      — on insulin
-#   antiDIAB  — any antidiabetic drug
-#   DIAB      — diabetes diagnosis flag
-#   DIAB_Hb   — HbA1c-based diabetes flag
+# SOURCE VARIABLES
+#   dbtld     — self-reported diabetes diagnosis (Yes/No)
+#   DIAB      — clinically assessed diabetes flag (Yes/No)
+#   DIAB_Hb   — HbA1c-based diabetes classification (Yes/No)
 #
-# Derivation hierarchy (first matching condition wins):
-#   3 = Diab + Insulin  : insn == "Yes"
-#   2 = Diab oral/lab   : dbdrg == "Yes" OR orldrg == "Yes" OR antiDIAB == "Yes"
-#                         OR DIAB == "Yes" OR DIAB_Hb == "Yes" OR dbtld == "Yes"
-#   1 = No diabetes     : all above are No / NA
+# DERIVATION LOGIC
 #
-# Validation: DIAB2 (0=Normal, 1=IFG, 2=Diabetes at most waves) is used to
-# cross-check. A warning is raised for rows where DIAB2 == "Diabetes" but
-# diabetes_status == 1, or where DIAB2 == "Normal" but diabetes_status > 1.
+# Diabetes (1):
+#   Hierarchical classification:
+#     1. DIAB_Hb (highest priority, objective biomarker)
+#     2. DIAB (clinical diagnosis)
+#     3. dbtld (self-report)
 #
-# Note: IGT/Prediabetes (level 4) is not directly derivable from available
-# variables — DIAB2 == "IFG" is the only indicator but is labelled as
-# Validation in the data dictionary. This level is therefore not assigned here.
-# TODO: confirm whether IFG from DIAB2 should populate level 4.
+#   A participant is classified as diabetic if:
+#     - DIAB_Hb == "Yes", OR
+#     - DIAB_Hb is missing AND DIAB == "Yes", OR
+#     - DIAB_Hb and DIAB are missing AND dbtld == "Yes"
 #
-# Depends on: nothing
+# No diabetes (0):
+#     - At least one source variable is non-missing
+#     - No source indicates "Yes"
+#     - At least one source explicitly indicates "No"
+#
+# Missing:
+#   - All source variables are missing OR
+#   - Conflicting / insufficient evidence under the above rules
+#
+# VALIDATION OUTPUT
+#   The function reports:
+#     - Number of participants with 0, 1, 2, 3 available sources
+#     - Overall disagreement between sources
+#     - Disagreement between self-report and objective measures
+#
+#   Note: Some disagreement between dbtld and clinical/lab measures is expected.
+#
+# =============================================================================
 
-#' Derive diabetes_status for a CoLaus long tibble.
+#' Derive diabetes_status for a CoLaus long tibble using dtplyr.
 #'
-#' @param df CoLaus long tibble after harmonisation and stacking.
-#' @return df with diabetes_status (factor) added.
+#' @param df CoLaus long tibble (lazy_dt or data.frame).
+#' @return df with diabetes_status (factor) and internal flags added.
 derive_diabetes <- function(df) {
     
-    # Helper: safely test a Yes/No factor column, returns FALSE when NA
-    .is_yes <- function(x) !is.na(x) & x == "Yes"
-    
-    df <- dplyr::mutate(df,
-                        diabetes_status = dplyr::case_when(
-                            .is_yes(insn)                                                    ~ 3L,
-                            .is_yes(dbdrg) | .is_yes(orldrg) | .is_yes(antiDIAB) |
-                                .is_yes(DIAB) | .is_yes(DIAB_Hb) | .is_yes(dbtld)            ~ 2L,
-                            # Only assign No-diabetes when at least one source variable is present
-                            !is.na(DIAB) | !is.na(antiDIAB) | !is.na(dbtld)                ~ 1L,
-                            TRUE                                                             ~ NA_integer_
-                        ) |>
-                            factor(
-                                levels = 1:3,
-                                labels = c("No diabetes", "Diabetes (oral/lab)", "Diabetes (insulin)")
-                            )
-    )
-    
-    # ── Validation against DIAB2 ───────────────────────────────────────────────
-    if ("DIAB2" %in% names(df)) {
-        n_false_neg <- sum(
-            !is.na(df$diabetes_status) & !is.na(df$DIAB2) &
-                as.character(df$DIAB2) == "Diabetes" & df$diabetes_status == "No diabetes",
-            na.rm = TRUE
+    # ── Ensure Required Columns are available ---------------------------------
+    required_cols <- c("dbtld", "DIAB", "DIAB_Hb")
+    actual_cols <- df$vars
+    missing_cols <- setdiff(required_cols, actual_cols)
+    if (length(missing_cols) > 0) {
+        cli::cli_warn(
+            "derive_diabetes: missing required columns: {.val {missing_cols}}. 
+        Diabetes status will not be derived."
         )
-        n_false_pos <- sum(
-            !is.na(df$diabetes_status) & !is.na(df$DIAB2) &
-                as.character(df$DIAB2) == "Normal" &
-                df$diabetes_status %in% c("Diabetes (oral/lab)", "Diabetes (insulin)"),
-            na.rm = TRUE
-        )
-        if (n_false_neg > 0)
-            cli::cli_warn(
-                "derive_diabetes: {n_false_neg} row(s) where DIAB2 = Diabetes but \\
-         diabetes_status = No diabetes. Check source variables."
-            )
-        if (n_false_pos > 0)
-            cli::cli_warn(
-                "derive_diabetes: {n_false_pos} row(s) where DIAB2 = Normal but \\
-         diabetes_status indicates diabetes. Check source variables."
-            )
+        return(df)
     }
+    
+    
+    # ── Ensure Lazy State ------------------------------------------------
+    if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
+    
+    # ── Main Calculation Pipeline -----------------------------------------
+    df <- df |>
+        dplyr::mutate(
+            # Logic flags
+            is_yes_dbtld   = !is.na(dbtld) & dbtld == "Yes",
+            is_yes_DIAB    = !is.na(DIAB)  & DIAB == "Yes",
+            is_yes_DIAB_Hb = !is.na(DIAB_Hb) & DIAB_Hb == "Yes",
+            
+            is_avail_dbtld   = !is.na(dbtld),
+            is_avail_DIAB    = !is.na(DIAB),
+            is_avail_DIAB_Hb = !is.na(DIAB_Hb),
+            
+            # Availability counters
+            n_sources_available = is_avail_dbtld + is_avail_DIAB + is_avail_DIAB_Hb,
+            n_yes               = is_yes_dbtld + is_yes_DIAB + is_yes_DIAB_Hb,
+            
+            any_yes = is_yes_dbtld | is_yes_DIAB | is_yes_DIAB_Hb,
+            any_no  = (!is.na(dbtld) & dbtld == "No") | 
+                (!is.na(DIAB)  & DIAB == "No")  | 
+                (!is.na(DIAB_Hb) & DIAB_Hb == "No"),
+            
+            # --- MAIN DERIVATION ---
+            diabetes_status_num = dplyr::case_when(
+                # YES (hierarchy)
+                is_yes_DIAB_Hb ~ 1L,
+                !is_avail_DIAB_Hb & is_yes_DIAB ~ 1L,
+                !is_avail_DIAB_Hb & !is_avail_DIAB & is_yes_dbtld ~ 1L,
+                
+                # NO (strict rule)
+                n_sources_available > 0 & !any_yes & any_no ~ 0L,
+                
+                TRUE ~ NA_integer_
+            )
+        ) |>
+        dplyr::mutate(
+            # --- VALIDATION FLAGS ---
+            disagreement_any = n_sources_available >= 2 & n_yes > 0 & n_yes < n_sources_available,
+            
+            disagreement_fpg_vs_hba1c = is_avail_DIAB & is_avail_DIAB_Hb & (is_yes_DIAB != is_yes_DIAB_Hb),
+            
+            disagreement_self_vs_objective = is_avail_dbtld & (
+                (is_avail_DIAB & (is_yes_dbtld != is_yes_DIAB)) |
+                    (is_avail_DIAB_Hb & (is_yes_dbtld != is_yes_DIAB_Hb))
+            )
+        ) |>
+        dplyr::mutate(
+            diabetes_status = factor(
+                diabetes_status_num,
+                levels = c(0, 1),
+                labels = c("No diabetes", "Diabetes")
+            )
+        )
+    
+    
+    # ── Eager Validation Summary ------------------------------------------------
+    summary_stats <- df |>
+        dplyr::summarise(
+            n             = dplyr::n(),
+            n_missing_all = sum(n_sources_available == 0),
+            n_one_source  = sum(n_sources_available == 1),
+            n_two_sources = sum(n_sources_available == 2),
+            n_three_sources = sum(n_sources_available == 3),
+            
+            # denominators
+            n_any_valid       = sum(n_sources_available >= 2),
+            n_fpg_hba1c_valid = sum(is_avail_DIAB & is_avail_DIAB_Hb),
+            n_self_obj_valid  = sum(is_avail_dbtld & (is_avail_DIAB | is_avail_DIAB_Hb)),
+            
+            # numerators
+            sum_disagreement_any          = sum(disagreement_any, na.rm = TRUE),
+            sum_disagreement_fpg_vs_hba1c = sum(disagreement_fpg_vs_hba1c, na.rm = TRUE),
+            sum_disagreement_self_vs_obj  = sum(disagreement_self_vs_objective, na.rm = TRUE),
+            .groups = "drop"
+        ) |>
+        dplyr::as_tibble()
+
+    
+    # ── Reporting ------------------------------------------------
+    cli::cli_h2("Derive Diabetes Status")
+    cli::cli_inform(c(
+        "i" = "Diabetes derivation completed",
+        "*" = "Total measurements: {summary_stats$n}",
+        "*" = "No data on any source: {summary_stats$n_missing_all} ({round(summary_stats$n_missing_all / summary_stats$n * 100, 1)}%)",
+        "*" = "Sources available (1/2/3): {summary_stats$n_one_source} / {summary_stats$n_two_sources} / {summary_stats$n_three_sources}",
+        "*" = "Disagreement between any sources: {round(summary_stats$sum_disagreement_any / summary_stats$n_any_valid * 100, 1)}%",
+        "*" = "Disagreement between FPG and HbA1c: {round(summary_stats$sum_disagreement_fpg_vs_hba1c / summary_stats$n_fpg_hba1c_valid * 100, 1)}%",
+        "*" = "Self-report vs objective disagreement: {round(summary_stats$sum_disagreement_self_vs_obj / summary_stats$n_self_obj_valid * 100, 1)}%"
+    ))
+    
+    # ── Drop source and intermediate variables ------------------------------------
+    df <- df |>
+        dplyr::select(
+            -dplyr::any_of(c(
+                "is_yes_dbtld", "is_yes_DIAB", "is_yes_DIAB_Hb",
+                "is_avail_dbtld", "is_avail_DIAB", "is_avail_DIAB_Hb",
+                "n_sources_available", "n_yes",
+                "any_yes", "any_no",
+                "diabetes_status_num",
+                "disagreement_any", "disagreement_fpg_vs_hba1c", "disagreement_self_vs_objective",
+                "dbtld", "DIAB", "DIAB_Hb"
+            ))
+        )
     
     return(df)
 }

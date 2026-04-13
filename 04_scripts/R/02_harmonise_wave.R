@@ -3,13 +3,7 @@
 # =============================================================================
 # Public entry point for harmonisation. Routes to the correct cohort-specific
 # function, contains no harmonisation logic itself.
-#
-# Depends on: R/harmonise_colaus.R (harmonise_colaus)
-#             R/harmonise_osteo.R  (harmonise_osteo)
 # =============================================================================
-
-source("04_scripts/R/02_harmonise_colaus.R")
-source("04_scripts/R/02_harmonise_osteolaus.R")
 
 #' Harmonise a single imported wave.
 #'
@@ -17,14 +11,31 @@ source("04_scripts/R/02_harmonise_osteolaus.R")
 #' .cohort metadata column attached by import_wave(). Type coercion, date
 #' parsing, and factor coding are applied; no columns are dropped.
 #'
-#' @param df Output of import_wave().
-#' @return Tibble with correctly typed columns.
+#' @param df A data frame, tibble, or lazy_dt object.
+#' @return A tibble (if the sub-functions call as_tibble) or a lazy_dt.
 harmonise_wave <- function(df) {
-    stopifnot(length(unique(df$.wave)) == 1)
     
-    cohort <- unique(df$.cohort)
-    if (cohort == "CoLaus")    return(harmonise_colaus(df))
-    if (cohort == "OsteoLaus") return(harmonise_osteo(df))
+    cli::cli_h1("Harmonise Wave")
     
-    cli::cli_abort("Unknown cohort {.val {cohort}}.")
+    # ── Extract metadata -----------------------------------------
+    
+    cohorts <- df %>% dplyr::distinct(.cohort) %>% dplyr::pull(.cohort)
+    waves   <- df %>% dplyr::distinct(.wave) %>% dplyr::pull(.wave)
+    
+    if (length(waves) > 1) {
+        cli::cli_abort("harmonise_wave() received multiple waves: {.val {waves}}.")
+    }
+    
+    cohort <- cohorts[1]
+    
+    # ── Route to specific harmonisation -----------------------------------------
+    out <- if (cohort == "CoLaus") {
+        harmonise_colaus(df)
+    } else if (cohort == "OsteoLaus") {
+        harmonise_osteo(df)
+    } else {
+        cli::cli_abort("Unknown cohort {.val {cohort}}.")
+    }
+    
+    return(out)
 }

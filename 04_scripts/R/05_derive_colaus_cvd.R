@@ -1,5 +1,6 @@
+# TODO rewrite for dtplyr
 # =============================================================================
-# R/05_derive_colaus_cvd.R
+# R/derive_colaus_cvd.R
 # =============================================================================
 # Derives cdv_event (any CVD event) from the 13 component flags.
 #
@@ -22,10 +23,9 @@
 #       cdv_event = No  if ALL available components are No (at least one present).
 #       cdv_event = NA  if no component flag has a non-NA value.
 #
-# Validation: the pre-existing cdv_event and cvdbase_adj columns (if present)
-# are compared against the derived value and a warning raised on mismatch.
+# Validation: the cvdbase_adj column (if present) is compared against the 
+# derived value and a warning raised on mismatch.
 #
-# Depends on: nothing
 # =============================================================================
 
 .CVD_FLAGS <- c(
@@ -42,54 +42,72 @@
 #' @return df with cdv_event (factor: No / Yes) added or replaced.
 derive_cvd <- function(df) {
     
-    flags_present <- intersect(.CVD_FLAGS, names(df))
+    # ── Check Required Columns ----------------------------------------------
+    actual_cols <- df$vars
+    flags_present <- intersect(.CVD_FLAGS, actual_cols)
     
     if (length(flags_present) == 0) {
         cli::cli_warn(
-            "derive_cvd: no CVD component flag columns found. \\
-       {.col cdv_event} will not be derived."
+            "derive_cvd: No CVD component flags found in {.val {head(actual_cols, 5)}}... 
+            {.col cdv_event} will not be derived."
         )
         return(df)
     }
     
-    # Preserve original column if it exists
-    if ("cdv_event" %in% names(df))
-        df <- dplyr::rename(df, cdv_event_source = cdv_event)
+    # ── Ensure Lazy State ----------------------------------------------
+    if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
     
-    df <- dplyr::mutate(df,
-                        
-                        # TRUE if any flag is Yes, NA if all are NA, FALSE otherwise
-                        .any_yes = rowSums(
-                            dplyr::across(dplyr::all_of(flags_present), ~ !is.na(.x) & .x == "Yes"),
-                            na.rm = TRUE
-                        ) > 0,
-                        .any_non_na = rowSums(
-                            dplyr::across(dplyr::all_of(flags_present), ~ !is.na(.x)),
-                            na.rm = TRUE
-                        ) > 0,
-                        
-                        cdv_event = dplyr::case_when(
-                            .any_yes               ~ "Yes",
-                            .any_non_na            ~ "No",
-                            TRUE                   ~ NA_character_
-                        ) |> factor(levels = c("No", "Yes"))
-    ) |>
-        dplyr::select(-.any_yes, -.any_non_na)
-    
-    # ── Validation against original cdv_event_source ──────────────────────────
-    if ("cdv_event_source" %in% names(df)) {
-        n_mismatch <- sum(
-            !is.na(df$cdv_event) & !is.na(df$cdv_event_source) &
-                as.character(df$cdv_event) != as.character(df$cdv_event_source),
-            na.rm = TRUE
+    # ── Main Derivation ----------------------------------------------
+    df <- df %>%
+        dplyr::mutate(
+            # Helper: TRUE if any flag is "Yes"
+            tmp_any_yes = rowSums(
+                dplyr::across(dplyr::all_of(flags_present), ~ !is.na(.x) & .x == "Yes"),
+                na.rm = TRUE
+            ) > 0,
+            
+            # Helper: TRUE if at least one flag is not NA
+            tmp_any_non_na = rowSums(
+                dplyr::across(dplyr::all_of(flags_present), ~ !is.na(.x)),
+                na.rm = TRUE
+            ) > 0,
+            
+            # Final Category
+            cdv_event = dplyr::case_when(
+                tmp_any_yes    ~ "Yes",
+                tmp_any_non_na ~ "No",
+                TRUE           ~ NA_character_
+            ) %>% factor(levels = c("No", "Yes"))
         )
-        if (n_mismatch > 0)
-            cli::cli_warn(
-                "derive_cvd: {n_mismatch} row(s) where derived {.col cdv_event} \\
-         disagrees with original {.col cdv_event_source}. \\
-         Review component flags."
+    
+    # ── Validation ----------------------------------------------
+    # We only check 'cvdbase_adj' if it exists in the plan
+    if ("cvdbase_adj" %in% df$vars) {
+        check <- df %>%
+            dplyr::summarise(
+                n_mismatch = sum(
+                    !is.na(cdv_event) & !is.na(cvdbase_adj) &
+                        as.character(cdv_event) != as.character(cvdbase_adj),
+                    na.rm = TRUE
+                )
+            ) %>%
+            dplyr::as_tibble()
+        
+        if (check$n_mismatch > 0) {
+            cli::cli_inform(
+                "derive_cvd: {check$n_mismatch} row(s) mismatch between derived {.col cdv_event} 
+                and original {.col cvdbase_adj}."
             )
+        }
     }
+    
+    # ── Cleanup ----------------------------------------------
+    # Drop source flags AND intermediate variables
+    df <- df %>%
+        dplyr::select(
+            -dplyr::all_of(flags_present),
+            -dplyr::starts_with("tmp_")
+        )
     
     return(df)
 }

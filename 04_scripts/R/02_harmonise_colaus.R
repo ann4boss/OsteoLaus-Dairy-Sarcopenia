@@ -1,12 +1,10 @@
 # =============================================================================
-# R/02_harmonise_colaus.R
+# R/harmonise_colaus.R
 # =============================================================================
 # Type coercion, date parsing, and factor coding for a single CoLaus wave.
-# No columns are dropped here -> validated by validate_harmonise_colaus().
 #
 # Column names enter prefixed (e.g. "F1age") and leave in base format ("age")
 # after strip_wave_prefix() runs at the top of harmonise_colaus().
-#
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -45,11 +43,12 @@
   "dbdrg", "orldrg", "insn",
   "antiHTA", "HTA", "hypolip",
   "esthrp", "bthc",
-  "metab_synd",
+  "metab_synd", "crbpmed",
   "cvdbase_adj", "dbtld", "hctld",
   "miac", "strk", "chf", "cad", "angn", "cmp",
   "hdc",  "hdv",  "artm", "vslg", "ccth", "cabg", "pcin"
 )
+
 
 
 # -----------------------------------------------------------------------------
@@ -65,131 +64,170 @@
 #' @return Tibble with correctly typed columns.
 harmonise_colaus <- function(df) {
   
-  stopifnot(unique(df$.cohort) == "CoLaus")
-  wave <- unique(df$.wave)
+  # Basic validation
+  # Ensure we have a lazy_dt right away
+  if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
   
-  # ── Strip wave prefix -> base names -----------------------------------------
+  cohorts <- df %>% dplyr::distinct(.cohort) %>% dplyr::pull(.cohort)
+  waves   <- df %>% dplyr::distinct(.wave) %>% dplyr::pull(.wave)
+  
+  stopifnot(cohorts == "CoLaus")
+  cohort <- cohorts[1]
+  wave   <- waves[1]
+  
+
+  # ── Strip wave prefix ------------------------------------------------------
   # e.g. "F1age" -> "age". No-op at Baseline (empty prefix).
-  df <- strip_wave_prefix(df, wave, "CoLaus")
+  prefix <- COHORT_META[[cohort]][["wave_prefix"]][[wave]]
+  df <- strip_prefix(df, prefix)
   
-  # Snapshot base-name columns immediately after prefix stripping.
-  # The validator compares these against names(df) at the end of the function.
-  cols_before <- names(df)
-  
-  # ── Date & primary key -------------------------------------------------------
-  df <- dplyr::mutate(df,
-                      pt            = as.integer(pt),
-                      exam_date_iso = parse_exam_date(datexam)
-  )
-  
-  # ── Continuous variables -----------------------------------------------------
-  df <- dplyr::mutate(df,
-                      dplyr::across(
-                        dplyr::any_of(.COLAUS_NUMERIC_COLS),
-                        ~ safe_numeric(.x, dplyr::cur_column())
-                      )
-  )
-  
-  # ── Apply SENTINEL_NUMERIC ---------------------------------------------------
-  # esthrpage: 99 -> NA (centralised in constants, applied here after numeric
-  # coercion so the comparison works correctly on numeric values).
-  df <- apply_sentinel_numeric(df)
-  
-  # ── Simple Yes/No binaries (sentinel 8 and 9) --------------------------------
-  df <- dplyr::mutate(df,
-                      dplyr::across(dplyr::any_of(.COLAUS_YN_COLS), ~ yn_factor(.x))
-  )
-  
-  
-  # ── Dairy_OK binary ----------------------------------------------------------
-  # 0 = < 3 servings/day, 1 = >= 3 servings/day (Swiss dietary guidelines).
-  if ("Dairy_OK" %in% names(df))
-    df <- dplyr::mutate(df,
-                        Dairy_OK = factor(Dairy_OK, levels = c("0", "1"), labels = c("No", "Yes"))
+  # ── Start pipeline ---------------------------------------------------------
+  df_lazy <- dtplyr::lazy_dt(df) %>%
+    
+    # ── Date & primary key ---------------------------------------------------
+    dplyr::mutate(
+      pt            = as.integer(pt),
+      exam_date_iso = parse_exam_date(datexam)
+    ) %>%
+    dplyr::select(-dplyr::any_of("datexam")) %>%
+    
+    # ── Continuous variables & Sentinels --------------------------------------
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::any_of(.COLAUS_NUMERIC_COLS),
+        ~ safe_numeric(.x, dplyr::cur_column())
+      )
+    ) %>%
+    # esthrpage: 99 -> NA (centralised in constants, applied here after numeric
+    # coercion so the comparison works correctly on numeric values).
+    apply_sentinel_numeric() %>%
+    
+    
+    # ── Factors (Binary & Multi-level) ----------------------------------------
+    dplyr::mutate(
+      # Simple Yes/No
+      dplyr::across(dplyr::any_of(.COLAUS_YN_COLS), ~ yn_factor(.x)),
+      
+      # Wave
+      dplyr::across(dplyr::any_of(".wave"),
+                    ~ factor(.x, levels = c( "1", "2", "3", "4"), labels = c("Baseline", "F1", "F2", "F3"))),
+      
+      # Smoking
+      dplyr::across(dplyr::any_of("sbsmk"),
+                    ~ factor(sentinel_to_na(.x, "9"),
+                             levels = c("0", "1", "2"), labels = c("Never", "Former", "Current"))),
+      
+      # Alcohol
+      dplyr::across(dplyr::any_of("alcool4"),
+                    ~ factor(.x, levels = c("0", "1"), labels = c("Non-drinker", "Drinker"))),
+      # Education
+      dplyr::across(dplyr::any_of("edtyp4"),
+                    ~ factor(.x, levels = c("1", "2", "3", "4"),
+                             labels = c("University", "High school", "Apprenticeship", "Mandatory"))),
+      
+      # Physical Activity
+      dplyr::across(dplyr::any_of("phyact"),
+                    ~ factor(sentinel_to_na(.x, "9"),
+                             levels = c("0", "1", "2"), labels = c("Never", "Once/week", "Twice/week"))),
+      # Sex
+      dplyr::across(dplyr::any_of("sex"),
+                    ~ factor(.x, levels = c("0", "1"), labels = c("Female", "Male"))),
+      
+      # Dominant hand
+      dplyr::across(
+        dplyr::any_of("lateralite"),
+        ~ factor(.x, levels = c("1", "2", "3"), labels = c("Right", "Left", "Ambidextrous"))
+      ),
+      
+      # Ethnicity (self-reported)
+      dplyr::across(
+        dplyr::any_of("ethori_self"),
+        ~ factor(.x, levels = c("A", "B", "W", "O", "X", "K"),
+                 labels = c("Asian", "Black/African", "White", "Other", "Unknown", "Does not know"))
+      ),
+      
+      # Marital status (Living alone vs. Living in couple)
+      dplyr::across(
+        dplyr::any_of("mrtsts2"),
+        ~ factor(.x, levels = c("0", "1"), labels = c("Living alone", "Living in couple"))
+      ),
+      
+      
+      # FFQ Items (Frequency 1-7)
+      dplyr::across(dplyr::any_of(paste0("FFQ", 1:86)),
+                    ~ factor(.x, levels = as.character(1:7),
+                             labels = c("Never", "1/month", "2-3/month", "1-2/week",
+                                        "3-4/week", "1/day", "2+/day"))),
+      
+      # FFQ Portions (1-3)
+      dplyr::across(dplyr::any_of(paste0("FFQp", 1:86)),
+                    ~ factor(.x, levels = c("1", "2", "3"), labels = c("Less", "Equal", "More"))),
+      
+      
+      
+      # Dairy intake according to Swiss guidelines compliance (0-1)
+      dplyr::across(dplyr::any_of("Dairy_OK"),
+                    ~ factor(.x, levels = c("0", "1"), labels = c("< 3 servings/day", ">= 3 servings/day")))
+      
     )
+    
   
-  # ── Multi-level factors ------------------------------------------------------
-  df <- dplyr::mutate(df,
-                      dplyr::across(
-                        dplyr::any_of("sbsmk"),
-                        ~ factor(sentinel_to_na(.x, "9"),
-                                 levels = c("0", "1", "2"), labels = c("Never", "Former", "Current"))
-                      ),
-                      
-                      dplyr::across(
-                        dplyr::any_of("alcool4"),
-                        ~ factor(.x, levels = c("0", "1"),
-                                 labels = c("Non-drinker", "Drinker"))
-                      ),
-                      dplyr::across(
-                        dplyr::any_of("edtyp4"),
-                        # Levels ordered from highest to lowest education to match
-                        # the derived education_level (ISCED) ordering in derive_education().
-                        ~ factor(.x, levels = c("1", "2", "3", "4"),
-                                 labels = c("University", "High school", "Apprenticeship", "Mandatory"))
-                      ),
-                      dplyr::across(
-                        dplyr::any_of("phyact"),
-                        ~ factor(sentinel_to_na(.x, "9"),
-                                 levels = c("0", "1", "2"), labels = c("Never", "Once/week", "Twice/week"))
-                      ),
-                      dplyr::across(
-                        dplyr::any_of("lateralite"),
-                        ~ factor(.x, levels = c("1", "2", "3"), labels = c("Right", "Left", "Ambidextrous"))
-                      ),
-                      dplyr::across(
-                        dplyr::any_of("sex"),
-                        ~ factor(.x, levels = c("0", "1"), labels = c("Female", "Male"))
-                      ),
-                      dplyr::across(
-                        dplyr::any_of("ethori_self"),
-                        ~ factor(.x, levels = c("A", "B", "W", "O", "X", "K"),
-                                 labels = c("Asian", "Black/African", "White", "Other", "Unknown", "Does not know"))
-                      ),
-                      dplyr::across(
-                        dplyr::any_of("mrtsts2"),
-                        ~ factor(.x, levels = c("0", "1"), labels = c("Living alone", "Living in couple"))
-                      ),
-                      dplyr::across(
-                        dplyr::any_of("crbpmed"),
-                        # Sentinel: 8 = Not relevant, 9 = Does not know -> both to NA.
-                        ~ factor(sentinel_to_na(.x, c("8", "9")),
-                                 levels = c("0", "1"), labels = c("No", "Yes"))
-                      ),
-                      # FFQ frequency codes 1-7 (any of the 86 items actually present in data)
-                      dplyr::across(
-                        dplyr::any_of(paste0("FFQ", 1:86)),
-                        ~ factor(.x, levels = as.character(1:7),
-                                 labels = c("Never", "1/month", "2-3/month", "1-2/week",
-                                            "3-4/week", "1/day", "2+/day"))
-                      ),
-                      # FFQ portion size codes 1-3
-                      dplyr::across(
-                        dplyr::any_of(paste0("FFQp", 1:86)),
-                        ~ factor(.x, levels = c("1", "2", "3"), labels = c("Less", "Equal", "More"))
-                      )
-  )
   
-  # ── handgrip_com: wave-specific coding --------------------------------------
-  # Baseline: 0 = No problem, 1 = Yes (problem noted).
-  # F2/F3:    0 = No problem, 1 = Pain/arthrosis, 2 = No time/home/rejected.
-  # Harmonised to a common 3-level factor; Baseline "1" maps to "Pain/arthrosis"
-  # as the closest available category.
-  if ("handgrip_com" %in% names(df))
-    df <- dplyr::mutate(df,
-                        handgrip_com = factor(
-                          handgrip_com,
-                          levels = c("0", "1", "2"),
-                          labels = c("No problem", "Pain/arthrosis", "No time/home/rejected")
-                        )
-    )
+  # ── Wave-specific logic (Handgrip & Diabetes) -------------------------------
   
-  # ── DIAB2: wave-specific level structure ------------------------------------
-  if ("DIAB2" %in% names(df))
-    df <- dplyr::mutate(df, DIAB2 = harmonise_diab2(DIAB2, wave))
+  # Handgrip
+  # Baseline: 0 = No problem, 1 = Yes (problem noted) -> recode to 3 = Yes, unspecified problem.
+  # F2:    0 = No problem, 1 = Pain/arthrosis 
+  # F3:    0 = No problem, 1 = Pain/arthrosis, 2 = No time/home/rejected.
+  if ("handgrip_com" %in% df$vars) {
+    df_lazy <- df_lazy %>%
+      dplyr::mutate(
+        handgrip_com = factor(
+          dplyr::case_when(
+            wave == "Baseline" & handgrip_com == "0" ~ 0L,
+            wave == "Baseline" & handgrip_com == "1" ~ 3L,
+            wave == "F2" & handgrip_com == "0" ~ 0L,
+            wave == "F2" & handgrip_com == "1" ~ 1L,
+            wave == "F3" & handgrip_com == "0" ~ 0L,
+            wave == "F3" & handgrip_com == "1" ~ 1L,
+            wave == "F3" & handgrip_com == "2" ~ 2L,
+            TRUE ~ NA_integer_
+          ),
+          levels = 0:3,
+          labels = c("No problem", "Pain/arthrosis", "No time/home/rejected", "Yes (unspecified problem)")
+        )
+      )
+  }
   
-  # -- Validate: no columns dropped, only exam_date_iso added -----------------
-  validate_harmonise(cols_before, names(df), wave)
+  # Diabetes
+  # F1         : 0 = No,     1 = Yes -> recoded to 2 = Diabetes
+  # All others : 0 = Normal, 1 = IFG,   2 = Diabetes
+  if ("DIAB2" %in% df$vars) {
+    df_lazy <- df_lazy %>%
+      dplyr::mutate(
+        DIAB2 = factor(
+          dplyr::case_when(
+            wave == "F1" & DIAB2 == "0" ~ 0L,
+            wave == "F1" & DIAB2 == "1" ~ 2L,
+            wave != "F1" & DIAB2 == "0" ~ 0L,
+            wave != "F1" & DIAB2 == "1" ~ 1L,
+            wave != "F1" & DIAB2 == "2" ~ 2L,
+            TRUE ~ NA_integer_
+          ),
+          levels = 0:2, labels = c("Normal", "IFG", "Diabetes"), ordered = TRUE
+        )
+      )
+  }
   
-  return(df)
+  # ── Finalize: Rename and Collect ---------------------------------------------
+  out <- df_lazy %>%
+    dplyr::rename(dplyr::any_of(c(
+      Age = "age", HGS_MAX = "handgrip", Height = "ht", Weight = "wt"
+    ))) %>%
+    dplyr::as_tibble()
+  
+  return(out)
 }
+
+
+

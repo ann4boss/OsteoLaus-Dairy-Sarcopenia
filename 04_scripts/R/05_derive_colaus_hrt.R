@@ -15,30 +15,49 @@
 #                                          evidence
 #   hrt_status = NA                    when esthrp is NA
 #
-# Note: hrt_status applies to females only. Male rows will have NA for esthrp
-# and will therefore receive NA. No sex filter is applied here so the
-# function remains data-agnostic.
-#
-# Depends on: nothing
 # =============================================================================
 
-#' Derive hrt_status for a CoLaus long tibble.
+#' Derive Hormone Replacement Therapy (HRT) status using dtplyr
 #'
-#' @param df CoLaus long tibble after harmonisation and stacking.
-#' @return df with hrt_status (factor) added.
+#' @param df CoLaus long tibble (lazy_dt or data.frame)
+#' @return df with hrt_status added and source columns dropped.
 derive_hrt <- function(df) {
     
-    df <- dplyr::mutate(df,
-                        hrt_status = dplyr::case_when(
-                            is.na(esthrp)                              ~ NA_character_,
-                            esthrp == "Yes"                            ~ "Current HRT",
-                            esthrp == "No" & !is.na(esthrpage)         ~ "Past HRT",
-                            esthrp == "No"                             ~ "Never / Not current",
-                            TRUE                                       ~ NA_character_
-                        ) |>
-                            factor(levels = c("Never / Not current", "Past HRT", "Current HRT"))
-                        
-    )
+    # ── Check Required Columns ----------------------------------------------
+    required_cols <- c("esthrp", "esthrpage")
+    actual_cols <- df$vars
+    
+    missing_cols <- setdiff(required_cols, actual_cols)
+    
+    if (length(missing_cols) > 0) {
+        cli::cli_warn(
+            "derive_hrt: missing required columns: {.val {missing_cols}}. 
+            {.col hrt_status} will not be derived."
+        )
+        return(df)
+    }
+    
+    # ── Ensure Lazy State ----------------------------------------------
+    if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
+    
+    
+    # ── Main Derivation ----------------------------------------------
+    df <- df %>%
+        dplyr::mutate(
+            hrt_status = dplyr::case_when(
+                is.na(esthrp)                               ~ NA_character_,
+                esthrp == "Yes"                             ~ "Current HRT",
+                esthrp == "No" & !is.na(esthrpage)          ~ "Past HRT",
+                esthrp == "No"                              ~ "Never / Not current",
+                TRUE                                        ~ NA_character_
+            ) %>% 
+                factor(levels = c("Never / Not current", "Past HRT", "Current HRT"))
+        )
+    
+    # ── Cleanup ----------------------------------------------
+    # Drop source columns as requested
+    df <- df %>%
+        dplyr::select(-dplyr::all_of(required_cols))
     
     return(df)
 }

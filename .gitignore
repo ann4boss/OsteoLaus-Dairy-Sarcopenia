@@ -24,3 +24,4 @@
 07_manuscript/*.fdb_latexmk
 07_manuscript/*.tex
 07_manuscript/*.spl
+_targets
