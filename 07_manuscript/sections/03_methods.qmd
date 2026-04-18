@@ -7,46 +7,82 @@ bibliography: references.bib
 
 ## Study design and population
 
-The OsteoLaus study includes a subgroup of the CoLaus \textbar{} PsyCoLaus study participants, including 1474 postmenopausal women aged 50 to 80 years at baseline @shevroja2019. The detailed description of the recruitment process and methodology for CoLaus and OsteoLaus has been described elsewhere @firmann2008 @shevroja2019 and can be found at [www.colaus-psycolaus.ch](http://www.colaus-psycolaus.ch/). In summary, ... <!--# continue here -->
+This analysis used data collected for the CoLaus \\textbar{} PsyCoLaus study as well as its substudy OsteoLaus. The focus was on the OsteoLaus cohort, which included 1475 women aged 50 to 80 years at baseline [@shevroja2019]. OsteoLaus enrolled all citizens of Lausanne, Switzerland, aged 35 to 75 years, for the single-centre study between June 2003 and May 2006. Since then, four follow-up visits were conducted with the following timelines: first (2009–2013), second (2014–2018), third (2018–2021), forth (2022–2026). All women participating in the CoLaus baseline visit were enrolled for OsteoLaus to study fracture risk and assess the relationship between osteoporosis and cardiovascular diseases. Women with the following inclusion criteria were selected: written informed consent, BMI between 15 kg/m2 and 40 kg/m2, at least two vertebrae and the femur accessible for measurement, available information on previous osteoporotic fractures, QUS of the heel accessible for measurement, no known disease affecting bone metabolism, and no known disorders affecting skeletal sites. On average, measurements were taken every 2.5 years with these timelines: first visit (baseline, 2010–2012, n = 1475), second (2012–2015, n = 1349), third (2015–2018, n = 1242), fourth (2017–2020, n = 1104) and fifth (2020–2022, n = 944) visits. The number of participants decreased over time due to loss of follow‐up, death, institutionalisation, refusal, body mass index (BMI) over 40 kg/m2 or severe psychiatric disease [@vendrami2025a].Further details of the recruitment process and methodology for CoLaus and OsteoLaus are described in Firmann et al. [@firmann2008] and Shevroja et al. [@shevroja2019], respectively. Additional information can also be found at [www.colaus-psycolaus.ch](www.colaus-psycolaus.ch). **Figure 1** illustrates the study population and visit timeline.
 
-CoLaus conducted at Centre Hospitalier Universitaire Vaudois
+<!--# TBC -->
 
-OsteoLaus (conducted at Centre for Bone Diseases at the LUMC) was initiated to focus on bone health and is a population-based prospective cohort from Lausanne, Switzerland. Participants were recruited between September 2009 and September 2012 if they participated in the baseline measurement of the CoLaus study. Women with the following inclusion criteria were selected: written informed consent, BMI between 15 kg/m^2^ and 40 kg/m^2^, at least two vertebrae and the femur accessible for measurement, available information on previous osteoporotic fractures, QUS of the heel accessible for measurement, no known disease affecting bone metabolism, and no known disorders affecting skeletal sites. On average, measurements were taken every 2.5 years, including the baseline and follow-ups. The timeline was as follows: F1: Follow-up 2009–2013, F2: Follow-up 2014–2018, F3: Follow-up 2018–2021, F4: Follow-up 2022–2026.
-
-Figure 1 illustrates the study population.
+Link of CoLaus to the closest OsteoLaus visit...
 
 ## Exposure
 
-FFQ self-reported food questionnaire
+Dairy consumption and other dietary intake were assessed during the CoLaus visits from the first follow up visit onwards using a self-administered semi-quantitative food frequency questionnaire (FFQ). This FFQ included a list of 97 food items, consumption frequencies ranging from “less than once during the last 4 weeks” to “2 or more times per day”, and three different serving sizes for each item (smaller, equal, or bigger) compared to a reference size [@marques-vidal2018]. The amount (either g/day or mL/day) per item was calculated by combining frequency times portion sizes. Portion sizes were taken as defined in *Bernstein et al. (1995)* <!--# source!! --> and can be see in Table X
+
+|  |  |  |  |  |
+|---------|----------------|---------|--------------------|--------------------|
+| **FFQ \#** | **Description** | Unit | **Men (S / N / L)** | **Women (S / N / L)** |
+| **1** | Plain yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
+| **2** | Low-fat yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
+| **3** | Fruit/aroma yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
+| **4** <!--# more for women? this is atypical check --> | Cottage cheese (0% fat) | g | 50 / 100 / 150 | 60 / 125 / 200 |
+| **5** | Cottage cheese, ricotta | g | 50 / 100 / 150 | 50 / 100 / 150 |
+| **6** | Feta, mozzarella | g | 30 / 60 / 90 | 20 / 40 / 60 |
+| **7** | Gruyère, tomme, camembert | g | 40 / 80 / 120 | 30 / 60 / 90 |
+| **8** | Cheese fondue | g | 175 / 350 / 525 | 175 / 350 / 525 |
+| **52** | Butter | g | 5 / 10 / 15 | 4 / 7 / 10 |
+| **53** | Cream (35% fat) | g | 10 / 20 / 30 | 8 / 15 / 23 |
+| **63** | Cream tart, cream cake | g | 50 / 100 / 150 | 50 / 100 / 150 |
+| **68** | Ice cream, sorbet | g | 60 / 120 / 180 | 50 / 100 / 150 |
+| **71** | Butter (for cooking) | g | 5 / 10 / 15 | 4 / 7 / 10 |
+| **82** | Milk in coffee (0% fat) | mL | 15 / 30 / 45 | 15 / 30 / 45 |
+| **83** | Milk in coffee (non 0% fat) | mL | 15 / 30 / 45 | 15 / 30 / 45 |
+| **84** | Coffee creamer | mL | 6 / 12 / 18 | 6 / 12 / 18 |
+| **85** | Milk as drink (0% fat) | mL | 75 / 150 / 225 | 75 / 150 / 225 |
+| **86** | Milk as drink (non 0% fat) | mL | 75 / 150 / 225 | 75 / 150 / 225 |
+
+The FFQ responses were converted into nutrients based on the French CIQUAL food composition table.
+
+We calculated the exposure to total dairy products as the summation of grams of all types of milk, cheese, yoghurt, cream, butter, ice-cream. The assessment of ice-cream consumption was combined with sorbet (not dairy based) within one variable. *For the amount of ice-cream, the entire amount of ice-cream/sorbet was considered dairy product*. For the dairy subtypes, the sum of grams was similarly calculated. Fermented dairy contained yoghurt and cheese. Non-fermented dairy included milk, cream, and ice-cream. Full-fat dairy contained the full-fat variants of milk, yoghurt, cheese, cream, butter and ice-cream. Skimmed milk, yoghurt, and 1–2% fat cheese were categorised as low-fat dairy.
+
+Cumulative average dairy intake was calculated as the running mean of all non-missing dairy intakes from OsteoLaus baseline up to and including the current visit for each visit. Similarly, the cumulative average dairy intake lagging one wave was used for the sensitivity analysis.
 
 ## Covariates
 
-Figure 2 shows the DAG.
+We included the following covariates due to their previously seen effect on muscle mass and function. **Figure 2** shows the directed acyclic graph how these variables interact with each other and with muscle outcomes.
 
 ### Sociodemographic
 
-Educational level was self-reported and expressed as the highest level achieved. The levels are divided in three categories corresponding to International Standard Classification of Education (ISCED) 0-2, ISCED 3, and ISCED 4-8, which are labelled low, medium, and high, respectively [@ISCED].
+Educational level was self-reported and expressed as the highest level achieved. The levels are divided in three categories corresponding to International Standard Classification of Education (ISCED) 0-2, ISCED 3, and ISCED 4-8, which are labelled low, medium, and high, respectively [@ISCED]. Participants with missing educational level were excluded.
+
+<!--# Tbc -->
+
+The age was derived by the birth date and examination date.
 
 ### Lifestyle
 
-Smoking has been recognised as a risk factor for muscle wasting *\[SOURCE:* [10.1164/rccm.201410-1830PP](https://doi.org/10.1164/rccm.201410-1830PP)*\].* Participants’ smoking history was assessed via self-report. Individuals were categorized as current smokers if they reported active tobacco <!--# only tabacco or other nicotine containing things? --> use at the time of the study. Those who reported a history of smoking but had ceased use prior to the study were classified as former smokers. Participants with no history of tobacco initiation were defined as never smokers. <!--# Check if the smoking status changes over the approx. 10 years of study in any participants, e.g. going from current to former -->
+Smoking is known to be linked to lower muscle force and reduced lean body mass [@degens2015]. Thus, the smoking status of the participant was included as covariate. Smoking history of participants was collected through self-report. Participants were grouped into three categories:
 
-<!--# Why is smoking used as covariant? -->
+-   Current smokers: those who were actively smoking at the time of the study, regardless of how much they smoked
+-   Former smokers: those who had smoked in the past but had quit before the study, regardless of how long ago they quit
+-   Never smokers: those who had never smoked
+
+Smoking status was recorded at each CoLaus study visit, and a summary over time was created. Some reported changes were not realistic, for example switching from never smoker to former or current smoker, or from former or current smoker to never smoker. In these cases, the “never smoker” status was changed to “former smoker”, assuming participants may have answered based on their current situation rather than their lifetime history. Participants with missing smoking data at the baseline visit were excluded. Missing values at later visits were replaced with the most recent available smoking status.
 
 <!--# Why is alcohol intake used as covariant? -->
 
-Alcohol intake was assessed using a self-reported questionnaire covering consumption patterns over the previous 7 days. Alcohol consumption was analyzed as both a categorical and a continuous variable. Following Swiss national guidelines, a standard drink was defined as a single glass of wine, a bottle of beer, or a shot of spirits, each containing approximately 10 g to 12 g of pure ethanol [@standardglas]. Participants were categorized into four groups based on their total weekly intake:
+Alcohol intake was assessed using a self-reported questionnaire covering consumption patterns over the previous 7 days. Alcohol consumption was analysed as both a categorical and a continuous variable. Following Swiss national guidelines, a standard drink was defined as a single glass of wine, a bottle of beer, or a shot of spirits, each containing approximately 10 g to 12 g of pure ethanol [@standardglas]. Participants were categorized into four groups based on their total weekly intake:
 
--   Non-drinkers: 0 units/week (0 g/day). <!--# includes both lifetime and current abstainers. -->
+-   Non-drinkers: 0 units/week (0 g/day), which includes both lifetime and current abstainers.
 -   Light drinkers: ≥1 to 3 units/week (\>0–6 g/day), representing occasional consumption.
 -   Moderate drinkers: ≥4 to 7 units/week (\>6–12 g/day), representing frequent consumption within the Swiss low-risk limit for women.
 -   Heavy drinkers: \>7 units/week (\>12 g/day), categorized as hazardous consumption exceeding the Swiss national guidelines for women.
 
-While this categorization provides a structured metric for analysis, it is noted that self-reported dietary and alcohol questionnaires often slightly underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative food frequency questionnaires (FFQs) tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
+While this categorization provides a structured metric for analysis, it is noted that self-reported dietary and alcohol questionnaires often slightly underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative FFQs tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
 
 <!--# Why is physical activity used as covariant? -->
 
-Physical activity was measured through self-reported physical activity levels in minutes per day. These value were converted to MET-minutes per week according to WHO GPAQ analysis guide <!--# SOURCE --> with following formula: MET_min_week=(MPA×4+VPA×8)×7. Level of physical activity was then translated to these levels: 1=Low (\< 600 MET-min/week), 2=Moderate (600-2999 MET-min/week), 3=High (\>= 3000 MET-min/week).
+<!--# This categorization does not work! To many participants are allocated to high, non is allocated to insufficent or inactive -->
+
+**Physical activity** was measured through self-reported physical activity levels in minutes per day. These value were converted to MET-minutes per week according to WHO GPAQ analysis guide <!--# SOURCE --> with following formula: MET_min_week=(MPA×4+VPA×8)×7. Level of physical activity was then translated to these levels: 1=Low (\< 600 MET-min/week), 2=Moderate (600-2999 MET-min/week), 3=High (\>= 3000 MET-min/week).
 
 ### Dietary assessment
 
@@ -56,25 +92,31 @@ Vitamin D
 
 ### Clinical
 
-The relationship between **diabetes mellitus** and muscle mass is complex and varies substantially by diabetes type and patient characteristics. Type 1 diabetes demonstrates the most pronounced effects, with untreated patients experiencing dramatic muscle loss and experimental models showing 20-30% decreases in muscle mass and myofiber area *D. Sala et al., 2015*. In contrast, the effects of type 2 diabetes on muscle mass are more heterogeneous, with most patients showing no changes or even increases in muscle mass *D. Sala et al., 2015*. However, longitudinal studies reveal that certain populations, particularly older adults, experience accelerated muscle mass decline compared to non-diabetic controls *A. Koster et al., 2015.*
-
 The relationship between type 2 diabetes and sarcopenia is bidirectional and multifactorial [@chen2023]. While diabetes can promote muscle deterioration through insulin resistance, chronic inflammation, oxidative stress, and hyperglycemia-induced protein breakdown pathways *Y. Hirata et al., 2019*, reduced muscle mass conversely increases diabetes risk and worsens glucose metabolism *D. Sizoo et al., 2022.* Clinical evidence demonstrates that muscle deterioration in type 2 diabetes patients occurs independently of disease duration, metabolic control, and microvascular complications, suggesting intrinsic pathophysiological mechanisms beyond traditional diabetic complications *N. Guerrero et al., 2016.* Importantly, therapeutic interventions including glycemic control optimization and insulin therapy can improve muscle mass outcomes, indicating the potential reversibility of diabetes-associated muscle changes *K. Sugimoto et al., 2020.*
 
-Based on these findings, patients are allocated in the following 4 categories:
+Diabetes status was assessed using three sources: self-report, fasting plasma glucose (FPG), and glycated hemoglobin (HbA1c). Self-report was based on the question “Have you ever been told that you had diabetes?”. Among the objective measures, HbA1c was considered the primary indicator due to its higher reliability and was used whenever available. If HbA1c was missing, FPG was used. If neither biomarker was available, diabetes status was based on self-report.
 
--   **No diabetes** (negative on all diagnostic criteria)
+Blood samples were collected in the morning after an overnight fast. Analyses were performed at the CHUV Clinical Laboratory on fresh samples within 2 hours of collection. Plasma glucose was measured using the glucose hexokinase method, with maximum inter- and intra-assay coefficients of variation of 1.6% and 0.8%, respectively. HbA1c was measured using high-performance liquid chromatography. Diabetes was defined as a fasting plasma glucose level ≥ 7.0 mmol/L or an HbA1c level ≥ 48 mmol/mol.
 
--   **Diabetes, no insulin** (positive on FPG/HbA1c criteria, oral medications only)
+<!--# tbc -->
 
--   **Diabetes with insulin** (insulin use regardless of other treatments)
+Certain **medications** can also have an effect on muscle mass and function.
 
--   **IGT/prediabetes** (IGT positive but not meeting full diabetes criteria)
+<!--# tbc -->
 
-Medications...
+HRT
+
+<!--# tbc -->
+
+hypertension
+
+<!--# tbc -->
+
+cardio vascular disease
 
 ### **Anthropometric**
 
-All participants had their height measured using the same portable stadiometer (Seca version 216, Seca, Chino, CA, USA) with precision 0.1 cm, and body weight with the same electronic scale (Seca Clara 803, Seca, Chino, CA, USA) with precision 0.1 kg. Both measurements were performed with the participant barefoot and in minimum clothing. Body mass index (BMI) was calculated as weight/height^2^. BMI was categorized into underweight (\< 18.5 kg/m^2^), normal (18.5-24.9 kg/m^2^), overweight (25.0–29.9 kg/m^2^), and obese (\$≥\$ 30.0 kg/m^2^) according to WHO guidelines \[SOURCE\].
+All participants had their height measured using the same portable stadiometer (Seca version 216, Seca, Chino, CA, USA) with precision 0.1 cm, and body weight with the same electronic scale (Seca Clara 803, Seca, Chino, CA, USA) with precision 0.1 kg. Both measurements were performed with the participant barefoot and in minimum clothing. Body mass index (BMI) was calculated as weight/height^2^. BMI was categorized into underweight (\< 18.5 kg/m^2^), normal (18.5-24.9 kg/m^2^), overweight (25.0–29.9 kg/m^2^), and obese (≥ 30.0 kg/m^2^) according to WHO guidelines <!--# [SOURCE] -->.
 
 ## Outcome Variables
 
@@ -88,6 +130,8 @@ Gait speed (m/s), assessed using a 6-meter walk test
 
 Participants were classified into quartiles according to their baseline daily intake of dairy products (grams per day) for descriptive analysis.
 
+...
+
 ## Ethics
 
-xx
+<!--# The Institutional Ethics Committee of the University of Lausanne approved the CoLaus/PsyCoLaus and, subsequently, the OsteoLaus studies. All participants signed a written informed consent form after having received a detailed description of the goal and funding of the studies. This article follows the STROBE guidelines [SOURCE].-->
