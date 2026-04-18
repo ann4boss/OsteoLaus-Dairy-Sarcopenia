@@ -41,7 +41,8 @@ derive_smoking <- function(df) {
     
     # Ensure source column sbsmk is present
     required_cols <- c("sbsmk", ".wave")
-    missing_cols <- setdiff(required_cols, names(df))
+    actual_cols <- names(df)
+    missing_cols <- setdiff(required_cols, actual_cols)
     if (length(missing_cols) > 0) {
         cli::cli_warn(
             "derive_smoking: missing required columns: {.val {missing_cols}}. 
@@ -121,7 +122,8 @@ derive_smoking <- function(df) {
                 TRUE ~ as.character(sbsmk)
             ) |> factor(levels = c("Never", "Former", "Current"))
         ) |>
-        dplyr::select(-has_ever_smoked)
+        dplyr::select(-has_ever_smoked) |>
+        dplyr::as_tibble()
     
     # ── Post-correction diagnostics ----------------------------------
     smk_seq_corr_lazy <- df |>
@@ -163,8 +165,7 @@ derive_smoking <- function(df) {
     
     if (n_implausible_corr > 0L) cli::cli_warn("derive_smoking(): {n_implausible_corr} participant(s) still have implausible trajectory.")
     
-    # Drop source column for diagnostics (not needed beyond this point)
-    df <- df |> dplyr::select(-sbsmk)
+    
     
     
     return(df)

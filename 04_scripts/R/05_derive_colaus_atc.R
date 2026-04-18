@@ -9,7 +9,6 @@
 # prefix.
 #
 # ATC prefix -> derived variable mapping is defined in ATC_PREFIXES
-# (00_constants.R):
 #   C10   -> hypolip_drug_status   (lipid-lowering drugs)
 #   H02   -> corticoids_status     (systemic corticosteroids)
 #   A11   -> vitD_status           (vitamin D supplements)
@@ -22,10 +21,16 @@
 #   Mismatches are warnings for review; some discordance is expected.
 # =============================================================================
 
-# ATC column definitions
-.ATC_COLS     <- paste0("ATC", 1:21)
-.ATC_OTC_COLS <- paste0("ATC_OTC", 1:17)
-.ALL_ATC_COLS <- c(.ATC_COLS) # TODO: if I want to add Over-the-counter drugs (ATC_OTC1 ... ATC_OTC17), add .ALT_OTC_COLS to .ALL_ATC_COLS
+
+ATC_PREFIXES <- list(
+    hypolip_drug_status   = "C10",
+    corticoids_status     = "H02",
+    vitD_status           = "A11",
+    calcium_status        = "A12A",
+    benzo_status          = "N05B",
+    bisphosphonate_status = "M05BA"
+)
+
 
 #' Derive ATC-based medication status flags for a CoLaus long tibble.
 #'
@@ -39,14 +44,19 @@
 derive_atc <- function(df) {
     
     # ── Check Required Columns ------------------------------------------------
-    # .ALL_ATC_COLS is your constant list of atc1, atc2, etc.
-    actual_cols <- df$vars
-    atc_cols_present <- intersect(.ALL_ATC_COLS, actual_cols)
+    # ATC column definitions
+    .ATC_COLS     <- paste0("ATC", 1:21)
+    .ATC_OTC_COLS <- paste0("ATC_OTC", 1:17)
     
-    if (length(atc_cols_present) == 0) {
+    required_cols <- c(.ATC_COLS) # TODO: if I want to add Over-the-counter drugs (ATC_OTC1 ... ATC_OTC17), add .ALT_OTC_COLS to .ALL_ATC_COLS
+    actual_cols <- names(df)
+    missing_cols <- setdiff(required_cols, actual_cols)
+    
+    if (length(missing_cols) > 0) {
         cli::cli_warn("derive_atc: No ATC code columns found. Flags not derived.")
         return(df)
     }
+    
     
     # ── Ensure Lazy State ------------------------------------------------
     if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
@@ -56,9 +66,9 @@ derive_atc <- function(df) {
         prefix <- ATC_PREFIXES[[varname]]
         
         # Build logic: (startsWith(atc1, "C10") | startsWith(atc2, "C10") ...)
-        detection_logic <- lapply(atc_cols_present, function(col) {
+        detection_logic <- lapply(required_cols, function(col) {
             rlang::expr(startsWith(!!rlang::sym(col), !!prefix))
-        }) %>% 
+        }) |> 
             purrr::reduce(function(a, b) rlang::expr(!!a | !!b))
         
         # Wrap in factor logic
@@ -66,8 +76,8 @@ derive_atc <- function(df) {
             dplyr::case_when(
                 !!detection_logic ~ "Yes",
                 # Handle cases where all entries are NA
-                dplyr::across(dplyr::all_of(atc_cols_present), ~ is.na(.x)) %>% 
-                    rowSums() == !!length(atc_cols_present) ~ NA_character_,
+                dplyr::across(dplyr::all_of(required_cols), ~ is.na(.x)) |> 
+                    rowSums() == !!length(required_cols) ~ NA_character_,
                 TRUE ~ "No"
             ),
             levels = c("No", "Yes")
@@ -76,30 +86,27 @@ derive_atc <- function(df) {
     names(atc_expressions) <- names(ATC_PREFIXES)
     
     # ── Apply Mutate ------------------------------------------------
-    df <- df %>% 
-        dplyr::mutate(!!!atc_expressions)
+    df <- df |> 
+        dplyr::mutate(!!!atc_expressions) |>
+        # collect as tibble 
+        dplyr::as_tibble()
+    
     
     # ── Eager Validation & Reporting ------------------------------------------------
     # We calculate the row counts lazily to avoid a full collection
-    report_stats <- df %>%
+    report_stats <- df |>
         dplyr::summarise(
             total_rows = dplyr::n(),
-            # Since source cols are dropped, we check the first derived flag for NAs 
-            # as a proxy for 'rows with no ATC data'
             n_valid = sum(!is.na(!!rlang::sym(names(ATC_PREFIXES)[1]))),
             .groups = "drop"
-        ) %>%
+        ) |>
         dplyr::as_tibble()
     
+    cli::cli_h2("Derive ATCs")
     cli::cli_inform(c(
         "v" = "derive_atc: ATC-based flags derived.",
         "i" = "Processed {report_stats$total_rows} rows; {report_stats$n_valid} rows had valid ATC mapping data."
     ))
-    
-    # ── Clean up -----------
-    df <- df %>% 
-        dplyr::select(-dplyr::any_of(c(.ATC_OTC_COLS, .ATC_COLS)))
-    
     
     return(df)
 }
@@ -111,12 +118,12 @@ derive_atc <- function(df) {
     if (!"hypolip" %in% names(df)) return(NULL)
     
     # We summarize to get counts without pulling the whole dataset into memory
-    check <- df %>%
-        dplyr::filter(!is.na(hypolip_drug_status), !is.na(hypolip)) %>%
+    check <- df |>
+        dplyr::filter(!is.na(hypolip_drug_status), !is.na(hypolip)) |>
         dplyr::summarise(
             yes_no = sum(hypolip_drug_status == "Yes" & hypolip == "No", na.rm = TRUE),
             no_yes = sum(hypolip_drug_status == "No" & hypolip == "Yes", na.rm = TRUE)
-        ) %>%
+        ) |>
         dplyr::as_tibble()
     
     if (check$yes_no > 0) {

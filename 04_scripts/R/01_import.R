@@ -27,7 +27,7 @@ import_wave <- function(path, cohort, wave) {
     strip.white = TRUE
   )
   
-  df_lazy <- dtplyr::lazy_dt(raw_dt) %>%
+  df_lazy <- dtplyr::lazy_dt(raw_dt) |>
     dplyr::mutate(
       .cohort   = cohort,
       .wave = COHORT_META[[cohort]][["wave_num"]][[wave]],

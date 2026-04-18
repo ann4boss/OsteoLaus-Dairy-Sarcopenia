@@ -41,11 +41,47 @@ derive_colaus <- function(df) {
         derive_cvd()        |>
         derive_hrt()        |>
         derive_pa()         |>
+        derive_dairy_servings() |>
         derive_dairy()      |>
         derive_atc()        |>
         derive_htn()
-        
     
-    # ── Finalize ------------------------------------------------
-    return(dplyr::as_tibble(df_derived))
+    # ── Drop all raw and intermediate columns ----------------------------------------------
+    raw_source_cols <- c(
+        #"conso_hebdo", "sumalco",
+        "edtyp4", "sbsmk",
+        "miac", "strk", "chf", "cad", "angn", "cmp", "hdc", "hdv", "artm", 
+        "vslg", "ccth", "cabg", "pcin", "esthrp", "esthrpage", 
+        "antiHTA", "crbpmed", "HTA", "PAFQ_MPA", "PAFQ_VPA",
+        "dbtld", 
+        #"DIAB", 
+        "DIAB_Hb"
+    )
+    
+    diab_intermediate_cols <- c(
+        "is_yes_dbtld", "is_yes_DIAB", "is_yes_DIAB_Hb",
+        "is_avail_dbtld", "is_avail_DIAB", "is_avail_DIAB_Hb",
+        "n_sources_available", "n_yes", "any_yes", "any_no",
+        "diabetes_status_num", "disagreement_any", 
+        "disagreement_fpg_vs_hba1c", "disagreement_self_vs_objective", 
+        paste0("ATC", 1:21), paste0("ATC_OTC", 1:17)
+        #,"sumalco_units", "alcohol_category_conso", 
+        #"alcohol_category_sumalco", "alcohol_agreement"
+    )
+    
+    df_final <- df_derived |>
+        dplyr::select(
+            # Remove specific lists of variables
+            -dplyr::all_of(raw_source_cols),
+            -dplyr::all_of(diab_intermediate_cols),
+            
+            # Remove by pattern
+            -dplyr::starts_with("tmp_"),
+            -dplyr::starts_with("FFQ"),
+            -dplyr::starts_with("freq")
+        )
+    
+    return(dplyr::as_tibble(df_final))
 }
+    
+ 

@@ -47,7 +47,7 @@ strip_prefix <- function(df, prefix = NULL, ...) {
         cli::cli_warn(c("*" = "Duplicate column names after stripping: {.val {dupes}}"))
     }
     
-    df <- df %>% 
+    df <- df |> 
         dplyr::rename_with(~ ifelse(startsWith(.x, prefix), 
                                     substring(.x, nchar(prefix) + 1L), 
                                     .x))
@@ -129,7 +129,7 @@ apply_sentinel_numeric <- function(df) {
     
     if (length(cols_to_fix) == 0) return(df)
     
-    df %>%
+    df |>
         dplyr::mutate(
             dplyr::across(
                 dplyr::all_of(cols_to_fix),

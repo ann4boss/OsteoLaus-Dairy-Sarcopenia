@@ -40,8 +40,8 @@ stack_waves <- function(...) {
     }
     
     # ── Bind and Arrange ------------------------------------------------
-    out <- dplyr::bind_rows(waves) %>%
-        dplyr::arrange(pt, .wave) %>%
+    out <- dplyr::bind_rows(waves) |>
+        dplyr::arrange(pt, .wave) |>
         dplyr::relocate(dplyr::all_of(required_cols))
     
     return(out)

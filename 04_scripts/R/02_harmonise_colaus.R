@@ -68,8 +68,8 @@ harmonise_colaus <- function(df) {
   # Ensure we have a lazy_dt right away
   if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
   
-  cohorts <- df %>% dplyr::distinct(.cohort) %>% dplyr::pull(.cohort)
-  waves   <- df %>% dplyr::distinct(.wave) %>% dplyr::pull(.wave)
+  cohorts <- df |> dplyr::distinct(.cohort) |> dplyr::pull(.cohort)
+  waves   <- df |> dplyr::distinct(.wave) |> dplyr::pull(.wave)
   
   stopifnot(cohorts == "CoLaus")
   cohort <- cohorts[1]
@@ -82,14 +82,14 @@ harmonise_colaus <- function(df) {
   df <- strip_prefix(df, prefix)
   
   # ── Start pipeline ---------------------------------------------------------
-  df_lazy <- dtplyr::lazy_dt(df) %>%
+  df_lazy <- dtplyr::lazy_dt(df) |>
     
     # ── Date & primary key ---------------------------------------------------
     dplyr::mutate(
       pt            = as.integer(pt),
       exam_date_iso = parse_exam_date(datexam)
-    ) %>%
-    dplyr::select(-dplyr::any_of("datexam")) %>%
+    ) |>
+    dplyr::select(-dplyr::any_of("datexam")) |>
     
     # ── Continuous variables & Sentinels --------------------------------------
     dplyr::mutate(
@@ -97,10 +97,10 @@ harmonise_colaus <- function(df) {
         dplyr::any_of(.COLAUS_NUMERIC_COLS),
         ~ safe_numeric(.x, dplyr::cur_column())
       )
-    ) %>%
+    ) |>
     # esthrpage: 99 -> NA (centralised in constants, applied here after numeric
     # coercion so the comparison works correctly on numeric values).
-    apply_sentinel_numeric() %>%
+    apply_sentinel_numeric() |>
     
     
     # ── Factors (Binary & Multi-level) ----------------------------------------
@@ -180,7 +180,7 @@ harmonise_colaus <- function(df) {
   # F2:    0 = No problem, 1 = Pain/arthrosis 
   # F3:    0 = No problem, 1 = Pain/arthrosis, 2 = No time/home/rejected.
   if ("handgrip_com" %in% df$vars) {
-    df_lazy <- df_lazy %>%
+    df_lazy <- df_lazy |>
       dplyr::mutate(
         handgrip_com = factor(
           dplyr::case_when(
@@ -203,7 +203,7 @@ harmonise_colaus <- function(df) {
   # F1         : 0 = No,     1 = Yes -> recoded to 2 = Diabetes
   # All others : 0 = Normal, 1 = IFG,   2 = Diabetes
   if ("DIAB2" %in% df$vars) {
-    df_lazy <- df_lazy %>%
+    df_lazy <- df_lazy |>
       dplyr::mutate(
         DIAB2 = factor(
           dplyr::case_when(
@@ -220,10 +220,10 @@ harmonise_colaus <- function(df) {
   }
   
   # ── Finalize: Rename and Collect ---------------------------------------------
-  out <- df_lazy %>%
+  out <- df_lazy |>
     dplyr::rename(dplyr::any_of(c(
       Age = "age", HGS_MAX = "handgrip", Height = "ht", Weight = "wt"
-    ))) %>%
+    ))) |>
     dplyr::as_tibble()
   
   return(out)

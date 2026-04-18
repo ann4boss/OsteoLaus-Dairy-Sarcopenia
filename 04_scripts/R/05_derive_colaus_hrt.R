@@ -25,10 +25,8 @@ derive_hrt <- function(df) {
     
     # ── Check Required Columns ----------------------------------------------
     required_cols <- c("esthrp", "esthrpage")
-    actual_cols <- df$vars
-    
+    actual_cols <- names(df)
     missing_cols <- setdiff(required_cols, actual_cols)
-    
     if (length(missing_cols) > 0) {
         cli::cli_warn(
             "derive_hrt: missing required columns: {.val {missing_cols}}. 
@@ -42,7 +40,7 @@ derive_hrt <- function(df) {
     
     
     # ── Main Derivation ----------------------------------------------
-    df <- df %>%
+    df <- df |>
         dplyr::mutate(
             hrt_status = dplyr::case_when(
                 is.na(esthrp)                               ~ NA_character_,
@@ -50,14 +48,13 @@ derive_hrt <- function(df) {
                 esthrp == "No" & !is.na(esthrpage)          ~ "Past HRT",
                 esthrp == "No"                              ~ "Never / Not current",
                 TRUE                                        ~ NA_character_
-            ) %>% 
+            ) |> 
                 factor(levels = c("Never / Not current", "Past HRT", "Current HRT"))
-        )
+        ) |>
+        # collect as tibble 
+        dplyr::as_tibble()
     
-    # ── Cleanup ----------------------------------------------
-    # Drop source columns as requested
-    df <- df %>%
-        dplyr::select(-dplyr::all_of(required_cols))
+    
     
     return(df)
 }

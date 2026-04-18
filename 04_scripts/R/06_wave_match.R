@@ -53,51 +53,79 @@ merge_closest_exams <- function(
     osteo_dt <- as.data.table(osteolaus)[, .SD, .SDcols = intersect(osteo_cols, names(osteolaus))]
     col_dt   <- as.data.table(colaus)   [, .SD, .SDcols = intersect(colaus_cols, names(colaus))]
     
-    # ── Restrict colaus to patients that exist in osteolaus -------------------
-    pts_in_osteo <- unique(osteo_dt$pt)
-    col_dt       <- col_dt[pt %in% pts_in_osteo]
+    # ── Subset & convert ------------------------------------------------------
+    osteo_dt <- data.table::as.data.table(osteolaus)[, ..osteo_cols]
+    col_dt   <- data.table::as.data.table(colaus)   [, ..colaus_cols]
     
     
-    # ── Rename shared columns to prevent collision ----------------
-    to_rename <- intersect(names(osteo_dt), names(col_dt))
-    to_rename <- setdiff(to_rename, c("pt", "exam_date_iso")) # Don't rename join keys
-    
-    setnames(osteo_dt, to_rename, paste0(to_rename, "_osteo"))
-    setnames(col_dt, to_rename, paste0(to_rename, "_colaus"))
-    
-    # ── Ensure Date class -----------------------------------------
+    # ── Ensure Date class -----------------------------------------------------
     osteo_dt[, exam_date_iso := as.Date(exam_date_iso)]
     col_dt  [, exam_date_iso := as.Date(exam_date_iso)]
     
-    # ── Rename columns with the same name in both columns ---------------------
-    # rename overlapping columns in col_dt with a suffix to avoid conflicts during the join
-    overlapping_cols <- intersect(names(col_dt), names(osteo_dt))
-    overlapping_cols <- setdiff(overlapping_cols, c("pt", "exam_date_iso"))
-    if (length(overlapping_cols) > 0) {
-        new_names <- paste0(overlapping_cols, "_colaus")
-        setnames(col_dt, old = overlapping_cols, new = new_names)
-    }
+    
+    # ── Remove rows with missing dates ---------------------------------
+    n_osteo_removed <- sum(is.na(osteo_dt$exam_date_iso))
+    n_col_removed   <- sum(is.na(col_dt$exam_date_iso))
+    
+    n_osteo_pt_removed <- osteolaus |>
+        dplyr::filter(is.na(exam_date_iso)) |>
+        dplyr::distinct(pt) |>
+        nrow()
+    
+    n_col_pt_removed <- colaus |>
+        dplyr::filter(is.na(exam_date_iso)) |>
+        dplyr::distinct(pt) |>
+        nrow()
+    
+    if (n_osteo_removed > 0)
+        cli::cli_inform(
+            "Removed {n_osteo_removed} OsteoLaus rows with missing exam_date_iso ({n_osteo_pt_removed} unique patients)"
+        )
+    
+    if (n_col_removed > 0)
+        cli::cli_inform(
+            "Removed {n_col_removed} CoLaus rows with missing exam_date_iso ({n_col_pt_removed} unique patients)"
+        )
+    
+    
+    # ── Restrict colaus to patients that exist in osteolaus -------------------
+    col_dt <- col_dt[pt %in% unique(osteo_dt$pt)]
+    
+    
+    # ── Rename shared columns to prevent collision ----------------
+    overlap <- intersect(names(col_dt), names(osteo_dt))
+    overlap <- setdiff(overlap, c("pt", "exam_date_iso"))
+    
+    data.table::setnames(col_dt, overlap, paste0(overlap, "_colaus"))
+    data.table::setnames(osteo_dt, overlap, paste0(overlap, "_osteo"))
+    
     
     # ── Setup join keys -----------------------------------------
-    # Create a copy so the colaus date survives the join
     col_dt[, colaus_exam_date := exam_date_iso]
-    setnames(osteo_dt, "exam_date_iso", "osteo_exam_date")
+    osteo_dt[, osteo_exam_date := exam_date_iso]
     
-    setkey(col_dt, pt, exam_date_iso)
-    setkey(osteo_dt, pt, osteo_exam_date)
+    data.table::setkey(col_dt, pt, exam_date_iso)
+    data.table::setkey(osteo_dt, pt, osteo_exam_date)
+    
     
     # ── Rolling-nearest join -----------------------------------------
-    matched <- col_dt[osteo_dt, roll = "nearest", on = .(pt, exam_date_iso = osteo_exam_date)]
-    
+    matched <- col_dt[osteo_dt, roll = "nearest",
+                      on = .(pt, exam_date_iso = osteo_exam_date)]
     # Rename the join key back to osteo_exam_date
-    setnames(matched, "exam_date_iso", "osteo_exam_date")
+    data.table::setnames(matched, "exam_date_iso", "osteo_exam_date")
+    
     
     # ── Signed day difference -----------------------------------------
-    matched[, days_colaus_minus_osteo := as.integer(colaus_exam_date - osteo_exam_date)]
+    matched[, days_colaus_minus_osteo :=
+                as.integer(colaus_exam_date - osteo_exam_date)]
     
     # ── Unmatched colaus rows -----------------------------------------
-    matched_keys <- unique(matched[!is.na(colaus_exam_date), .(pt, colaus_exam_date)])
+    matched_keys <- unique(matched[!is.na(colaus_exam_date),
+                                   .(pt, colaus_exam_date)])
+    
     unmatched_col <- col_dt[!matched_keys, on = .(pt, colaus_exam_date)]
+    
+    
     
     # ── Stack matched + unmatched -----------------------------------------
     result <- rbind(matched, unmatched_col, fill = TRUE)
@@ -119,12 +147,12 @@ merge_closest_exams <- function(
     
     
     # discard the intermediate columns
-    result[, c("osteo_exam_date", "colaus_exam_date", "exam_date_iso") := NULL]
+    result[, c("osteo_exam_date", "colaus_exam_date", "exam_date_iso", "i.exam_date_iso") := NULL]
     result[, c("HGS_MAX_osteo", "HGS_MAX_colaus") := NULL]
     result[, c("Age_osteo", "Age_colaus", "Height_osteo", "Height_colaus", "BMI_osteo", "BMI_colaus", "Weight_colaus", "Weight_osteo") := NULL]
     
     
-    # ── 10. Tidy up -----------------------------------------
+    # ── Tidy up -----------------------------------------
     
     # Define the preferred lead columns
     desired_lead <- c("pt", "final_exam_date", ".wave_osteo",".wave_colaus", "osteo_exam_date", 
@@ -145,5 +173,13 @@ merge_closest_exams <- function(
     # Final sort by patient and the unified timeline
     setorder(result, pt, final_exam_date)
     
-    return(result[])
+    return(list(
+        data = result[],
+        qc = list(
+            n_osteo_removed = n_osteo_removed,
+            n_col_removed   = n_col_removed,
+            n_osteo_pt_removed = n_osteo_pt_removed,
+            n_col_pt_removed   = n_col_pt_removed
+        )
+    ))
 }

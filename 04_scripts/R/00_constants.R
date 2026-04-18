@@ -83,28 +83,6 @@ SENTINEL_NUMERIC <- list(
 
 
 # -----------------------------------------------------------------------------
-# ATC prefix -> derived variable name mapping
-#
-# Prefixes:
-#   C10   lipid-lowering drugs
-#   H02   systemic corticosteroids
-#   A11   vitamin D supplements
-#   A12A  calcium supplements (incl. combination A12AX products)
-#   N05B  benzodiazepines (anxiolytics)
-#   M05BA bisphosphonates (osteoporosis treatment)
-# -----------------------------------------------------------------------------
-
-ATC_PREFIXES <- list(
-    hypolip_drug_status   = "C10",
-    corticoids_status     = "H02",
-    vitD_status           = "A11",
-    calcium_status        = "A12A",
-    benzo_status          = "N05B",
-    bisphosphonate_status = "M05BA"
-)
-
-
-# -----------------------------------------------------------------------------
 # EWGSOP2 (2019) sarcopenia thresholds — women only
 # OsteoLaus is an all-female cohort; only female cut-offs are needed.
 #

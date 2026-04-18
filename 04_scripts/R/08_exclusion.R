@@ -17,11 +17,11 @@
 #
 # Hard exclusion criteria
 # ------------------------------------------
-#   1.  No OsteoLaus visits at all
-#   2.  Missing participant ID (pt)
-#   3.  Failing pt integrity checks: unstable sex, pt not unique within wave,
+#   1.  Missing exam date at any visit (already excluded before merging cohorts)
+#   2.  No OsteoLaus visits at all
+#   3.  Missing participant ID (pt)
+#   4.  Failing pt integrity checks: unstable sex, pt not unique within wave,
 #       or age trajectory not strictly increasing
-#   4.  Missing exam date at any visit
 #   5.  Energy intake out of range at any visit
 #  Visit-specific
 #   6.  Any required covariate missing across all visits
@@ -51,7 +51,7 @@
 
 # Energy plausibility window (kcal/day)
 .ENERGY_MIN_KCAL <- 500
-.ENERGY_MAX_KCAL <- 5000
+.ENERGY_MAX_KCAL <- 4800
 
 # HGS plausibility window (kg)
 .HGS_MIN_KG <- 1
@@ -91,27 +91,14 @@ apply_exclusions <- function(merged_table_derived,
     # 1.  Build a participant-level flag table
     # =========================================================================
     
-    # ── QC flags: collapse per-wave flags to per-participant ─────────────────
-    # A participant fails a check if they fail it at *any* wave (conservative).
-    qc_per_pt <- qc_tbl |>
-        dplyr::group_by(pt) |>
-        dplyr::summarise(
-            has_osteolaus_visit = any(qc_in_osteolaus,   na.rm = TRUE),
-            qc_pt_present       = all(qc_pt_present,     na.rm = TRUE),
-            qc_exam_date        = all(qc_exam_date,      na.rm = TRUE),
-            qc_sex_stable       = all(qc_sex_stable,     na.rm = TRUE),
-            qc_pt_unique        = all(qc_pt_unique,      na.rm = TRUE),
-            qc_age_increasing   = all(qc_age_increasing, na.rm = TRUE),
-            .groups = "drop"
-        )
-    
-    # ── OsteoLaus visit count per participant ─────────────────────────────────
+    # ── OsteoLaus visit count per participant  --------------------------------
     osteo_visit_counts <- merged_table_derived |>
-        dplyr::filter(is.na(.wave_osteo)) |>
+        dplyr::filter(!is.na(.wave_osteo)) |>
         dplyr::group_by(pt) |>
         dplyr::summarise(n_osteo_visits = dplyr::n_distinct(.wave_osteo), .groups = "drop")
     
-    # ── Energy plausibility (hard criterion 5) ────────────────────────────────
+    
+    # ── Energy plausibility (hard criterion 5) --------------------------------
     energy_check <- .flag_energy(merged_table_derived)
     
     # ── Required covariates: each must appear at least once (hard criterion 6) ─
@@ -120,43 +107,60 @@ apply_exclusions <- function(merged_table_derived,
     # ── Dairy: must be present at every OsteoLaus visit (hard criterion 7) ───
     dairy_check <- .flag_dairy(merged_table_derived)
     
-    # ── Partial / outcome-specific flags (criteria 9-12) ─────────────────────
+    # ── Partial / outcome-specific flags (criteria 9-12)   -------------------
     partial_checks <- .flag_partial_outcomes(merged_table_derived)
     
-    # ── Assemble ──────────────────────────────────────────────────────────────
+    
+    # ── QC flags: collapse per-wave flags to per-participant -----------------
+    # A participant fails a check if they fail it at *any* wave (conservative).
+    flag_per_pt <- qc_tbl |>
+      dplyr::group_by(pt) |>
+      dplyr::summarise(
+        has_osteolaus_visit = any(qc_in_osteolaus,   na.rm = TRUE),
+        qc_pt_present       = all(qc_pt_present,     na.rm = TRUE),
+        qc_exam_date        = !any(qc_exam_date == FALSE, na.rm = TRUE),
+        qc_sex_stable       = all(qc_sex_stable,     na.rm = TRUE),
+        qc_pt_unique        = all(qc_pt_unique,      na.rm = TRUE),
+        qc_age_increasing   = all(qc_age_increasing, na.rm = TRUE),
+        .groups = "drop" 
+        
+      ) |>
+      
+      dplyr::left_join(osteo_visit_counts, by = "pt") |>
+      dplyr::left_join(energy_check, by = "pt") |>
+      dplyr::left_join(cov_check, by = "pt") |>
+      dplyr::left_join(dairy_check, by = "pt") |>
+      dplyr::left_join(partial_checks, by = "pt") |>
+      dplyr::mutate(
+        n_osteo_visits      = dplyr::coalesce(n_osteo_visits, 0L),
+        has_osteolaus_visit = dplyr::coalesce(has_osteolaus_visit, FALSE)
+      )
+    
+    print(flag_per_pt)
+    
+    # ── Assemble  -------------------------------------------------------------
     all_pts <- dplyr::distinct(merged_table_derived, pt)
-    
-    pt_flags <- all_pts |>
-        dplyr::left_join(qc_per_pt,          by = "pt") |>
-        dplyr::left_join(osteo_visit_counts,  by = "pt") |>
-        dplyr::left_join(energy_check,        by = "pt") |>
-        dplyr::left_join(cov_check,           by = "pt") |>
-        dplyr::left_join(dairy_check,         by = "pt") |>
-        dplyr::left_join(partial_checks,      by = "pt") |>
-        dplyr::mutate(
-            n_osteo_visits      = dplyr::coalesce(n_osteo_visits, 0L),
-            has_osteolaus_visit = dplyr::coalesce(has_osteolaus_visit, FALSE)
-        )
-    
+
+
     # =========================================================================
     # 2.  Sequential waterfall exclusion (hard criteria 1-8)
     # =========================================================================
     counts  <- list()
-    current <- pt_flags   # shrinks with each exclusion step
-    
+    current <- flag_per_pt   # shrinks with each exclusion step
+
     counts$n_start <- nrow(current)
     cli::cli_inform(c("i" = "Starting N: {counts$n_start}"))
-    
+
     # Helper: apply one exclusion step, record counts, and report to CLI
     .step <- function(current, counts, cond, label, key_n, key_after) {
-        excl     <- dplyr::filter(current, {{ cond }})
-        retained <- dplyr::filter(current, !{{ cond }})
+        retained <- dplyr::filter(current, !( {{ cond }} %in% TRUE ))
+        excl     <- dplyr::filter(current,  {{ cond }} %in% TRUE )
         counts[[key_n]]     <- nrow(excl)
         counts[[key_after]] <- nrow(retained)
         cli::cli_inform(c("x" = "Excl. {label}: {nrow(excl)}  ->  {nrow(retained)} remaining"))
         list(current = retained, counts = counts)
     }
-    
+
     # 1. No OsteoLaus visits
     r <- .step(current, counts, !has_osteolaus_visit,
                "no OsteoLaus visits", "n_excl_no_osteo", "n_after_1")
@@ -167,52 +171,51 @@ apply_exclusions <- function(merged_table_derived,
                "missing participant ID", "n_excl_no_pt", "n_after_2")
     current <- r$current; counts <- r$counts
     
-    # 3. Pt integrity (sex stability, uniqueness within wave, age trajectory)
+    # 3. Missing exam date
+    r <- .step(current, counts, qc_exam_date == FALSE,
+               "missing exam date", "n_excl_exam_date", "n_after_3")
+    current <- r$current; counts <- r$counts
+    
+    # 4. Pt integrity
     r <- .step(current, counts,
                qc_sex_stable == FALSE | qc_pt_unique == FALSE | qc_age_increasing == FALSE,
                "pt integrity failure (sex / unique / age)",
-               "n_excl_integrity", "n_after_3")
+               "n_excl_integrity", "n_after_4")
     current <- r$current; counts <- r$counts
     
-    # 4. Missing exam date
-    #    Apply the flag from qc_tbl; also preserve the Step-3 QC count from
-    #    qc_summary for the CONSORT side-box label as a cross-check.
-    r <- .step(current, counts, !qc_exam_date,
-               "missing exam date", "n_excl_exam_date", "n_after_4")
+    # 5. Dairy
+    r <- .step(current, counts, !qc_dairy_ok,
+               "dairy_total_gday missing at a visit", "n_excl_dairy", "n_after_5")
     current <- r$current; counts <- r$counts
-    counts$n_excl_exam_date_from_qc <- qc_summary$n_fail_exam_date_osteo
     
-    # 5. Energy intake out of range
+    # 6. Energy
     r <- .step(current, counts, !qc_energy_ok,
-               "energy intake out of range", "n_excl_energy", "n_after_5")
+               "energy intake out of range", "n_excl_energy", "n_after_6")
     current <- r$current; counts <- r$counts
+    
+    # 7. Min visits
+    r <- .step(current, counts, n_osteo_visits < min_visits,
+               paste0("< ", min_visits, " OsteoLaus visits"),
+               "n_excl_min_visits", "n_after_7")
+    current <- r$current; counts <- r$counts
+    
     
     # # 6. Required covariate always missing
     # r <- .step(current, counts, !qc_required_covs,
     #            "required covariate always missing", "n_excl_covs", "n_after_6")
     # current <- r$current; counts <- r$counts
-    # 
-    # # 7. Dairy missing at any visit
-    # r <- .step(current, counts, !qc_dairy_ok,
-    #            "dairy_total_gday missing at a visit", "n_excl_dairy", "n_after_7")
-    # current <- r$current; counts <- r$counts
-    # 
-    # # 8. Fewer than min_visits OsteoLaus visits
-    # r <- .step(current, counts, n_osteo_visits < min_visits,
-    #            paste0("< ", min_visits, " OsteoLaus visits"),
-    #            "n_excl_min_visits", "n_after_8")
-    # current <- r$current; counts <- r$counts
-    
+    #
+
     hard_included_pts <- current$pt
-    
+
     # =========================================================================
     # 3.  Partial inclusions (criteria 9-12, among hard-included only)
     # =========================================================================
     partial_cols  <- c("qc_hgs_ok", "qc_gait_v4v5_ok", "qc_alm_ht2_ok", "qc_ewgsop2_bsl_ok")
-    avail_partial <- intersect(partial_cols, names(pt_flags))
-    
-    hard_included_flags <- dplyr::filter(pt_flags, pt %in% hard_included_pts)
-    
+    avail_partial <- intersect(partial_cols, names(flag_per_pt))
+
+    hard_included_flags <- dplyr::filter(flag_per_pt, pt %in% hard_included_pts)
+
     if (length(avail_partial) > 0) {
         hard_included_flags <- hard_included_flags |>
             dplyr::mutate(
@@ -224,7 +227,7 @@ apply_exclusions <- function(merged_table_derived,
     } else {
         hard_included_flags <- dplyr::mutate(hard_included_flags, is_partial = FALSE)
     }
-    
+
     counts$n_full_include    <- sum(!hard_included_flags$is_partial, na.rm = TRUE)
     counts$n_partial         <- sum( hard_included_flags$is_partial,  na.rm = TRUE)
     counts$n_partial_hgs     <- if ("qc_hgs_ok"         %in% names(hard_included_flags))
@@ -235,7 +238,7 @@ apply_exclusions <- function(merged_table_derived,
         sum(!hard_included_flags$qc_alm_ht2_ok,    na.rm = TRUE) else 0L
     counts$n_partial_ewgsop2 <- if ("qc_ewgsop2_bsl_ok" %in% names(hard_included_flags))
         sum(!hard_included_flags$qc_ewgsop2_bsl_ok, na.rm = TRUE) else 0L
-    
+
     cli::cli_inform(c(
         "!" = "Partial inclusions (outcome-specific issues): {counts$n_partial}",
         " " = "  Missing / implausible HGS:     {counts$n_partial_hgs}",
@@ -244,14 +247,14 @@ apply_exclusions <- function(merged_table_derived,
         " " = "  Missing EWGSOP2 at Baseline:   {counts$n_partial_ewgsop2}",
         "v" = "Full inclusions: {counts$n_full_include}"
     ))
-    
+
     # =========================================================================
     # 4.  Stamp inclusion status and exclusion reasons on the full dataset
     # =========================================================================
     partial_pts <- hard_included_flags |>
         dplyr::filter(is_partial) |>
         dplyr::pull(pt)
-    
+
     # ── Build a semicolon-separated reason string per participant ─────────────
     # Hard-exclusion reasons (for inclusion == "no")
     # Partial reasons (for inclusion == "partial")
@@ -287,7 +290,7 @@ apply_exclusions <- function(merged_table_derived,
             )
         ) |>
         dplyr::select(pt, .hard_reasons)
-    
+
     # Partial reasons (only meaningful for hard-included participants)
     partial_reason_map <- pt_flags |>
         dplyr::filter(pt %in% hard_included_pts) |>
@@ -310,7 +313,7 @@ apply_exclusions <- function(merged_table_derived,
             )
         ) |>
         dplyr::select(pt, .partial_reasons)
-    
+
     inclusion_map <- pt_flags |>
         dplyr::left_join(reason_map,         by = "pt") |>
         dplyr::left_join(partial_reason_map, by = "pt") |>
@@ -327,7 +330,7 @@ apply_exclusions <- function(merged_table_derived,
                 TRUE                         ~ NA_character_
             )
         )
-    
+
     analysis_data <- merged_table_derived |>
         dplyr::left_join(inclusion_map, by = "pt") |>
         dplyr::mutate(
@@ -335,12 +338,12 @@ apply_exclusions <- function(merged_table_derived,
             exclusion_reason = dplyr::if_else(inclusion == "no" & is.na(exclusion_reason),
                                               "unmatched in merged table", exclusion_reason)
         )
-    
+
     # =========================================================================
     # 5.  CONSORT diagram
     # =========================================================================
     consort <- build_consort(counts, min_visits)
-    
+
     list(
         data    = analysis_data,
         consort = consort,
@@ -416,7 +419,7 @@ apply_exclusions <- function(merged_table_derived,
 #' @keywords internal
 .flag_partial_outcomes <- function(dat) {
     base <- dplyr::distinct(dat, pt)
-    
+
     # 9. HGS_peak — at least one plausible value anywhere across OsteoLaus visits
     if ("HGS_peak" %in% names(dat)) {
         hgs <- dat |>
@@ -430,7 +433,7 @@ apply_exclusions <- function(merged_table_derived,
             )
         base <- dplyr::left_join(base, hgs, by = "pt")
     }
-    
+
     # 10. Gait speed — at least one non-NA value at V4 or V5
     if ("gait_speed" %in% names(dat)) {
         gait <- dat |>
@@ -441,7 +444,7 @@ apply_exclusions <- function(merged_table_derived,
             # Participants with no V4/V5 row at all are implicitly missing
             dplyr::mutate(qc_gait_v4v5_ok = dplyr::coalesce(qc_gait_v4v5_ok, FALSE))
     }
-    
+
     # 11. ALM_HT2 — non-NA at least once
     if ("ALM_HT2" %in% names(dat)) {
         alm <- dat |>
@@ -450,7 +453,7 @@ apply_exclusions <- function(merged_table_derived,
             dplyr::summarise(qc_alm_ht2_ok = any(!is.na(ALM_HT2)), .groups = "drop")
         base <- dplyr::left_join(base, alm, by = "pt")
     }
-    
+
     # 12. EWGSOP2 stage at OsteoLaus Baseline
     if ("EWGSOP2_stage" %in% names(dat)) {
         ewgsop2 <- dat |>
@@ -463,7 +466,7 @@ apply_exclusions <- function(merged_table_derived,
         base <- dplyr::left_join(base, ewgsop2, by = "pt") |>
             dplyr::mutate(qc_ewgsop2_bsl_ok = dplyr::coalesce(qc_ewgsop2_bsl_ok, FALSE))
     }
-    
+
     base
 }
 
@@ -477,9 +480,9 @@ apply_exclusions <- function(merged_table_derived,
 #' @return A DiagrammeR \code{grViz} object.
 # =============================================================================
 build_consort <- function(counts, min_visits = 2) {
-    
+
     excl_label <- function(n, text) sprintf("Excluded: %d\\n%s", n, text)
-    
+
     dot <- sprintf('
 digraph consort {
 
@@ -596,6 +599,6 @@ counts$n_partial_gait,
 counts$n_partial_alm,
 counts$n_partial_ewgsop2
     )
-    
+
     dot
 }

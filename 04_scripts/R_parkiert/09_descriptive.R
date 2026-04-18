@@ -20,10 +20,18 @@
 #                                 across waves
 #   make_smoking_change_plot()    Bar chart of smoking status changes
 #
+# Note on gait speed
+# ------------------
+#   Gait speed is first measured at V4, not at OsteoLaus Baseline.
+#   All table functions therefore source gait_speed from V4 (each
+#   participant's earliest available V4 value) rather than Baseline.
+#   The variable label reflects this.
+#
 # Loaded by tar_source() in _targets.R — no direct source() calls needed.
 # =============================================================================
 
-# Shared label list used by both table functions
+# Shared label list used by both table functions.
+# gait_speed label notes that V4 is used as the first available time point.
 .TABLE_LABELS <- list(
     baseline_osteo_age    ~ "Age at OsteoLaus Baseline (yr)",
     education_level       ~ "Education level (ISCED)",
@@ -49,7 +57,7 @@
     ewgsop2_sarcopenia_stage ~ "EWGSOP2 sarcopenia stage",
     handgrip_max_all      ~ "Grip strength (kg)",
     ALM_HT2               ~ "ALMI (kg/m\u00b2)",
-    gait_speed            ~ "Gait speed (m/s)"
+    gait_speed            ~ "Gait speed at V4 (m/s)"
 )
 
 .TABLE_VARS <- c(
@@ -65,16 +73,55 @@
 
 
 # =============================================================================
+# PRIVATE HELPER — display-baseline dataset
+# =============================================================================
+
+#' Build a single-row-per-participant "display Baseline" tibble.
+#'
+#' All variables come from the OsteoLaus Baseline wave **except** gait_speed,
+#' which is sourced from V4 (the first wave at which it is measured).  This
+#' prevents all-NA columns in Table 1 and avoids the gtsummary "not enough
+#' groups" error when gait speed is included.
+#'
+#' @param analysis_long Output of freeze_dataset().
+#' @return One-row-per-participant tibble ready for tbl_summary().
+.make_display_baseline <- function(analysis_long) {
+    
+    bsl <- analysis_long |>
+        dplyr::filter(osteo_wave == "Baseline")
+    
+    # Earliest non-missing V4 gait speed per participant
+    v4_gait <- analysis_long |>
+        dplyr::filter(osteo_wave == "V4", !is.na(gait_speed)) |>
+        dplyr::distinct(pt, .keep_all = FALSE) |>
+        dplyr::left_join(
+            dplyr::select(
+                dplyr::filter(analysis_long, osteo_wave == "V4"),
+                pt, gait_speed
+            ),
+            by = "pt"
+        ) |>
+        dplyr::select(pt, gait_speed)
+    
+    # Replace Baseline gait_speed (always NA) with V4 value
+    bsl |>
+        dplyr::select(-dplyr::any_of("gait_speed")) |>
+        dplyr::left_join(v4_gait, by = "pt")
+}
+
+
+# =============================================================================
 # Table 1 — Baseline characteristics (overall)
 # =============================================================================
 
 #' Baseline characteristics for all hard-included participants.
 #'
+#' gait_speed is sourced from V4 (first wave it is measured).
+#'
 #' @param analysis_long Output of freeze_dataset().
 #' @return A gtsummary tbl_summary object.
 make_table_one <- function(analysis_long) {
-    analysis_long |>
-        dplyr::filter(osteo_wave == "Baseline") |>
+    .make_display_baseline(analysis_long) |>
         dplyr::select(dplyr::any_of(.TABLE_VARS)) |>
         gtsummary::tbl_summary(
             label     = .TABLE_LABELS,
@@ -85,7 +132,6 @@ make_table_one <- function(analysis_long) {
             digits  = list(gtsummary::all_continuous() ~ 1),
             missing = "always",
             missing_text = "Missing"
-            
         ) |>
         gtsummary::add_n() |>
         gtsummary::bold_labels()
@@ -102,59 +148,58 @@ make_table_one <- function(analysis_long) {
 #' mean (SD); categorical as n (%). P-values from one-way ANOVA (continuous)
 #' or chi-squared (categorical). Missing counts shown for every variable.
 #'
+#' gait_speed is sourced from V4 (first wave it is measured).
+#'
 #' @param analysis_long Output of freeze_dataset().
 #' @return A gtsummary tbl_summary object.
 make_table_one_by_quartile <- function(analysis_long) {
     
-    bsl <- analysis_long |>
-        dplyr::filter(osteo_wave == "Baseline") |>
-        dplyr::select(dplyr::any_of(c(.TABLE_VARS, "baseline_dairy_quartile")))
+    bsl <- .make_display_baseline(analysis_long) |>
+        dplyr::select(dplyr::any_of(c(.TABLE_VARS, "baseline_dairy_quartile"))) 
     
     if (!"baseline_dairy_quartile" %in% names(bsl) ||
         all(is.na(bsl$baseline_dairy_quartile))) {
         cli::cli_warn(
-            "make_table_one_by_quartile(): baseline_dairy_quartile absent or \\
-             all NA \u2014 returning overall Table 1 instead."
+            "make_table_one_by_quartile(): baseline_dairy_quartile absent or all NA — returning overall Table 1 instead."
         )
         return(make_table_one(analysis_long))
     }
     
-    bsl |>
+    tbl <- bsl |>
         gtsummary::tbl_summary(
             by        = baseline_dairy_quartile,
             label     = .TABLE_LABELS,
             statistic = list(
-                gtsummary::all_continuous()  ~ "{mean} ({sd})",
+                gtsummary::all_continuous()  ~ "{mean} ({sd}) {median} [{p25}, {p75}]",
                 gtsummary::all_categorical() ~ "{n} ({p}%)"
             ),
             digits  = list(gtsummary::all_continuous() ~ 1),
-            missing = "always",
+            missing = "ifany",
             missing_text = "Missing"
         ) |>
-        gtsummary::add_overall(
-            last      = FALSE,
-            statistic = list(
-                gtsummary::all_continuous()  ~ "{mean} ({sd})",
-                gtsummary::all_categorical() ~ "{n} ({p}%)"
-            )
-        ) |>
+        gtsummary::add_overall(last = FALSE) |>
         gtsummary::add_p(
             test = list(
-                gtsummary::all_continuous()  ~ "aov",
+                gtsummary::all_continuous()  ~ "oneway.test",
                 gtsummary::all_categorical() ~ "chisq.test"
             ),
             pvalue_fun = gtsummary::style_pvalue
         ) |>
         gtsummary::add_n() |>
         gtsummary::bold_labels() |>
-        gtsummary::bold_p(t = 0.05) |>
+        gtsummary::bold_p(t = 0.05)
+    
+    
+    
+    # ---- FINAL FORMATTING ----
+    tbl |>
         gtsummary::modify_caption(
             "**Table 1.** Baseline characteristics by dairy intake quartile"
         ) |>
         gtsummary::modify_footnote(
             gtsummary::all_stat_cols() ~
-                "Mean (SD) for continuous; n (%) for categorical. \\
-                 Q1 = lowest dairy intake, Q4 = highest."
+                "Mean (SD) for continuous; n (%) for categorical. \
+         Q1 = lowest dairy intake, Q4 = highest."
         )
 }
 
@@ -439,8 +484,6 @@ make_dairy_quartile_flow <- function(analysis_long) {
     # Use baseline quartile boundaries from participants column if available;
     # otherwise compute from all waves pooled.
     if ("baseline_dairy_quartile" %in% names(analysis_long)) {
-        # Extract the cut breaks from the first non-NA baseline assignment
-        # by re-computing quartiles from baseline dairy values
         bsl_vals <- analysis_long |>
             dplyr::filter(osteo_wave == "Baseline",
                           !is.na(dairy_total_gday)) |>
@@ -467,42 +510,33 @@ make_dairy_quartile_flow <- function(analysis_long) {
         dplyr::filter(!is.na(dairy_q)) |>
         dplyr::select(pt, osteo_wave, osteo_wave_num, dairy_q)
     
-    # Count participants per wave x quartile combination
-    alluvial_data <- flow_data |>
-        dplyr::count(osteo_wave, dairy_q, name = "n") |>
-        dplyr::mutate(
-            osteo_wave = forcats::fct_reorder(osteo_wave, as.integer(osteo_wave))
-        )
-    
-    # For the alluvial: need one row per pt x wave, wide format
-    # ggalluvial::geom_alluvium expects long format with `alluvium` = pt id
     ggplot2::ggplot(
         flow_data,
         ggplot2::aes(
-            x     = osteo_wave,
-            stratum   = dairy_q,
-            alluvium  = pt,
-            fill  = dairy_q,
-            label = dairy_q
+            x        = osteo_wave,
+            stratum  = dairy_q,
+            alluvium = pt,
+            fill     = dairy_q,
+            label    = dairy_q
         )
     ) +
         ggalluvial::geom_flow(
-            stat     = "alluvium",
-            aes.bind = TRUE,
-            alpha    = 0.45,
-            colour   = "white",
+            stat      = "alluvium",
+            aes.bind  = "flows",   # replaces deprecated aes.bind = TRUE
+            alpha     = 0.45,
+            colour    = "white",
             linewidth = 0.15
         ) +
         ggalluvial::geom_stratum(
-            width  = 0.4,
-            colour = "white",
+            width     = 0.4,
+            colour    = "white",
             linewidth = 0.3
         ) +
         ggplot2::scale_fill_brewer(palette = "RdYlGn", direction = 1,
                                    name = "Dairy quartile") +
         ggplot2::scale_x_discrete(expand = c(0.05, 0.05)) +
         ggplot2::labs(
-            title   = "Dairy intake quartile transitions across OsteoLaus waves",
+            title    = "Dairy intake quartile transitions across OsteoLaus waves",
             subtitle = glue::glue(
                 "Quartile boundaries fixed at Baseline: ",
                 "Q1 \u2264 {round(q_breaks[2],0)} g/day, ",
@@ -565,7 +599,6 @@ make_smoking_change_plot <- function(analysis_long) {
         ggplot2::theme(legend.position = "right")
     
     # ── Panel B: Change between consecutive waves ─────────────────────────────
-    # For each consecutive pair of waves, count participants who changed vs same
     waves_ordered <- analysis_long |>
         dplyr::distinct(osteo_wave, osteo_wave_num) |>
         dplyr::arrange(osteo_wave_num) |>
@@ -623,14 +656,14 @@ make_smoking_change_plot <- function(analysis_long) {
                 name = NULL
             ) +
             ggplot2::labs(
-                title   = "Smoking status change between consecutive waves",
+                title    = "Smoking status change between consecutive waves",
                 subtitle = "Participants present at both waves with non-missing status",
-                x       = NULL,
-                y       = "n participants"
+                x        = NULL,
+                y        = "n participants"
             ) +
             ggplot2::theme_minimal(base_size = 12) +
             ggplot2::theme(
-                axis.text.x    = ggplot2::element_text(angle = 25, hjust = 1),
+                axis.text.x     = ggplot2::element_text(angle = 25, hjust = 1),
                 legend.position = "right"
             )
     } else {

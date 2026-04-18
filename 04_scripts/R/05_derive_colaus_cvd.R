@@ -42,7 +42,7 @@ derive_cvd <- function(df) {
     # ── Check Required Columns ----------------------------------------------
     .CVD_FLAGS <- c("miac", "strk", "chf",  "cad",  "angn", "cmp", 
                     "hdc",  "hdv",  "artm", "vslg", "ccth", "cabg", "pcin")
-    actual_cols <- df$vars
+    actual_cols <- names(df)
     required_cols <- .CVD_FLAGS
     missing_cols <- setdiff(required_cols, actual_cols)
     if (length(missing_cols) > 0) {
@@ -52,13 +52,14 @@ derive_cvd <- function(df) {
         )
         return(df)
     }
+    flags_present <- intersect(.CVD_FLAGS, actual_cols)
     
     
     # ── Ensure Lazy State ----------------------------------------------
     if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
     
     # ── Main Derivation ----------------------------------------------
-    df <- df %>%
+    df <- df |>
         dplyr::mutate(
             # Helper: TRUE if any flag is "Yes"
             tmp_any_yes = rowSums(
@@ -77,22 +78,22 @@ derive_cvd <- function(df) {
                 tmp_any_yes    ~ "Yes",
                 tmp_any_non_na ~ "No",
                 TRUE           ~ NA_character_
-            ) %>% factor(levels = c("No", "Yes"))
+            ) |> factor(levels = c("No", "Yes"))
         )
     
     # ── Validation ----------------------------------------------
     # We only check 'cvdbase_adj' if it exists in the plan
     if ("cvdbase_adj" %in% df$vars) {
-        check <- df %>%
+        check <- df |>
             dplyr::summarise(
                 n_mismatch = sum(
                     !is.na(cdv_event) & !is.na(cvdbase_adj) &
                         as.character(cdv_event) != as.character(cvdbase_adj),
                     na.rm = TRUE
                 )
-            ) %>%
+            ) |>
             dplyr::as_tibble()
-        
+        cli::cli_h2("Derive CVD Status")
         if (check$n_mismatch > 0) {
             cli::cli_inform(
                 "derive_cvd: {check$n_mismatch} row(s) mismatch between derived {.col cdv_event} 
@@ -101,13 +102,10 @@ derive_cvd <- function(df) {
         }
     }
     
-    # ── Cleanup ----------------------------------------------
-    # Drop source flags AND intermediate variables
-    df <- df %>%
-        dplyr::select(
-            -dplyr::all_of(flags_present),
-            -dplyr::starts_with("tmp_")
-        )
+    # collect as tibble 
+    df <- df |>
+        dplyr::as_tibble()
+    
     
     return(df)
 }

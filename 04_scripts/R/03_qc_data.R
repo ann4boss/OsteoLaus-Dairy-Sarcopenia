@@ -40,39 +40,45 @@ qc <- function(harmonised_list) {
     cli::cli_h1("QC Report")
     
     # ── Select and bind ------------------------------------------------------
-    df_all <- harmonised_list %>%
+    df_all <- harmonised_list |>
         lapply(function(df) {
-            df %>%
+            df |>
                 dplyr::select(
                     dplyr::any_of(c("pt", ".cohort", ".wave", ".wave", "Age", "sex", "exam_date_iso"))
                 )
-        }) %>%
-        dplyr::bind_rows() %>%
-        dtplyr::lazy_dt() %>%
+        }) |>
+        dplyr::bind_rows() |>
+        dtplyr::lazy_dt() |>
         dplyr::arrange(pt, .cohort, .wave)
     
     # ── Initialize basic QC flags  -----------------------------------------
-    qc_tbl <- df_all %>%
+    qc_tbl <- df_all |>
         dplyr::mutate(
-            qc_pt_present   = !is.na(pt),
-            qc_exam_date    = !is.na(exam_date_iso),
-            qc_in_osteolaus = .cohort == "OsteoLaus"
-        )
+            qc_pt_present = !is.na(pt),
+            qc_exam_date  = !is.na(exam_date_iso)
+        ) |>
+        
+        # create pt-level flag
+        dplyr::group_by(pt) |>
+        dplyr::mutate(
+            qc_in_osteolaus = any(.cohort == "OsteoLaus", na.rm = TRUE)
+        ) |>
+        dplyr::ungroup()
     
     # ── Sex stability (ignores NAs)  -----------------------------------------
-    sex_check <- df_all %>%
-        dplyr::filter(.cohort == "CoLaus") %>%
-        dplyr::group_by(pt) %>%
+    sex_check <- df_all |>
+        dplyr::filter(.cohort == "CoLaus") |>
+        dplyr::group_by(pt) |>
         dplyr::summarise(
             qc_sex_stable = dplyr::n_distinct(sex, na.rm = TRUE) <= 1, 
             .groups = "drop"
         )
     
     # ── Age trajectory  -----------------------------------------
-    age_checks <- df_all %>%
-        dplyr::filter(!is.na(Age), !is.na(exam_date_iso)) %>%
-        dplyr::arrange(pt, exam_date_iso) %>%
-        dplyr::group_by(pt) %>%
+    age_checks <- df_all |>
+        dplyr::filter(!is.na(Age), !is.na(exam_date_iso)) |>
+        dplyr::arrange(pt, exam_date_iso) |>
+        dplyr::group_by(pt) |>
         dplyr::mutate(
             # 1. Capture baseline values
             base_age       = dplyr::first(Age),
@@ -82,38 +88,37 @@ qc <- function(harmonised_list) {
             # 3. Check if recorded Age is within a reasonable tolerance (e.g., 1 year) 
             # of the expected age based on the calendar dates
             age_diff_check = abs(Age - expected_age) < 1.0
-        ) %>%
+        ) |>
         dplyr::summarise(
             qc_age_increasing = all(age_diff_check, na.rm = TRUE),
             .groups = "drop"
         )
     
     # ── Duplicate pts -----------------------------------------
-    dup_check <- df_all %>%
-        dplyr::group_by(pt, .cohort) %>%
+    dup_check <- df_all |>
+        dplyr::group_by(pt, .cohort) |>
         dplyr::summarise(
             qc_pt_unique = dplyr::n() == dplyr::n_distinct(.wave), 
             .groups = "drop"
         )
     
     # ── Join and Osteo/CoLaus Overlap -----------------------------------------
-    colaus_pts <- df_all %>% dplyr::filter(.cohort == "CoLaus") %>% dplyr::distinct(pt)
+    colaus_pts <- df_all |> dplyr::filter(.cohort == "CoLaus") |> dplyr::distinct(pt)
     
-    qc_tbl <- qc_tbl %>%
-        dplyr::left_join(sex_check, by = "pt") %>%
-        dplyr::left_join(age_checks, by = "pt") %>%
-        dplyr::left_join(dup_check, by = c("pt", ".cohort")) %>%
-        dplyr::left_join(colaus_pts %>% dplyr::mutate(in_colaus = TRUE), by = "pt") %>%
+    qc_tbl <- qc_tbl |>
+        dplyr::left_join(sex_check, by = "pt") |>
+        dplyr::left_join(age_checks, by = "pt") |>
+        dplyr::left_join(dup_check, by = c("pt", ".cohort")) |>
+        dplyr::left_join(colaus_pts |> dplyr::mutate(in_colaus = TRUE), by = "pt") |>
         dplyr::mutate(
             qc_osteo_in_colaus = dplyr::if_else(.cohort == "OsteoLaus", !is.na(in_colaus), TRUE)
-        ) %>%
+        ) |>
         dplyr::select(-in_colaus)
     
     # ── Finalize and Summarize -----------------------------------------
-    # Summary requires realization (collecting the data)
     res_tbl <- dplyr::as_tibble(qc_tbl)
     
-    qc_summary <- res_tbl %>%
+    qc_summary <- res_tbl |>
         dplyr::summarise(
             n_total_pt             = dplyr::n_distinct(pt),
             n_total_pt_in_osteo    = dplyr::n_distinct(pt[qc_in_osteolaus == TRUE]),

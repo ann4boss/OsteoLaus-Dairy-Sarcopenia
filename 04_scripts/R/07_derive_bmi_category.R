@@ -29,7 +29,7 @@ derive_bmi_category <- function(df) {
     if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
     
     # ── Main Derivation ----------------------------------------------
-    df <- df %>%
+    df <- df |>
         dplyr::mutate(
             BMI_category = dplyr::case_when(
                 is.na(BMI)    ~ NA_integer_,
@@ -38,7 +38,7 @@ derive_bmi_category <- function(df) {
                 BMI <  30.0   ~ 3L,
                 BMI >= 30.0   ~ 4L,
                 TRUE          ~ NA_integer_
-            ) %>%
+            ) |>
                 factor(
                     levels = 1:4,
                     labels = c("Underweight", "Normal", "Overweight", "Obese")
@@ -46,13 +46,13 @@ derive_bmi_category <- function(df) {
         )
     
     # ── Eager Summary for Reporting ----------------------------------------------
-    report_stats <- df %>%
+    report_stats <- df |>
         dplyr::summarise(
             n_total = dplyr::n(),
             n_miss  = sum(is.na(BMI_category)),
             n_obese = sum(BMI_category == "Obese", na.rm = TRUE),
             .groups = "drop"
-        ) %>%
+        ) |>
         dplyr::as_tibble()
     
     cli::cli_h2("Deriving BMI category")

@@ -26,19 +26,18 @@ derive_htn <- function(df) {
     
     # ── Check Required Columns ------------------------------------------------
     required_vars <- c("antiHTA", "crbpmed", "HTA")
-    actual_cols   <- df$vars
-    
+    actual_cols <- names(df)
     missing_vars <- setdiff(required_vars, actual_cols)
-    
     if (length(missing_vars) > 0) {
         cli::cli_abort("derive_htn: required column(s) not found: {.val {missing_vars}}")
+        return(df)
     }
     
     # ── Ensure Lazy State ------------------------------------------------
     if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
     
     # ── Main Derivation ------------------------------------------------
-    df <- df %>%
+    df <- df |>
         dplyr::mutate(
             # Internal helpers for vectorized logic (Yes/No factors/chars)
             tmp_yes = (!is.na(antiHTA) & antiHTA == "Yes") | 
@@ -53,31 +52,28 @@ derive_htn <- function(df) {
                 tmp_yes ~ "Yes",
                 tmp_no  ~ "No",
                 TRUE    ~ NA_character_
-            ) %>% factor(levels = c("No", "Yes"))
-        )
+            ) |> factor(levels = c("No", "Yes"))
+        ) |>
+        dplyr::as_tibble()
     
     # ── Eager Summary ------------------------------------------------
     # Quick count of prevalence for the log
-    stats <- df %>%
+    stats <- df |>
         dplyr::summarise(
             n_total = dplyr::n(),
             n_htn   = sum(HTN_status == "Yes", na.rm = TRUE),
             n_miss  = sum(is.na(HTN_status)),
             .groups = "drop"
-        ) %>%
+        ) |>
         dplyr::as_tibble()
     
+    cli::cli_h2("Derive HTN status")
     cli::cli_inform(c(
         "v" = "derive_htn: HTN status derived.",
         " " = "Summary: {stats$n_htn} Yes / {stats$n_total - stats$n_htn - stats$n_miss} No ({stats$n_miss} NA)"
     ))
     
-    # ── Cleanup ------------------------------------------------
-    df <- df %>%
-        dplyr::select(
-            -dplyr::all_of(required_vars),
-            -dplyr::starts_with("tmp_")
-        )
+
     
     return(df)
 }

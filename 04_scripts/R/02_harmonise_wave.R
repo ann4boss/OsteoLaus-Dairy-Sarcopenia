@@ -19,8 +19,8 @@ harmonise_wave <- function(df) {
     
     # ── Extract metadata -----------------------------------------
     
-    cohorts <- df %>% dplyr::distinct(.cohort) %>% dplyr::pull(.cohort)
-    waves   <- df %>% dplyr::distinct(.wave) %>% dplyr::pull(.wave)
+    cohorts <- df |> dplyr::distinct(.cohort) |> dplyr::pull(.cohort)
+    waves   <- df |> dplyr::distinct(.wave) |> dplyr::pull(.wave)
     
     if (length(waves) > 1) {
         cli::cli_abort("harmonise_wave() received multiple waves: {.val {waves}}.")

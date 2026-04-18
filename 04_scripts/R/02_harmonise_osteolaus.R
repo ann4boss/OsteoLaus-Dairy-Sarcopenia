@@ -54,8 +54,8 @@ harmonise_osteo <- function(df) {
     # Ensure we have a lazy_dt right away
     if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
     
-    cohorts <- df %>% dplyr::distinct(.cohort) %>% dplyr::pull(.cohort)
-    waves   <- df %>% dplyr::distinct(.wave) %>% dplyr::pull(.wave)
+    cohorts <- df |> dplyr::distinct(.cohort) |> dplyr::pull(.cohort)
+    waves   <- df |> dplyr::distinct(.wave) |> dplyr::pull(.wave)
     
     stopifnot(cohorts == "OsteoLaus")
     cohort <- cohorts[1]
@@ -73,7 +73,7 @@ harmonise_osteo <- function(df) {
     }
     
     # ── Start dtplyr pipeline -----------------------------------------
-    df_lazy <- dtplyr::lazy_dt(df) %>%
+    df_lazy <- dtplyr::lazy_dt(df) |>
         
         # ── DXA Method & IDs -----------------------------------------
         dplyr::mutate(
@@ -82,7 +82,7 @@ harmonise_osteo <- function(df) {
             ),
             pt            = as.integer(pt),
             exam_date_iso = parse_exam_date(SCAN_date)
-        ) %>%
+        ) |>
         
         # ── Continuous variables -----------------------------------------
         dplyr::mutate(
@@ -90,7 +90,7 @@ harmonise_osteo <- function(df) {
                 dplyr::any_of(.OSTEO_NUMERIC_COLS),
                 ~ safe_numeric(.x, dplyr::cur_column())
             )
-        ) %>%
+        ) |>
         
         # ── Categorical factors -----------------------------------------
         dplyr::mutate(
@@ -121,10 +121,10 @@ harmonise_osteo <- function(df) {
             dplyr::across(dplyr::any_of("SARCF_FALL"),
                           ~ factor(.x, levels = c("0", "1", "2"),
                                    labels = c("None", "1-3 falls", "4+ falls")))
-        ) %>%
+        ) |>
         
         # drop columns not needed for analysis (not requested to be retained in the harmonised dataset)
-        dplyr::select(-dplyr::any_of(.DROP_COLS)) %>%
+        dplyr::select(-dplyr::any_of(.DROP_COLS)) |>
         
         # ── Final Rename -----------------------------------------
         # `6MGS` starts with a digit and is not a valid R name. Rename to
@@ -133,7 +133,7 @@ harmonise_osteo <- function(df) {
     
     # ── Finalize --------------------------------------------------------------
     # Trigger data.table translation and execution
-    out <- df_lazy %>% dplyr::as_tibble(df_lazy)
+    out <- df_lazy |> dplyr::as_tibble(df_lazy)
     
     return(out)
 }

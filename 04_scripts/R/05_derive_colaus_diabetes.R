@@ -49,7 +49,7 @@ derive_diabetes <- function(df) {
     
     # ── Ensure Required Columns are available ---------------------------------
     required_cols <- c("dbtld", "DIAB", "DIAB_Hb")
-    actual_cols <- df$vars
+    actual_cols <- names(df)
     missing_cols <- setdiff(required_cols, actual_cols)
     if (length(missing_cols) > 0) {
         cli::cli_warn(
@@ -114,7 +114,8 @@ derive_diabetes <- function(df) {
                 levels = c(0, 1),
                 labels = c("No diabetes", "Diabetes")
             )
-        )
+        ) |>
+      dplyr::as_tibble()
     
     
     # ── Eager Validation Summary ------------------------------------------------
@@ -152,19 +153,6 @@ derive_diabetes <- function(df) {
         "*" = "Self-report vs objective disagreement: {round(summary_stats$sum_disagreement_self_vs_obj / summary_stats$n_self_obj_valid * 100, 1)}%"
     ))
     
-    # ── Drop source and intermediate variables ------------------------------------
-    df <- df |>
-        dplyr::select(
-            -dplyr::any_of(c(
-                "is_yes_dbtld", "is_yes_DIAB", "is_yes_DIAB_Hb",
-                "is_avail_dbtld", "is_avail_DIAB", "is_avail_DIAB_Hb",
-                "n_sources_available", "n_yes",
-                "any_yes", "any_no",
-                "diabetes_status_num",
-                "disagreement_any", "disagreement_fpg_vs_hba1c", "disagreement_self_vs_objective",
-                "dbtld", "DIAB", "DIAB_Hb"
-            ))
-        )
-    
+  
     return(df)
 }

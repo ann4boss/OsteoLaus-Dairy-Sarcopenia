@@ -18,42 +18,39 @@
 #' @return A lazy_dt or tibble with education_level added and edtyp4 removed.
 derive_education <- function(df) {
     
-    # Ensure the source column is present before attempting to derive; if not, warn and return unchanged
-    if (!"edtyp4" %in% names(df)) {
+    # ── Ensure source columns are present ------------------------------------
+    required_cols <- "edtyp4"
+    actual_cols <- names(df)
+    missing_cols <- setdiff(required_cols, actual_cols)
+    if (length(missing_cols) > 0) {
         cli::cli_warn(
-            "derive_education: source column {.col edtyp4} not found. \
-       education_level will not be derived."
+            "derive_education: missing required columns: {.val {missing_cols}}.
+        education levels will not be derived."
         )
         return(df)
     }
     
-    # Ensure we're working with a lazy_dt for efficient mutation; if not, convert it
-    if (!inherits(df, "dtplyr_step")) {
-        df <- dtplyr::lazy_dt(df)
-    }
+    # ── Ensure Lazy State -------------------------------------------------
+    if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
     
-    df <- df %>%
+    df <- df |>
         dplyr::mutate(
             education_level = dplyr::case_when(
-                # fcase/case_when handles NA automatically, but being explicit is safer
                 is.na(edtyp4)                            ~ NA_integer_,
                 edtyp4 == "University"                   ~ 3L,
                 edtyp4 %in% c("High school", 
                               "Apprenticeship")           ~ 2L,
                 edtyp4 == "Mandatory"                    ~ 1L,
                 TRUE                                     ~ NA_integer_
-            ) %>%
+            ) |>
                 factor(
                     levels  = 1:3,
                     labels  = c("Low (ISCED 0-2)", "Medium (ISCED 3-4)", "High (ISCED 5-8)"),
                     ordered = TRUE
                 )
-        ) %>%
-        # Remove the original source column as requested
-        dplyr::select(-edtyp4)
-    
-    # collect as tibble
-    df <- df %>% dplyr::as_tibble()
+        ) |>
+        # collect as tibble 
+        dplyr::as_tibble()
     
     # give feedback on the derived variable
     n_derived <- sum(!is.na(df$education_level))

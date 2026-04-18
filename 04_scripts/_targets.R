@@ -126,6 +126,16 @@ qc_targets <- list(
     tar_target(qc_tbl,     qc_out$tbl),
     tar_target(qc_summary, qc_out$summary)
 )
+
+qc_targets_variables <- list(
+    tar_target(qc_out_variable, qc_variable(list(
+        colaus_bsl_harm, colaus_f1_harm, colaus_f2_harm, colaus_f3_harm,
+        osteo_bsl_harm,  osteo_v2_harm,  osteo_v3_harm,  osteo_v4_harm,  osteo_v5_harm
+    ))),
+    tar_target(qc_tbl_variable,     qc_out_variable$tbl),
+    tar_target(qc_summary_wave,     qc_out_variable$wave_summary),
+    tar_target(qc_summary_variable, qc_out_variable$summary)
+)
 # =============================================================================
 # 04. STACK
 # =============================================================================
@@ -149,7 +159,7 @@ stack_targets <- list(
 
 
 # =============================================================================
-# 05. DERIVE — per-cohort (only colaus)
+# 05. DERIVE variables in CoLaus
 # =============================================================================
 
 derive_targets <- list(
@@ -160,7 +170,19 @@ derive_targets <- list(
 # 06. WAVE MATCH
 # =============================================================================
 
-wave_match_targets <- list(tar_target(merged_table, merge_closest_exams(colaus_derived, osteo_long))
+wave_match_targets <- list(
+    tar_target(
+        merged,
+        merge_closest_exams(colaus_derived, osteo_long)
+    ),
+    tar_target(
+        merged_table,
+        merged$data
+    ),
+    tar_target(
+        merged_qc,
+        merged$qc
+    )
 )
 
 
@@ -189,52 +211,16 @@ freeze_targets <- list(
     }, format = "file")
 )
 
-# 08b. CONSORT FLOW DIAGRAMS
+
+# =============================================================================
+# Dairy check 
 # =============================================================================
 
-flow_graph_targets <- list(
-    
-    # Hard exclusion CONSORT diagram
-    # Requires DiagrammeR: install.packages("DiagrammeR") + renv::snapshot()
-    tar_target(flow_graph_hard, {
-        library(DiagrammeR)
-        make_hard_exclusion_graph(
-            flow_log_hard,
-            title = "CoLaus/OsteoLaus: Participant Flow - Hard Exclusions"
-        )
-    }),
-    
-    # Per-outcome eligibility diagram
-    tar_target(flow_graph_outcomes, {
-        library(DiagrammeR)
-        make_outcome_exclusion_graph(
-            flow_log_outcomes,
-            title = "CoLaus/OsteoLaus: Outcome-Specific Eligibility"
-        )
-    }),
-    
-    # Export to PNG
-    # Also requires DiagrammeRsvg and rsvg:
-    #   install.packages(c("DiagrammeRsvg", "rsvg")); renv::snapshot()
-    tar_target(flow_graph_hard_file, {
-        library(DiagrammeR)
-        path <- "06_outputs/figures/flow_hard_exclusions.png"
-        dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-        export_exclusion_graph(flow_graph_hard, path,
-                               width = 900L, height = 800L)
-        path
-    }, format = "file"),
-    
-    tar_target(flow_graph_outcomes_file, {
-        library(DiagrammeR)
-        path <- "06_outputs/figures/flow_outcome_eligibility.png"
-        dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-        export_exclusion_graph(flow_graph_outcomes, path,
-                               width = 700L, height = 1400L)
-        path
-    }, format = "file")
+plot_dairy <- list(
+    tar_target(dairy_distribution_plots,
+               plot_dairy_distributions(colaus_derived)
+    )
 )
-
 
 # =============================================================================
 # 09. DESCRIPTIVES
@@ -768,11 +754,13 @@ c(
     import_targets,
     harmonise_targets,
     qc_targets,
+    qc_targets_variables,
     stack_targets,
     derive_targets,
     wave_match_targets,
-    derive_targets_both,
-    freeze_targets
+    derive_targets_both
+    # #plot_dairy,
+    #freeze_targets
     # flow_graph_targets,
     # descriptive_targets,
     # smoking_descriptives,
@@ -782,14 +770,4 @@ c(
     # subtypes,
     # simple_cox,
     # splines
-    # list(
-    #     tarchetypes::tar_render(
-    #         descriptive_report,
-    #         path = "06_outputs/reports/descriptive_analysis.qmd"
-    #     ),
-    #     tarchetypes::tar_render(
-    #         results_report,
-    #         path = "06_outputs/reports/results.qmd"
-    #     )
-    # )
 )

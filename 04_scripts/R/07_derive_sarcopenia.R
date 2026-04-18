@@ -26,7 +26,7 @@ derive_sarcopenia <- function(df) {
     
     # ── EWGSOP2 sarcopenia staging ------------------------------------------------
     # Definitions based on EWGSOP2 thresholds
-    df <- df %>%
+    df <- df |>
         dplyr::mutate(
             ewgsop2_low_strength = !is.na(HGS_MAX) & HGS_MAX < EWGSOP2$hgs_kg,
             ewgsop2_low_mass     = !is.na(ALM_HT2) & ALM_HT2 < EWGSOP2$almi_kgm2,
@@ -38,7 +38,7 @@ derive_sarcopenia <- function(df) {
                 ewgsop2_low_strength & ewgsop2_low_mass                    ~ 2L,
                 ewgsop2_low_strength                                       ~ 1L,
                 TRUE                                                       ~ 0L
-            ) %>%
+            ) |>
                 factor(
                     levels  = 0:3,
                     labels  = c("No sarcopenia", "Probable", "Confirmed", "Severe"),
@@ -47,7 +47,7 @@ derive_sarcopenia <- function(df) {
         )
     
     # ── FNIH sarcopenia (sensitivity) ------------------------------------------------
-    df <- df %>%
+    df <- df |>
         dplyr::mutate(
             fnih_low_strength = !is.na(HGS_MAX) & HGS_MAX < FNIH$hgs_kg,
             fnih_low_mass     = !is.na(ALM_BMI) & ALM_BMI < FNIH$alm_bmi,
@@ -56,18 +56,18 @@ derive_sarcopenia <- function(df) {
                 is.na(HGS_MAX) | is.na(ALM_BMI)   ~ NA_character_,
                 fnih_low_strength & fnih_low_mass ~ "Sarcopenia",
                 TRUE                              ~ "No sarcopenia"
-            ) %>% factor(levels = c("No sarcopenia", "Sarcopenia"))
+            ) |> factor(levels = c("No sarcopenia", "Sarcopenia"))
         )
     
     # ── Eager Summary for Reporting ------------------------------------------------
     # Collect stats before returning
-    report_stats <- df %>%
+    report_stats <- df |>
         dplyr::summarise(
             n_total = dplyr::n(),
             n_staged = sum(!is.na(ewgsop2_sarcopenia_stage)),
             n_sarcopenic = sum(ewgsop2_sarcopenia_stage >= "Confirmed", na.rm = TRUE),
             .groups = "drop"
-        ) %>%
+        ) |>
         dplyr::as_tibble()
     
     cli::cli_h2("Deriving Sarcopenia")
