@@ -11,7 +11,7 @@
 
 
 
-<title>variable_definitions</title>
+<title>Variables_open_points</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -352,2165 +352,2124 @@ display: none;
 </div>
 
 
-<div id="variable-definition" class="section level1">
-<h1>Variable Definition</h1>
-<div id="cohorts" class="section level2">
-<h2>Cohorts</h2>
-<p>CoLaus is a population-based cohort of adults from Lausanne,
-Switzerland. It has five measurement time points: Baseline, F1, F2, F3,
-and F4. Individual CSV files are provided per time point. FFQ (food
-frequency questionnaire) data are available from F1 onwards.</p>
-<p>OsteoLaus is a sub-cohort of CoLaus including female participants
-only. It has five visit time points: Baseline, V2, V3, V4, and V5.
-OsteoLaus visits are mapped to the closest CoLaus time point
-(many-to-one). Because OsteoLaus contains only female participants, the
-<code>sex</code> variable is excluded from analysis.</p>
-</div>
-<div id="merge-logic" class="section level2">
-<h2>Merge Logic</h2>
-<pre><code>CoLaus (Baseline–F4)
-        │
-        │  merge on: pt  (1:1 within wave)
-        │
-OsteoLaus (Baseline–V5) ──── mapped to nearest CoLaus wave ──── exam_date_iso (join key)</code></pre>
-<ul>
-<li>The <code>pt</code> variable is the <strong>primary key</strong>
-(participant-level unique identifier).</li>
-<li><code>exam_date_iso</code> (ISO 8601 date) is the <strong>temporal
-join key</strong>.</li>
-<li>OsteoLaus → CoLaus mapping is <strong>many-to-one</strong>: multiple
-OsteoLaus visits may link to one CoLaus wave.</li>
-</ul>
-</div>
-<div id="colaus-dataset" class="section level2">
-<h2>CoLaus Dataset</h2>
-<table style="width:99%;">
+<hr />
+<div id="variable-assumption-open-points" class="section level1">
+<h1>Variable &amp; Assumption Open Points</h1>
+<table style="width:100%;">
 <colgroup>
 <col width="3%" />
-<col width="12%" />
+<col width="16%" />
+<col width="6%" />
 <col width="2%" />
-<col width="5%" />
-<col width="2%" />
-<col width="22%" />
-<col width="26%" />
-<col width="24%" />
+<col width="3%" />
+<col width="25%" />
+<col width="20%" />
+<col width="6%" />
+<col width="13%" />
 </colgroup>
 <tbody>
 <tr class="odd">
 <td><strong>Original Name</strong></td>
+<td><strong>Description</strong></td>
 <td><strong>Derived Variable</strong></td>
-<td><strong>Data Type</strong></td>
-<td><strong>Role</strong></td>
-<td><strong>Multiplicity</strong></td>
-<td><strong>Reference / Levels</strong></td>
-<td><strong>Notes</strong></td>
-<td><strong>Missing value handling</strong></td>
+<td><strong>Included in Aim 1 + 2 analysis</strong></td>
+<td><strong>Included in Aim 3 and sensitivity analysis</strong></td>
+<td><strong>Issue</strong></td>
+<td><strong>Reason</strong></td>
+<td><strong>Solution ideas</strong></td>
+<td><strong>Solved</strong></td>
 </tr>
 <tr class="even">
+<td>Assumption 1</td>
+<td>all women included in OsteoLaus are menopausal</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td><p>Non of the official inclusion/exclusion criteria mentions
+menopause, Pedro has confirmed menopause was not a selection cirteria,
+these papers have refered to the same cohort as menopausal <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12134769/" title="https://pmc.ncbi.nlm.nih.gov/articles/PMC12134769/"><u>https://pmc.ncbi.nlm.nih.gov/articles/PMC12134769/</u></a><br />
+<a href="https://smw.ch/index.php/smw/article/view/4034" title="https://smw.ch/index.php/smw/article/view/4034"><u>https://smw.ch/index.php/smw/article/view/4034</u></a></p>
+<p>Menopaus is a a crucial hormonal change that has an effect on muscle
+outcome measures</p></td>
+<td>Discrepancy between study description and previously published
+papers including the study team</td>
+<td>trust one source, ask for the variable <em>lmpage</em></td>
+<td>17.04.2026 women are not necessarily menopausal and we cannot
+confirm their status with the available variables we have in our
+dataset. Hoping that confounding for hormonal therapy is
+sufficient.</td>
+</tr>
+<tr class="odd">
 <td><strong>pt</strong></td>
-<td>-</td>
-<td>integer</td>
-<td>Primary Key</td>
-<td>1..1</td>
-<td>-</td>
 <td>Unique identifier for the CoLaus/OsteoLaus cohort.</td>
-<td>if not recorded participant is excluded from anaylsis</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>pt does not match to a unique participant, especially comparing
+CoLaus to OsteoLaus</td>
+<td>export issue, wrong identifier used</td>
+<td>new export</td>
+<td>17. 03.2026 with new exports</td>
+</tr>
+<tr class="even">
+<td><strong>exam_date_iso</strong></td>
+<td>ISO 8601 (YYYY-MM-DD) format. Temporal join key.</td>
+<td><code>Age</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>missing exam dates, but Age was calculated for 250/265 cases→ this
+is technical not possible since age is calculated based on exam dates.
+Missing dates are non-random and wave-specific for F2 and F3</td>
+<td>most likely a pipeline issue upstream/export</td>
+<td>new export, if this is not possible exclude rows</td>
+<td><font color="red">TODO</font></td>
 </tr>
 <tr class="odd">
 <td><strong>sex</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Excluded</td>
-<td>1..1</td>
-<td>1=male, 0=female</td>
 <td>Excluded since OsteLaus only contains female participants.</td>
-<td>NA since excluded</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="even">
-<td><strong>datexam</strong></td>
-<td><code>exam_date_iso</code></td>
-<td>numeric daily date</td>
-<td>Source</td>
-<td>1..*</td>
-<td>-</td>
-<td>In Day–abbreviated month–year (DDMonYYYY) format</td>
-<td>-</td>
-</tr>
-<tr class="odd">
-<td><strong>exam_date_iso</strong></td>
-<td>-</td>
-<td>Date</td>
-<td>Temporal Key</td>
-<td>1..*</td>
-<td>-</td>
-<td>ISO 8601 (YYYY-MM-DD) format. Join key. Note: Many-to-One mapping
-from OsteoLaus visits to closest CoLaus visit.</td>
-<td>if not recorded participant is excluded from analysis</td>
-</tr>
-<tr class="even">
-<td><strong>age</strong></td>
-<td>-</td>
-<td>Numeric (float)</td>
-<td>Time-Varying Covariate</td>
-<td>1..*</td>
-<td>-</td>
-<td>Calculated at each <code>dataexam</code>. Continuous variable.</td>
-<td>needs to be recorded at baseline otherwise participants is excluded,
-for follow-ups if possible is backfilled with
-<code>exam_data_iso</code></td>
+<td><strong>Age</strong></td>
+<td>Calculated with <code>birthdate</code> (not available) and
+<code>exam_date_iso</code>.</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Age trajectories not always correct</td>
+<td>unknown, possibly due to generic <code>birthdate</code> usage. For
+better root cause investigation the source variable
+<code>birthdate</code> would be needed but is not available due to data
+privacy regulations. Not clear why different data privacy regulation
+apply for me than Natalia (she used <code>birthdate</code>)</td>
+<td>exclude from analysis</td>
+<td><font color="red">TODO</font></td>
 </tr>
 <tr class="odd">
 <td><strong>ethori_self</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Excluded</td>
-<td>0..1</td>
-<td>A=Asian, B=Black / African / African American, W=White, O=Other,
-X=Unknown / Not reported, K=does not know</td>
-<td>Excluded since not used as covariant</td>
-<td>NA since excluded</td>
+<td>Ethnicity (source: Colaus)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="even">
-<td><strong>edtyp4</strong></td>
-<td><code>education_level</code></td>
-<td>Integer</td>
-<td>Source</td>
-<td>0..1</td>
-<td>1=University education, 2=High school, 3=Apprenticeship, 4=Mandatory
-education</td>
-<td>Mapping: University education= ISCED 6–8 High school (Gymnasium /
-Matura)=ISCED 3 Apprenticeship (VET)=ISCED 3–4 Mandatory education=ISCED
-1–2</td>
-<td>-</td>
+<td><strong>Ethnicity</strong></td>
+<td>Ethnicity (source: OsteoLaus)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="odd">
 <td><strong>education_level</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Fixed Covariant</td>
-<td>0..1</td>
-<td>1 (Low/ISCED 0-2)</td>
-<td>Level 1: Low (ISCED 0-2); Level 2: Medium (ISCED 3-4); Level 3: High
-(ISCED 5-8).</td>
-<td>if not recorded participant is excluded from analysis</td>
+<td>Self-reported highest level of achieved educational level, only
+recorded at baseline, Mapping: University education= ISCED 6–8 High
+school (Gymnasium / Matura)=ISCED 3 Apprenticeship (VET)=ISCED 3–4
+Mandatory education=ISCED 1–2</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No issue found</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="even">
 <td><strong>mrtsts2</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Excluded</td>
-<td>0..*</td>
-<td>0=Living alone, 1=Living in couple</td>
-<td>Marital status, excluded since not applied in analysis.</td>
-<td>NA since excluded</td>
+<td>Marital status, only recorded at baseline</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td>No issue found</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="odd">
 <td><strong>alcuse</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Validation/ Excluded</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>Use to cross-validate “Non-drinkers” in the derived variable.</td>
-<td>-</td>
+<td>Initial Question about alcohol. Participant that said No here should
+not filled in follow up questions on alcohol usage.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>Some participants answered No, but subsequent questions about
+alcohol leads to the conclusion of alcohol consume</td>
+<td>Limitation of self-reported variables</td>
+<td>Exclude variable</td>
+<td>12.03.2026</td>
 </tr>
 <tr class="even">
 <td><strong>alcool4</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Validation</td>
-<td>0..*</td>
-<td>0=Non Drinker, 1=Drinker</td>
-<td>Redundant if <code>alcuse</code> is present. Check for data
-completion % between the two.</td>
-<td>-</td>
+<td>Categorisation based on <code>conso_hebdo</code> result. Already in
+dataset</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="odd">
 <td><strong>conso_hebdo</strong></td>
-<td><code>alcohol_category</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>1..*</td>
-<td>-</td>
-<td>Units/week. Primary source for Baseline where <code>sumalco</code>
-is missing. 1 unit = 10-12g.</td>
+<td>Units/week. Primary source for alcohol_category 1 unit =
+10-12g.</td>
+<td><code>alcohol_category, alcool4</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>see <code>alcohol_category</code></td>
+<td>see <code>alcohol_category</code></td>
+<td>see <code>alcohol_category</code></td>
 <td>see <code>alcohol_category</code></td>
 </tr>
 <tr class="even">
 <td><strong>sumalco</strong></td>
+<td>Alcohol consumption in gr ethanol/day.</td>
 <td><code>alcohol_category</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Missing by design for Baseline. Alcohol consumption in grams/day.
-Used as primary input for F1 wave onwards.</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>see <code>alcohol_category</code></td>
+<td>see <code>alcohol_category</code></td>
+<td>see <code>alcohol_category</code></td>
 <td>see <code>alcohol_category</code></td>
 </tr>
 <tr class="odd">
 <td><strong>alcohol_category</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>Levels: 1: Non-drinker (0g/day), 2: Light (&gt;0–6g/day), 3:
-Moderate (&gt;6–12g/day), 4: Heavy (&gt;12g/day).</td>
-<td>for Baseline categorisation, <code>conso_hebdo</code> is used to
-calculate the category, for the following measurements,
-<code>sumalco</code> is preferred to derive the category, in case it is
-missing <code>conso_hebdo</code> is used</td>
-<td><p>In case both <code>conso_hebdo</code> and <code>sumalco</code>
-are missing for a time point, take category from previous (or next) time
-point, if this does not exist exclude participant.</p>
-<!--# is this ok?, how many people change category over time? --></td>
+<td><p>Calculation is based on <code>conso_hebdo</code> or/and
+<code>sumalco</code></p>
+<p>Categories:</p>
+<ul>
+<li><p>0 units/week (0 g/day) -&gt; 0 = Non-drinker</p></li>
+<li><p>≥1 to 3 units/week (&gt;0–6 g/day) -&gt; 1 = Light</p></li>
+<li><p>≥4 to 7 units/week (&gt;6–12 g/day) -&gt; 2 = Moderate</p></li>
+<li><p>&gt;7 units/week (&gt;12 g/day) -&gt; 3 = Heavy</p></li>
+</ul></td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>When multiple variables measure the same/ similar outcome it is best
+practice to compare them for data quality reasons. Comparison outcome:
+5915 rows (55.15%) have disagreement, 336 are higher by
+<code>conso_hebdo</code>; 5579 are higher by <code>sumalco</code></td>
+<td>unknown</td>
+<td>ask someone that could know but who?</td>
+<td><font color="red">TODO</font></td>
 </tr>
 <tr class="even">
 <td><strong>sbsmk</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=Never, 1=Former, 2=Current</td>
-<td>Initial screening question for smoking history.</td>
-<td><p>Exclude if not available at baseline, for missing values at
-follow-up take status from baseline</p>
-<!--# is this ok?how many people change category over time? --></td>
+<td>Screening question for smoking history.</td>
+<td><code>smoking_status</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>impossible trajectory such as changing from never to former/ current
+or current/former to never</td>
+<td>Limitation of self-reported variable</td>
+<td>see <code>smoking_status</code></td>
+<td>01.04.2026</td>
 </tr>
 <tr class="odd">
+<td><strong>smoking_status</strong></td>
+<td>Based on <code>sbsmk</code> with correction of values of
+participants that switch from never to former or current within
+trajectory or the other way round -&gt; former</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
 <td><strong>dbtld</strong></td>
+<td><p>Self-reported diagnosis (“Ever told by doctor”).</p>
+<p>Different sentinel coding for 9 does not matter since both are
+recoded to NA</p></td>
 <td><code>diabetes_status</code></td>
-<td>Factor</td>
-<td>Source</td>
-<td>0..*</td>
-<td><p>Baseline/F1/F3: 0=No, 1=Yes, 9=Does not know</p>
-<p>F2: 0=No, 1=Yes, 9=No data</p></td>
-<td>Self-reported diagnosis (“Ever told by doctor”).</td>
-<td></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>agediag_dbts</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Excluded</td>
-<td>0..1</td>
-<td>-</td>
 <td>Age at diagnosis of diabetes. Could be used to distinguish between
-Type 1 and Type 2, but mostly missing values.</td>
-<td></td>
+Type 1 and Type 2.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><strong>dbdrg</strong></td>
-<td><code>diabetes_status</code></td>
-<td>Factor</td>
-<td>Source</td>
-<td>0..*</td>
-<td><p>Baseline/F1/F3: 0=No, 1=Yes, 9=Does not know</p>
-<p>F2: 0=No, 1=Yes, 8=Does not apply, 9=No data</p></td>
 <td>Self-reported history of treatment.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>orldrg</strong></td>
-<td><code>diabetes_status</code></td>
-<td>Factor</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 8=Does not apply, 9=No data</td>
-<td>Use of oral antidiabetic agents.</td>
-<td><!--# check for missing value if they come from non-diabetics --></td>
-</tr>
-<tr class="odd">
-<td><strong>insn</strong></td>
-<td><code>diabetes_status</code></td>
-<td>Factor</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 8=Does not apply, 9=No data</td>
-<td>Use of insulin (critical for Level 3).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>antiDIAB</strong></td>
-<td><code>diabetes_status</code></td>
-<td>Binary</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>General antidiabetic drug flag.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>DIAB</strong></td>
-<td><code>diabetes_status</code></td>
-<td>Binary</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>FPG <span class="math inline">\(\ge\)</span> 7.0 mmol/L. Primary
-clinical marker.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>DIAB_Hb</strong></td>
-<td><code>diabetes_status</code></td>
-<td>Binary</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>HbA1c <span class="math inline">\(\ge\)</span> 48 mmol/mol. Missing
-by design, available from F2 onwards.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>DIAB2</strong></td>
-<td><code>diabetes_status</code></td>
-<td>Factor</td>
-<td>Validation</td>
-<td>0..*</td>
-<td><p>Baseline/F2/F3: 0=Normal, 1=IFG, 2=Diabetes</p>
-<p>F1: 0=No, 1=Yes</p>
-<!--# how to handle this labelling for F1 --></td>
-<td>Combined IGT/Diabetes flag; use to verify prediabetes.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>metab_synd</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>Metabolic Syndrome (ATP-III). Redundant if using specific diabetes
-status.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>diabetes_status</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>1=No Diab; 2=Diab (Oral/Lab only); 3=Diab (+Insulin);
-4=IGT/Prediabetes.</td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>ATC1…21</strong></td>
-<td><code>statin_status</code>, <code>calcium_status</code>,
-<code>vitD_status</code>, <code>anabolic_status</code>,
-<code>benzo_status</code>, …</td>
-<td>Character</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Raw ATC codes for all medications reported. Used to derive specific
-statuses.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>ATC_OTC1…17</strong></td>
-<td>-</td>
-<td>Character</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Over the counter drugs …</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>Diet_compl</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total number of dietary complements</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>hypolip_drug_status</strong></td>
-<td><code>lip_status</code></td>
-<td>BInary</td>
-<td>Time-Varying Covariate &amp; Validation</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td><p>If any ATC code starts with C10.</p>
-<p>Used to verify <code>hypolip</code> or <code>hctld</code>.</p></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>corticoids_status</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>If any ATC code starts with H02.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>vitD_status</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>If any ATC starts with A11</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>calcium_status</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td></td>
-<td><!--# Yes (1): If any ATC code starts with A12A (incl. A12AX). --></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td>…</td>
-<td></td>
-<td></td>
-<td>Time-Varying Covariate</td>
-<td></td>
-<td></td>
-<td><!--# Yes (1): If any ATC code starts with . --></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>benzo_status</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>miac</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Myocardial Infarction history.</td>
-<td>if any of the other CV diagnosis is 1, then is included since
-<code>cdv_event</code> only requires one positive value, if all other CV
-diagnoses are 0 or also missing then participant is excluded</td>
-</tr>
-<tr class="even">
-<td><strong>strk</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Stroke history.</td>
-<td>same as above</td>
-</tr>
-<tr class="odd">
-<td><strong>chf</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Congestive Heart Failure history.</td>
-<td>same as above</td>
-</tr>
-<tr class="even">
-<td><strong>cad</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Coronary Artery Disease history.</td>
-<td>same as above</td>
-</tr>
-<tr class="odd">
-<td><strong>angn</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Angina history.</td>
-<td>same as above</td>
-</tr>
-<tr class="even">
-<td><strong>cmp</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Cardiomyopathy history.</td>
-<td>same as above</td>
-</tr>
-<tr class="odd">
-<td><strong>hdc</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Hypertensive heart disease.</td>
-<td>same as above</td>
-</tr>
-<tr class="even">
-<td><strong>hdv</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Heart valve disease.</td>
-<td>same as above</td>
-</tr>
-<tr class="odd">
-<td><strong>artm</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Arrhythmia.</td>
-<td>same as above</td>
-</tr>
-<tr class="even">
-<td><strong>vslg</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Vascular surgery history.</td>
-<td>same as above</td>
-</tr>
-<tr class="odd">
-<td><strong>ccth</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Cardiac catheterization history.</td>
-<td>same as above</td>
-</tr>
-<tr class="even">
-<td><strong>cabg</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Bypass surgery (CABG) history.</td>
-<td>same as above</td>
-</tr>
-<tr class="odd">
-<td><strong>pcin</strong></td>
-<td><code>cdv_event</code></td>
-<td>Factorial</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
-<td>Stent (PCI) history.</td>
-<td>same as above</td>
-</tr>
-<tr class="even">
-<td><strong>agediag…</strong></td>
-<td><code>cdv_event</code></td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Ages for all CV diagnoses listed above.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 <td>NA</td>
 </tr>
 <tr class="odd">
-<td><strong>cvdbase_adj</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Validation</td>
-<td>0..*</td>
-<td>1=yes</td>
-<td><!--# what is this variable? --></td>
+<td><strong>orldrg</strong></td>
+<td>Use of oral antidiabetic agents.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>insn</strong></td>
+<td>Use of insulin (critical for Level 3).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>antiDIAB</strong></td>
+<td>General antidiabetic drug flag.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>DIAB</strong></td>
+<td>FPG <span class="math inline">\(\ge\)</span> 7.0 mmol/L. Primary
+clinical marker.</td>
+<td><code>diabetes_status</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
+</tr>
+<tr class="odd">
+<td><strong>DIAB_Hb</strong></td>
+<td>HbA1c <span class="math inline">\(\ge\)</span> 48 mmol/mol. Missing
+by design, available from F2 onwards.</td>
+<td><code>diabetes_status</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
+<td>see <code>diabetes_status</code></td>
+</tr>
+<tr class="even">
+<td><strong>DIAB2</strong></td>
+<td>Combined IGT/Diabetes flag.</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>metab_synd</strong></td>
+<td>Metabolic Syndrome (ATP-III). Redundant if using specific diabetes
+status.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>diabetes_status</strong></td>
+<td><p>Calculations:<br />
+Yes if:</p>
+<ul>
+<li><p>DIAB_Hb == “Yes”, OR</p></li>
+<li><p>DIAB_Hb is missing AND DIAB == “Yes”, OR</p></li>
+<li><p>DIAB_Hb and DIAB are missing AND dbtld == “Yes”</p></li>
+</ul>
+<p>otherwise no</p></td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Self-report vs objective disagreement: 4.3%</td>
+<td>Limitation of self-reported variables</td>
+<td>NA</td>
+<td>1.04.2026 hierarchicaldetermination of
+<code>diabetes_status</code></td>
+</tr>
+<tr class="odd">
+<td><strong>ATC1…21</strong></td>
+<td>Raw ATC codes for all medications reported. Used to derive specific
+statuses.</td>
+<td><code>hypolip_status</code>, <code>corticoids_status</code>,
+<code>calcium_status</code>,
+<code>vitD_status</code>,<code>benzo_status</code>, …</td>
+<td>Maybe</td>
+<td>Yes</td>
+<td>see calculated values</td>
+<td>see calculated values</td>
+<td>see calculated values</td>
+<td>see calculated values</td>
+</tr>
+<tr class="even">
+<td><strong>ATC_OTC1…17</strong></td>
+<td>Over the counter drugs</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>Diet_compl</strong></td>
+<td>Total number of dietary complements</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>hypolip_drug_status</strong></td>
+<td><p>If any ATC code starts with C10.</p>
+<p>Used to verify <code>hypolip</code> or <code>hctld</code>.</p></td>
+<td>NA</td>
+<td>Maybe</td>
+<td>Yes</td>
+<td>No issue found</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>corticoids_status</strong></td>
+<td>If any ATC code starts with H02.</td>
+<td>NA</td>
+<td>Maybe</td>
+<td>Yes</td>
+<td>No issue found</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>vitD_status</strong></td>
+<td>If any ATC starts with A11</td>
+<td>NA</td>
+<td>Maybe</td>
+<td>Yes</td>
+<td>No issue found</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>calcium_status</strong></td>
+<td>Yes (1): If any ATC code starts with A12A (incl. A12AX).</td>
+<td>NA</td>
+<td>Maybe</td>
+<td>Yes</td>
+<td>No issue found</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>miac</strong></td>
+<td>Myocardial Infarction history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>strk</strong></td>
+<td>Stroke history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="even">
-<td><strong>cdv_event</strong></td>
-<td>-</td>
-<td><strong>Factor</strong></td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>0=No, 1=yes</td>
-<td>Final Composite: Yes if any CV flag is positive.</td>
-<td>if any of the other CV diagnosis is 1, then is included since
-<code>cdv_event</code> only requires one positive value, if all other CV
-diagnoses are 0 or also missing then participant is excluded</td>
+<td><strong>chf</strong></td>
+<td>Congestive Heart Failure history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr class="odd">
-<td><strong>crbpmed</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 8=Not relevant, 9=Does not know</td>
-<td>Self-report: “Do you take medication for high BP?”</td>
-<td>?</td>
+<td><strong>cad</strong></td>
+<td>Coronary Artery Disease history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr class="even">
-<td><strong>antiHTA</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>Documented antihypertensive drug treatment.</td>
-<td>?</td>
+<td><strong>angn</strong></td>
+<td>Angina history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr class="odd">
+<td><strong>cmp</strong></td>
+<td>Cardiomyopathy history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>hdc</strong></td>
+<td>Hypertensive heart disease.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>hdv</strong></td>
+<td>Heart valve disease.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>artm</strong></td>
+<td>Arrhythmia.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>vslg</strong></td>
+<td>Vascular surgery history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>ccth</strong></td>
+<td>Cardiac catheterization history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>cabg</strong></td>
+<td>Bypass surgery (CABG) history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>pcin</strong></td>
+<td>Stent (PCI) history.</td>
+<td><code>cdv_event</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>agediag[…]</strong></td>
+<td>Ages for all CV diagnoses listed above.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>cvdbase_adj</strong></td>
+<td>Personal histories of previous CVD have been validated</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>cdv_event</strong></td>
+<td>Final Composite: Yes if any CV flag is positive.</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>crbpmed</strong></td>
+<td>Self-report: “Do you take medication for high BP?”</td>
+<td><code>HTN_status</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>antiHTA</strong></td>
+<td>Documented antihypertensive drug treatment.</td>
+<td><code>HTN_status</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
 <td><strong>HTA</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes,</td>
 <td><strong>Hypertension:</strong> Yes if BP <span class="math inline">\(\ge\)</span> 140/90 mmHg OR on treatment
 (<code>antiHTA</code>).</td>
-<td>?</td>
-</tr>
-<tr class="even">
-<td><strong>hta_status</strong></td>
+<td><code>HTN_status</code></td>
+<td>Yes</td>
+<td>Yes</td>
 <td></td>
 <td></td>
-<td>Inactive</td>
 <td></td>
-<td>-</td>
 <td></td>
-<td>?</td>
 </tr>
 <tr class="odd">
+<td><strong>HTN_status</strong></td>
+<td><p>= 1 if participant has either:</p>
+<ul>
+<li><p>Documented antihypertensive treatment (antiHTA = 1)</p></li>
+<li><p>Self-reported medication (crbpmed = 1)</p></li>
+<li><p>Measured hypertension (BP ≥ 140/90 mmHg)</p></li>
+</ul></td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
 <td><strong>hctld</strong></td>
-<td><code>lip_status</code></td>
-<td>Factor</td>
-<td>Source</td>
-<td>0..*</td>
-<td><p>Baseline/ F1/F3: 0=No, 1=Yes, 9=Does not know</p>
-<p>F2: 0=No, 1=Yes, 9=No data</p></td>
-<td>Self-report: “Ever told you had high cholesterol.”</td>
-<td>?</td>
-</tr>
-<tr class="even">
-<td><strong>hypolip</strong></td>
-<td><code>lip_status</code></td>
-<td>Binary</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>Missing at baseline by desing. Hypolipidemic treatment flag (F1
-onwards).</td>
-<td>?</td>
+<td><p>Self-report: “Ever told you had high cholesterol.”</p>
+<p>Different sentinel coding does not matter since both are recoded to
+NA</p></td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="odd">
-<td><strong>lip_status</strong></td>
-<td></td>
-<td></td>
-<td>Inactive</td>
-<td></td>
-<td>-</td>
-<td></td>
-<td>?</td>
+<td><strong>hypolip</strong></td>
+<td>Hypolipidemic treatment flag (Missing at baseline by design, F1
+onwards).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="even">
 <td><strong>esthrp</strong></td>
-<td><code>hrt_status</code></td>
-<td>Factor</td>
-<td>Source</td>
-<td>0..*</td>
-<td>0=No, 1=Yes, 9=Does not know</td>
 <td>Self-report: “Ever taken HRT.” (Baseline Screening).</td>
+<td><code>hrt_status</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="odd">
 <td><strong>esthrpage</strong></td>
-<td><code>hrt_status</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>99: Does not know</td>
 <td>Start age for HRT. Use to verify if HRT was active at Baseline.</td>
+<td><code>hrt_status</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="even">
-<td><strong>bthc</strong></td>
-<td><code>hrt_status</code></td>
-<td>Binary</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>F1 onwards. Current HRT use at time of visit.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>subsp</strong></td>
-<td><code>hrt_status</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>F1 onwards. Age at HRT cessation.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>subyr</strong></td>
-<td><code>hrt_status</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>F1 onwards. Cumulative duration of HRT exposure.</td>
-<td></td>
-</tr>
-<tr class="odd">
 <td><strong>povdage</strong></td>
-<td><code>pcos_status</code></td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>F1 onwards. Diagnosis age for PCOS/POVD.</td>
-<td></td>
+<td>Diagnosis age for PCOS/POVD. F1 onwards.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><strong>hrt_status</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Time-Varying Covariate</td>
-<td>1..*</td>
-<td>-</td>
-<td>Levels: Never, Former, Current. (Back-filled for Baseline).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>pcos_status</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Yes: If <code>povdage</code> is non-null. (Proxy for
-androgen/estrogen imbalance).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>handgrip</strong></td>
-<td><code>ewgsop2_sarcopenia_stage</code></td>
-<td>Numeric (float)</td>
-<td>Primary Outcome</td>
-<td>1..*</td>
-<td>-</td>
-<td>Peak force (kg).</td>
-<td>!!!!!! define</td>
-</tr>
-<tr class="odd">
-<td><strong>lateralite</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>1=Right; 2=Left; 3=Ambidextrous</td>
-<td>hand preference</td>
+<td><p>Calculation:</p>
+<ul>
+<li><p>hrt_status = “Current HRT” if esthrp == “Yes”</p></li>
+<li><p>hrt_status = “Past HRT” if esthrp == “No” and esthrpage is
+non-missing and non-sentinel</p></li>
+<li><p>hrt_status = “Never / Not current” if esthrp == “No” and no
+past-use evidence</p></li>
+<li><p>hrt_status = NA when esthrp is NA</p></li>
+</ul></td>
 <td>NA</td>
-</tr>
-<tr class="even">
-<td><strong>handgrip_com</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td><p>Baseline: 0=No, 1=Yes</p>
-<p>F2/F3: 0=No problem, 1=Pain/arthrosis, 2=No time, home,
-rejected</p></td>
-<td>Qualitative notes (e.g., “pain in wrist”). Not available for F1</td>
-<td>NA</td>
-</tr>
-<tr class="odd">
-<td><strong>ht</strong></td>
-<td><code>BMI</code></td>
-<td>Numeric (float)</td>
-<td>Excluded</td>
-<td>0..*</td>
-<td>-</td>
-<td>Height in cm. Possibly used to adjust gait speed to height. Excluded
-since values from OsteoLaus are used.</td>
-<td>check what the trend is over the measurements, it is expected that
-this is stable, so for missing values take a measurement from another
-time point</td>
-</tr>
-<tr class="even">
-<td><strong>wt</strong></td>
-<td><code>BMI</code></td>
-<td>Numeric (float)</td>
-<td>Excluded</td>
-<td>0..*</td>
-<td>-</td>
-<td>Weight in kg. Excluded since values from OsteoLaus are used. Not
-available for F2/F3 <!--# (but BMI is)?? --></td>
+<td>Yes</td>
+<td>Yes</td>
 <td></td>
-</tr>
-<tr class="odd">
-<td><strong>BMI</strong></td>
-<td>-</td>
-<td>Numeric (float)</td>
-<td>Excluded</td>
-<td>0..*</td>
-<td>-</td>
-<td>Excluded since values from OsteoLaus are used. Calculated as
-weight/height<sup>2</sup></td>
 <td></td>
-</tr>
-<tr class="even">
-<td><strong>WHR</strong></td>
-<td>-</td>
-<td>Numeric (float)</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Waist-to-Hip ratio; marker of central adiposity.</td>
 <td></td>
-</tr>
-<tr class="odd">
-<td><strong>bmpsc</strong></td>
-<td>-</td>
-<td>Numeric (float)</td>
-<td>Time-Varying Covariate?</td>
-<td>0..*</td>
-<td>-</td>
-<td>Bioimpedance Analysis (BIA) % Fat Mass.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>PAFQ_SE</strong></td>
-<td><code>pa_levels</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Sedentary time (min/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>PAFQ_SE_pct</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>% of daily time spent sedentary.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>PAFQ_LPA</strong></td>
-<td><code>pa_levels</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Light PA (min/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>PAFQ_LPA_pct</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>% of daily time in Light PA.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>PAFQ_MPA</strong></td>
-<td><code>pa_levels</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Moderate PA (min/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>PAFQ_MPA_pct</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>% of daily time in Moderate PA.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>PAFQ_VPA</strong></td>
-<td><code>pa_levels</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Vigorous PA (min/day); key for muscle mass.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>PAFQ_VPA_pct</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>% of daily time in Vigorous PA.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>pa_levels</strong></td>
-<td></td>
-<td>Factorial</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>-</td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>etsem</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total weekly energy expenditure. NOT IN THE DATASET DO I NEED
-IT?</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>etj</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total daily energy expenditure.NOT IN THE DATASET DO I NEED IT?</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>mnwlk</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..1</td>
-<td>-</td>
-<td>Walking time (minutes/day), only for Baseline available</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>phyact</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..</td>
-<td>0=never, 1=once a week, 2=Twice a week, 9=Does not know</td>
-<td>Physical activity (min 20 min/week), only available for
-Baseline</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ1amount</strong></td>
-<td><code>dairy_total</code>,
-<code>dairy_highfat</code><strong>,</strong>
-<code>dairy_fermented</code>,</td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Plain yogurt (g/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ2amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_fermented</code>,
-<code>dairy_lowfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Low-fat yogurt (g/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ3amount</strong></td>
-<td><code>dairy_total</code>,
-<code>dairy_fermented</code>,<code>dairy_highfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Fruit/aroma yogurt (g/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ4amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_fermented</code>,
-<code>dairy_lowfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Cottage cheese 0% (g/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ5amount</strong></td>
-<td><code>dairy_total</code>,
-<code>dairy_fermented</code>,<code>dairy_highfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Cottage cheese/ricotta (g/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ6amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_fermented</code>,
-<code>dairy_highfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Feta/mozzarella (g/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ7amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_fermented</code>,
-<code>dairy_highfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Gruyère/tomme/camembert (g/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ8amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_fermented</code>,
-<code>dairy_highfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Cheese fondue (g/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ52amount</strong></td>
-<td><code>dairy_total</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Butter (g/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ53amount</strong></td>
-<td><code>dairy_total</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Cream 35% (g/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ63amount</strong></td>
-<td><code>dairy_total</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Cream tart/cake (g/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ68amount</strong></td>
-<td><code>dairy_total</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Ice cream/sorbet (g/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ71amount</strong></td>
-<td><code>dairy_total</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Butter for cooking (g/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ82amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_non_fermented</code>,
-<code>dairy_lowfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Milk in coffee 0% (mL/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ83amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_non_fermented</code>,
-<code>dairy_highfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Milk in coffee non-0% (mL/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ84amount</strong></td>
-<td><code>dairy_total</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Coffee creamer (mL/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>FFQ85amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_non_fermented</code>,
-<code>dairy_lowfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Milk drink 0% (mL/day).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ86amount</strong></td>
-<td><code>dairy_total</code>, <code>dairy_non_fermented</code>,
-<code>dairy_highfat</code></td>
-<td>Numeric (float)</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Milk drink non-0% (mL/day).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>dairy_total</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Exposure</td>
-<td>0..*</td>
-<td>-</td>
-<td>Sum of amount of all dairy products</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>dairy_fermented</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Exposure</td>
-<td>0..*</td>
-<td>-</td>
-<td>Sum of yogurt and cheese amount variables, FFQ: 1, 2, 3, 4, 5, 6, 7,
-8 <!--# check if I did not miss any --></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>dairy_non_fermented</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Exposure</td>
-<td>0..*</td>
-<td>-</td>
-<td>Sum of all non fermented dairy products, FFQ: 82, 83, 85,
-86<!--# check if I did not miss any --></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>dairy_lowfat</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Exposure</td>
-<td>0..*</td>
-<td>-</td>
-<td>Sum of all 0% / Low-fat yogurt and milk products, FFQ: 2, 4, 82,
-85<!--# check if I did not miss any --></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>dairy_highfat</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Exposure</td>
-<td>0..*</td>
-<td>-</td>
-<td>Sum of all whole-milk, cheese, and cream products, FFQ: 1, 3, 5, 6,
-7, 8, 83, 86<!--# check if I did not miss any --></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>Dairy</strong></td>
-<td><code>Dairy_OK</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total freq (excl. butter/cream).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>Dairy_OK</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>0=No, 1=Yes</td>
-<td>Adherence to Swiss guidelines: 0: &lt;3/day, 1: &gt;=3/day</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>FFQ1…86</strong></td>
-<td><code>FFQfreq</code></td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>1=Never in the past 4 weeks, 2=Once per month, 3=2 to 3 times per
-month, 4=1 to 2 times per week, 5=3 to 4 times per week, 6=Once per day,
-7=2 or more times per day</td>
-<td>1-7 levels, Response frequency code. Redundant since
-<code>amount</code> is already calculated.</td>
-<td>NA</td>
-</tr>
-<tr class="odd">
-<td><strong>FFQp1…p86</strong></td>
-<td><code>FFQ...amount</code></td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>1=Less, 2=Equal, 3=More</td>
-<td>1-3 levels, Portion size code. Redundant since <code>amount</code>
-is already calculated.</td>
-<td>NA</td>
-</tr>
-<tr class="even">
-<td><strong>FFQfreq1…86</strong></td>
-<td><code>FFQ...amount</code></td>
-<td>Numeric (float)</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Calculated daily frequency. Redundant since <code>amount</code> is
-already calculated.</td>
-<td>NA</td>
-</tr>
-<tr class="odd">
-<td><strong>sumtot1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>-</td>
-<td><p>Total energy (incl. alc).</p>
-<p>Exclusion criteria when below 500 or above 4200
-<!--# is this correc? --></p></td>
-<td><p>if other time point value exists that is within range, take this
-value</p>
-<!--# is this okay? --></td>
-</tr>
-<tr class="even">
-<td><strong>sumtot3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total Energy excl. alc.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>sumprot1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total protein (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>sumprot3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total protein excl. alc.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>sumpveg1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Vegetal protein (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>sumpveg3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Vegetal protein excl. alc.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>sumpani1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Animal protein (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>sumpani3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Animal protein excl. alc.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>sumgluc1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total carbs (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>sumgluc3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total carbs (excl. alc).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>sumlipi1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total fat (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>sumlipi3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Total fat (excl. alc).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>sumvitd1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td></td>
-<td>0..*</td>
-<td>-</td>
-<td>Vitamin D (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>sumvitd3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Vitamin D intake.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>sumcalc3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Calcium intake. NOT IN THE DATASET, DO I NEED IT?</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>pct_prot1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Protein (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>pct_prot3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Protein (excl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>pct_pveg1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Veg. protein (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>pct_pveg3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Veg. protein (excl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>pct_pani1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Ani. protein (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>pct_pani3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Ani. protein (excl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>pct_gluc1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Carbs (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>pct_gluc3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Carbs (excl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>pct_lipi1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Fat (incl. alc).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>pct_lipi3</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>% Fat (excl. alc).</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>pct_alco1</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Alcohol as % of energy intake.</td>
-<td></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div id="osteolaus-dataset" class="section level2">
-<h2>OsteoLaus Dataset</h2>
-<p>OsteoLaus has 5 measurement time points named Baseline, V2, V3, V4,
-and V5. For each of these time point are following variables available.
-In case a variable was not measured for the entire cohort for a time
-point it is mentioned in the “Notes” column. FFQ variables are available
-for the first follow up measurement.</p>
-<table style="width:99%;">
-<colgroup>
-<col width="9%" />
-<col width="5%" />
-<col width="4%" />
-<col width="4%" />
-<col width="3%" />
-<col width="16%" />
-<col width="40%" />
-<col width="14%" />
-</colgroup>
-<tbody>
-<tr class="odd">
-<td><strong>Original Name</strong></td>
-<td><strong>Derived Variable</strong></td>
-<td><strong>Data Type</strong></td>
-<td><strong>Role</strong></td>
-<td><strong>Multiplicity</strong></td>
-<td><strong>Reference / Levels</strong></td>
-<td><strong>Notes</strong></td>
-<td><strong>Missing value handling</strong></td>
-</tr>
-<tr class="even">
-<td><strong>pt</strong></td>
-<td>-</td>
-<td>integer</td>
-<td>Primary Key</td>
-<td>1..1</td>
-<td>-</td>
-<td>Unique identifier for the CoLaus/OsteoLaus cohort.</td>
-<td>if not recorded participant is excluded from anaylsis</td>
-</tr>
-<tr class="odd">
-<td><strong>id_pat/ PATIENT_KEY</strong></td>
-<td>-</td>
-<td>character</td>
-<td>Excluded</td>
-<td>0..1</td>
-<td>-</td>
-<td>Additional ID to <code>pt</code> in OsteoLaus dataset</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>Ethnicity</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Excluded</td>
-<td>1..1</td>
-<td>1=?, 2=?, 3=?</td>
-<td>Redundant since <code>ethori_self</code></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>Ethnicity_other</strong></td>
-<td>-</td>
-<td>Character</td>
-<td>Excluded</td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>SCAN_date</strong></td>
-<td><code>exam_date_iso</code></td>
-<td>numeric daily date</td>
-<td>Source</td>
-<td>1..*</td>
-<td>-</td>
-<td>Date of DXA/Physical visit. Required to link to OsteoLaus
-measurement time points to CoLaus measurement time points. In
-Day–abbreviated month–year (DDMonYYYY) format</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>exam_date_iso</strong></td>
-<td>-</td>
-<td>Date</td>
-<td>Temporal Key</td>
-<td>1..*</td>
-<td>-</td>
-<td>ISO 8601 (YYYY-MM-DD) format. Join key. Note: Many-to-One mapping
-from OsteoLaus visits to closest CoLaus visit.</td>
-<td>if not recorded participant is excluded from analysis</td>
-</tr>
-<tr class="even">
-<td><strong>Age</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>-</td>
-<td>Age at visit date. Measured for CoLaus and OsteoLaus visit, need to
-think about how it is used</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>Weight</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Weight at visit date (kg). Measured for CoLaus and OsteoLaus visit,
-need to think about how it is used</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>Height</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..*</td>
-<td>-</td>
-<td>Height at visit date (cm). Measured for CoLaus and OsteoLaus visit,
-need to think about how it is used</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>BMI</strong></td>
-<td><code>BMI_category</code></td>
-<td>Numeric</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>-</td>
-<td>BMI at visit date (kg/m²). Measured for CoLaus and OsteoLaus visit,
-need to think about how it is used</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>BMI_category</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Time-Varying Covariate</td>
-<td>0..*</td>
-<td>1=Underweight, 2=Normal, 3=Overweight, 4=Obese. (Normal is
-reference)</td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>HEAD_LEAN_MASS (</strong>H_HEAD_LEAN_MASS for
-V5<strong>)</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Recalculated (Total - Subtotal) in grams.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>LARM_LEAN_MASS</strong> (H_LARM_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Left arm lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>RARM_LEAN_MASS</strong> (H_RARM_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Right arm lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>ARMS_LEAN_MASS</strong> (H_ARMS_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Arms lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>LLEG_LEAN_MASS</strong> (H_LLEG_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Left leg lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>RLEG_LEAN_MASS</strong> (H_RLEG_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Right leg lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>LEGS_LEAN_MASS</strong> (H_LEGS_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Legs lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>TRUNK_LEAN_MASS</strong> (H_TRUNK_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Lean mass of the torso in gram. Available for V3/V4/V5</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>LTRUNK_LEAN_MASS</strong> (H_LTRUNK_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Left trunk lean mass (g). Available for V3/V4/V5</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>RTRUNK_LEAN_MASS</strong> (H_RTRUNK_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Right trunk lean mass (g). Available for V3/V4/V5</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>SUBTOT_LEAN_MASS</strong> (H_SUBTOT_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Whole body less head lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>WBTOT_LEAN_MASS</strong> (H_WBTOT_LEAN_MASS for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Whole body lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>LTOTAL_LEAN_MASS</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Left total lean mass (g). Available for V3/V4</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>RTOTAL_LEAN_MASS</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Right total lean mass (g). Available for V3/V4</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>ANDROID_LEAN_MASS</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Android lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>GYNOID_LEAN_MASS</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Gynoid lean mass (g)</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>AND_plus_GYN_LEAN_MASS</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Lean mass in grams (AND + GYN). Not available for V4/V5</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>ALM</strong> (H_ALM for V5)</td>
-<td><code>ALM_HT2</code>, <code>ALM_BMI</code></td>
-<td>Numeric</td>
-<td>Primary Outcome</td>
-<td>0..*</td>
-<td>-</td>
-<td>Appendicular Lean Mass in grams (Arms + Legs).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>ALM_HT2</strong> (H_ALM_HT2 for V5)</td>
-<td><code>ewgsop2_sarcopenia_stage</code></td>
-<td>Numeric</td>
-<td>Primary Outcome</td>
-<td>0..*</td>
-<td>-</td>
-<td>Sarcopenia Marker: ALM/Height² in kg/m<sup>2.</sup></td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>ALM_WT</strong> (H_ALM_WT for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Outcome</td>
-<td>0..*</td>
-<td>-</td>
-<td>Appendicular lean mass of arms + legs (kg) /weight (kg).</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>ALM_BMI</strong> (H_ALM_BMI for V5)</td>
-<td>-</td>
-<td>Numeric</td>
-<td>Outcome</td>
-<td>0..*</td>
-<td>-</td>
-<td>ALM scaled by BMI.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>TUG_GETUP</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>0=?, 1=?</td>
-<td>Timed Up and Go: 1-Get up from a chair with crossed hands on chest,
-0-help with. Only available for V4/V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>TUG_GO</strong></td>
-<td>.</td>
-<td>Binary</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>0=stop or uncomplete, 1= 1-Walk 3 meters</td>
-<td>Timed Up and Go. Only available for V4/V5.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>TUG_TURN</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>0=dysbalance, stop or uncomplete, 1=Turn back</td>
-<td>Timed Up and Go. Only available for V4/V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>TUG_GOBACKSIT</strong></td>
-<td>-</td>
-<td>Binary</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>0=?, 1=Come back 3m and sit</td>
-<td>Timed Up and Go. Only available for V4/V5.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>TUG_TIME</strong></td>
-<td><code>TUG_SCORE</code></td>
-<td>Numeric</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>-</td>
-<td>Time to complete Timed Up and Go in seconds. Only available for
-V4/V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>TUG_SCORE</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..*</td>
-<td>0=?, 1=?, 2=?,..</td>
-<td>Functional mobility score, 0-4 points. Only available for
-V4/V5.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>6MGS</strong></td>
-<td><code>ewgsop2_sarcopenia_stage</code></td>
-<td>Numeric</td>
-<td>Primary Outcome</td>
-<td>1..*</td>
-<td>-</td>
-<td>Gait Speed: 6-meter walk time in m/s.</td>
-<td>excluded when missing</td>
-</tr>
-<tr class="odd">
-<td><strong>PHYSTEST_COMMENT</strong></td>
-<td>-</td>
-<td>Character</td>
-<td>Exclude</td>
-<td>0..*</td>
-<td>-</td>
-<td>Comment on Timed Up and Go or Gait Speed. High misingness and not
-needed for main analysis.</td>
-<td>NA</td>
-</tr>
-<tr class="even">
-<td><strong>SARCF_STRENGHT</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..1</td>
-<td>0=None, 1=Some, 2=A lot or unable</td>
-<td>SARC-F: Difficulty in lifting and carrying 10 pounds. Only available
-for V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>SARCF_WALK</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..1</td>
-<td>None=0, Some=1, 2=A lot, use aids, or unable</td>
-<td>SARC-F: Difficulty walking across a room. Only available for
-V5.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>SARCF_CHAIR</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..1</td>
-<td>0=None, 1=Some, 2=A lot or unable</td>
-<td>SARC-F: Difficulty transferring from a chair or bed.Only available
-for V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>SARCF_STAIRS</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..1</td>
-<td>0=None, 1=Some, 2=A lot or unable</td>
-<td>SARC-F: Difficulty climbing a flight of 10 stairs. Only available
-for V5.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>SARCF_FALL</strong></td>
-<td>-</td>
-<td>Factor</td>
-<td>Inactive</td>
-<td>0..1</td>
-<td>0=None, 1=1-3 falls, 2=4+ falls</td>
-<td>SARC-F: How many times have you fallen in the past year. Only
-available for V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>SARCF_TOTAL</strong></td>
-<td>-</td>
-<td><strong>Integer</strong></td>
-<td>Inactive</td>
-<td>0..1</td>
-<td>-</td>
-<td>Sarcopenia Screening: Total score 0-10. Only available for V5.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>HGS_R1</strong></td>
-<td><code>HGS_MAX</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..1</td>
-<td>-</td>
-<td>Hand grip 1st measure on right hand (measured if hand is dominant).
-Only available for V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>HGS_R2</strong></td>
-<td><code>HGS_MAX</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..1</td>
-<td>-</td>
-<td>Hand grip 2st measure on right hand (measured if hand is dominant).
-Only available for V5.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>HGS_R3</strong></td>
-<td><code>HGS_MAX</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..1</td>
-<td>-</td>
-<td>Hand grip 3st measure on right hand (measured if hand is dominant).
-Only available for V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>HGS_L1</strong></td>
-<td><code>HGS_MAX</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..1</td>
-<td>-</td>
-<td>Hand grip 1st measure on left hand (measured if hand is dominant).
-Only available for V5.</td>
-<td></td>
-</tr>
-<tr class="even">
-<td><strong>HGS_L2</strong></td>
-<td><code>HGS_MAX</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..1</td>
-<td>-</td>
-<td>Hand grip 2st measure on left hand (measured if hand is dominant).
-Only available for V5.</td>
-<td></td>
-</tr>
-<tr class="odd">
-<td><strong>HGS_L3</strong></td>
-<td><code>HGS_MAX</code></td>
-<td>Numeric</td>
-<td>Source</td>
-<td>0..1</td>
-<td>-</td>
-<td>Hand grip 3st measure on left hand (measured if hand is dominant).
-Only available for V5.</td>
 <td></td>
 </tr>
 <tr class="even">
 <td><strong>HGS_MAX</strong></td>
-<td>-</td>
-<td>Numeric</td>
-<td>Primary Outcome</td>
-<td>0..*</td>
-<td>-</td>
-<td>Max Grip Strength (Peak of 6 measures) in kg. Only available for
-V5.</td>
+<td>Peak force. For Colaus measured in UK Pounds and transformed to kg,
+for OsteoLaus directly measured in kg</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Data type is an integer for all time points in Colaus, but float in
+OsteoLaus</td>
+<td>unknown</td>
+<td>ask someone that could know</td>
+<td>14.04.2026 was correct, CoLaus was transformed from UK Pounds to kg
+thus resulting in decimal number</td>
+</tr>
+<tr class="odd">
+<td><strong>lateralite</strong></td>
+<td>hand preference</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>handgrip_com</strong></td>
+<td>Qualitative notes (e.g., “pain in wrist”). Not available for F1</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>Height</strong></td>
+<td>Height in cm.</td>
+<td><code>BMI</code> (already in raw dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No issue found</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>Weight</strong></td>
+<td>Weight in kg.</td>
+<td><code>BMI</code> (already in raw dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Not available for F2/F3, but BMI is</td>
+<td>Exporting issue</td>
+<td>New export</td>
+<td>14.04.2026, new export</td>
+</tr>
+<tr class="odd">
+<td><strong>BMI</strong></td>
+<td>Calculated as weight/height<sup>2</sup> . Already provided in
+data.</td>
+<td><code>BMI_category</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No issue found</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>BMI_category</strong></td>
+<td><p>Mapping:</p>
+<ul>
+<li><p>&lt; 18.5 = Underweight,</p></li>
+<li><p>18.5 - &lt; 25.0 Normal (reference)</p></li>
+<li><p>25.0 – &lt; 30.0 = Overweight</p></li>
+<li><p>&gt;= 30.0 = Obese</p></li>
+</ul></td>
+<td>NA</td>
+<td>Yes - Descriptive</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>WHR</strong></td>
+<td>Waist-to-Hip ratio; marker of central adiposity.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>bmpsc</strong></td>
+<td>Bioimpedance Analysis (BIA) % Fat Mass.</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="odd">
-<td><strong>Death</strong></td>
-<td>-</td>
-<td>Factor</td>
+<td><strong>PAFQ_SE</strong></td>
+<td>Sedentary time (min/day).</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
 <td></td>
-<td>0..*</td>
-<td>-</td>
-<td>Visit during which death occurred. Used for sensitivity analysis
-excluding those who died within 1–2 years of their last scan due to
-possible Cachexia. Only available for V5.NOT IN THE DATASET, DO I NEED
-IT?</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>PAFQ_SE_pct</strong></td>
+<td>% of daily time spent sedentary.</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>PAFQ_LPA</strong></td>
+<td>Light PA (min/day).</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>PAFQ_LPA_pct</strong></td>
+<td>% of daily time in Light PA.</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>PAFQ_MPA</strong></td>
+<td>Moderate PA (min/day).</td>
+<td><code>met_min_week</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>PAFQ_MPA_pct</strong></td>
+<td>% of daily time in Moderate PA.</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>PAFQ_VPA</strong></td>
+<td>Vigorous PA (min/day)</td>
+<td><code>met_min_week</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>PAFQ_VPA_pct</strong></td>
+<td>% of daily time in Vigorous PA.</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>met_min_week</strong></td>
+<td>Calculation: (PAFQ_MPA * 4 + PAFQ_VPA * 8) * 7</td>
+<td><code>pa_levels</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>pa_levels</strong></td>
+<td><p>pa_levels (WHO-based, using ME-min/week):</p>
+<ul>
+<li><p>1 = Inactive (0-30)</p></li>
+<li><p>2 = Insufficient (31–149)</p></li>
+<li><p>3 = Sufficient (150–299)</p></li>
+<li><p>4 = High (≥300)</p></li>
+</ul></td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>The current WHO based categorisation of activity level leads to a
+“too active” population, this overestimation of activity was seen
+in</td>
+<td></td>
+<td></td>
+<td><font color="red">TODO</font></td>
+</tr>
+<tr class="odd">
+<td><strong>mnwlk</strong></td>
+<td>Walking time (minutes/day), only for Baseline available</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>phyact</strong></td>
+<td>Physical activity (min 20 min/week), only available for
+Baseline</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ1amount</strong></td>
+<td>Plain yogurt (g/day).</td>
+<td><code>dairy_total</code>,
+<code>dairy_highfat</code><strong>,</strong>
+<code>dairy_fermented</code>,</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>For all FFQamounts items: Where did they got the portion size in
+grams/mL from? Bernstein et al.</td>
+<td></td>
+<td></td>
+<td><font color="red">TODO</font></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ2amount</strong></td>
+<td>Low-fat yogurt (g/day).</td>
+<td><code>dairy_total</code>, <code>dairy_fermented</code>,
+<code>dairy_lowfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ3amount</strong></td>
+<td>Fruit/aroma yogurt (g/day).</td>
+<td><code>dairy_total</code>,
+<code>dairy_fermented</code>,<code>dairy_highfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ4amount</strong></td>
+<td>Cottage cheese 0% (g/day).</td>
+<td><code>dairy_total</code>, <code>dairy_fermented</code>,
+<code>dairy_lowfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>According to Pedor’s script this is the only food item that the
+portion size for women are bigger. Is this true</td>
+<td></td>
+<td></td>
+<td><font color="red">TODO</font></td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ5amount</strong></td>
+<td>Cottage cheese/ricotta (g/day).</td>
+<td><code>dairy_total</code>,
+<code>dairy_fermented</code>,<code>dairy_highfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ6amount</strong></td>
+<td>Feta/mozzarella (g/day).</td>
+<td><code>dairy_total</code>, <code>dairy_fermented</code>,
+<code>dairy_highfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ7amount</strong></td>
+<td>Gruyère/tomme/camembert (g/day).</td>
+<td><code>dairy_total</code>, <code>dairy_fermented</code>,
+<code>dairy_highfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ8amount</strong></td>
+<td>Cheese fondue (g/day).</td>
+<td><code>dairy_total</code>, <code>dairy_fermented</code>,
+<code>dairy_highfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ52amount</strong></td>
+<td>Butter (g/day).</td>
+<td><code>dairy_total</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ53amount</strong></td>
+<td>Cream 35% (g/day).</td>
+<td><code>dairy_total</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ63amount</strong></td>
+<td>Cream tart/cake (g/day).</td>
+<td><code>dairy_total</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ68amount</strong></td>
+<td>Ice cream/sorbet (g/day).</td>
+<td><code>dairy_total</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Variable includes both dairy based product and non-dairy based
+product</td>
+<td>Limitation of FFQ</td>
+<td>Decide to include or exclude it</td>
+<td>6.03.2026 decided to include since according to Pedro most Swiss eat
+ice cream</td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ71amount</strong></td>
+<td>Butter for cooking (g/day).</td>
+<td><code>dairy_total</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ82amount</strong></td>
+<td>Milk in coffee 0% (mL/day).</td>
+<td><code>dairy_total</code>, <code>dairy_non_fermented</code>,
+<code>dairy_lowfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>According to Pedro difficult to calculate accurately, but why and
+what are the implications</td>
+<td>not sure</td>
+<td>not sure</td>
+<td><font color="red">TODO</font></td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ83amount</strong></td>
+<td>Milk in coffee non-0% (mL/day).</td>
+<td><code>dairy_total</code>, <code>dairy_non_fermented</code>,
+<code>dairy_highfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>According to Pedro difficult to calculate accurately, but why and
+what are the implications</td>
+<td>not sure</td>
+<td>not sure</td>
+<td><font color="red">TODO</font></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ84amount</strong></td>
+<td>Coffee creamer (mL/day).</td>
+<td><code>dairy_total</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>FFQ85amount</strong></td>
+<td>Milk drink 0% (mL/day).</td>
+<td><code>dairy_total</code>, <code>dairy_non_fermented</code>,
+<code>dairy_lowfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ86amount</strong></td>
+<td>Milk drink non-0% (mL/day).</td>
+<td><code>dairy_total</code>, <code>dairy_non_fermented</code>,
+<code>dairy_highfat</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>dairy_total</strong></td>
+<td>Sum of amount of all dairy products</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>dairy_fermented</strong></td>
+<td>Sum of yogurt and cheese amount variables, FFQ: 1, 2, 3, 4, 5, 6, 7,
+8</td>
+<td>NA</td>
+<td>No</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>dairy_non_fermented</strong></td>
+<td>Sum of all non fermented dairy products, FFQ: 82, 83, 85, 86</td>
+<td>NA</td>
+<td>No</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>dairy_lowfat</strong></td>
+<td>Sum of all 0% / Low-fat yogurt and milk products, FFQ: 2, 4, 82,
+85</td>
+<td>NA</td>
+<td>No</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>dairy_highfat</strong></td>
+<td>Sum of all whole-milk, cheese, and cream products, FFQ: 1, 3, 5, 6,
+7, 8, 83, 84, 86¨</td>
+<td>NA</td>
+<td>No</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>Dairy</strong></td>
+<td>Total freq (excl. butter/cream).</td>
+<td><code>Dairy_OK</code> (already in raw dataset)</td>
+<td>Yes - Descriptive</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>Dairy_OK</strong></td>
+<td><p>Adherence to Swiss guidelines, amount of servings:</p>
+<p>- 0: &lt;3/day,<br />
+- 1: &gt;=3/day</p></td>
+<td>NA</td>
+<td>Yes - Descriptive</td>
+<td>Maybe</td>
+<td>I recalculated the variable taking the same code, but it does not
+match in 2083 cases (10.19%), it might make sense to include portion
+size as well instead of only frequency</td>
+<td>script issue, source data different</td>
+<td></td>
+<td><font color="red">TODO</font></td>
+</tr>
+<tr class="even">
+<td><strong>FFQ1…86</strong></td>
+<td>1-7 levels, Response frequency code. Redundant since
+<code>amount</code> is already calculated.</td>
+<td><code>FFQfreq</code> (already in raw dataset)</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>FFQp1…p86</strong></td>
+<td>1-3 levels, Portion size code. Redundant since <code>amount</code>
+is already calculated.</td>
+<td><code>FFQ...amount</code> (already in raw dataset)</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>freqFFQ1…86</strong></td>
+<td>Calculated daily frequency. Redundant since <code>amount</code> is
+already calculated.</td>
+<td><code>FFQ...amount</code> (already in raw dataset)</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>sumtot1</strong></td>
+<td>Total energy (incl. alc).</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>sumtot3</strong></td>
+<td>Total Energy excl. alc.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>sumprot1</strong></td>
+<td>Total protein (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td>assumption that sumprot1 and sumprot3 are the same when sumalco=0,
+but this is not always the case</td>
+<td></td>
+<td></td>
+<td><font color="red">TODO</font></td>
+</tr>
+<tr class="even">
+<td><strong>sumprot3</strong></td>
+<td>Total protein excl. alc.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>sumpveg1</strong></td>
+<td>Vegetal protein (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>sumpveg3</strong></td>
+<td>Vegetal protein excl. alc.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>sumpani1</strong></td>
+<td>Animal protein (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>sumpani3</strong></td>
+<td>Animal protein excl. alc.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>sumgluc1</strong></td>
+<td>Total carbs (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>sumgluc3</strong></td>
+<td>Total carbs (excl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>sumlipi1</strong></td>
+<td>Total fat (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>sumlipi3</strong></td>
+<td>Total fat (excl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>sumvitd1</strong></td>
+<td>Vitamin D (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>sumvitd3</strong></td>
+<td>Vitamin D intake (excl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>pct_prot1</strong></td>
+<td>% Protein (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>pct_prot3</strong></td>
+<td>% Protein (excl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>pct_pveg1</strong></td>
+<td>% Veg. protein (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>pct_pveg3</strong></td>
+<td>% Veg. protein (excl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>pct_pani1</strong></td>
+<td>% Ani. protein (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>pct_pani3</strong></td>
+<td>% Ani. protein (excl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>pct_gluc1</strong></td>
+<td>% Carbs (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>pct_gluc3</strong></td>
+<td>% Carbs (excl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>pct_lipi1</strong></td>
+<td>% Fat (incl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>Maybe</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>pct_lipi3</strong></td>
+<td>% Fat (excl. alc).</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>pct_alco1</strong></td>
+<td>Alcohol as % of energy intake.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>HEAD_LEAN_MASS (</strong>H_HEAD_LEAN_MASS for
+V5<strong>)</strong></td>
+<td>Recalculated (Total - Subtotal) in grams.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>LARM_LEAN_MASS</strong> (H_LARM_LEAN_MASS for V5)</td>
+<td>Left arm lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>RARM_LEAN_MASS</strong> (H_RARM_LEAN_MASS for V5)</td>
+<td>Right arm lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>ARMS_LEAN_MASS</strong> (H_ARMS_LEAN_MASS for V5)</td>
+<td>Arms lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>LLEG_LEAN_MASS</strong> (H_LLEG_LEAN_MASS for V5)</td>
+<td>Left leg lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>RLEG_LEAN_MASS</strong> (H_RLEG_LEAN_MASS for V5)</td>
+<td>Right leg lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>LEGS_LEAN_MASS</strong> (H_LEGS_LEAN_MASS for V5)</td>
+<td>Legs lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>TRUNK_LEAN_MASS</strong> (H_TRUNK_LEAN_MASS for V5)</td>
+<td>Lean mass of the torso in gram. Available for V3/V4/V5</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>LTRUNK_LEAN_MASS</strong> (H_LTRUNK_LEAN_MASS for V5)</td>
+<td>Left trunk lean mass (g). Available for V3/V4/V5</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>RTRUNK_LEAN_MASS</strong> (H_RTRUNK_LEAN_MASS for V5)</td>
+<td>Right trunk lean mass (g). Available for V3/V4/V5</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>SUBTOT_LEAN_MASS</strong> (H_SUBTOT_LEAN_MASS for V5)</td>
+<td>Whole body less head lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>WBTOT_LEAN_MASS</strong> (H_WBTOT_LEAN_MASS for V5)</td>
+<td>Whole body lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>LTOTAL_LEAN_MASS</strong></td>
+<td>Left total lean mass (g). Available for V3/V4</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>RTOTAL_LEAN_MASS</strong></td>
+<td>Right total lean mass (g). Available for V3/V4</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>ANDROID_LEAN_MASS</strong></td>
+<td>Android lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>GYNOID_LEAN_MASS</strong></td>
+<td>Gynoid lean mass (g)</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>AND_plus_GYN_LEAN_MASS</strong></td>
+<td>Lean mass in grams (AND + GYN). Not available for V4/V5</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>ALM</strong> (H_ALM for V5)</td>
+<td>Appendicular Lean Mass in grams (Arms + Legs).</td>
+<td><code>ALM_HT2</code>, <code>ALM_BMI</code> (already in raw
+dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>ALM_HT2</strong> (H_ALM_HT2 for V5)</td>
+<td>Sarcopenia Marker: ALM/Height² in kg/m<sup>2.</sup></td>
+<td><code>ewgsop2_sarcopenia_stage</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>ALM_WT</strong> (H_ALM_WT for V5)</td>
+<td>Appendicular lean mass of arms + legs (kg) /weight (kg).</td>
+<td>NA</td>
+<td>No</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>ALM_BMI</strong> (H_ALM_BMI for V5)</td>
+<td>ALM scaled by BMI.</td>
+<td>NA</td>
+<td>No</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>TUG_GETUP</strong></td>
+<td>Timed Up and Go: 1-Get up from a chair with crossed hands on chest,
+0-help with. Only available for V4/V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>TUG_GO</strong></td>
+<td>Timed Up and Go. Only available for V4/V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>TUG_TURN</strong></td>
+<td>Timed Up and Go. Only available for V4/V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>TUG_GOBACKSIT</strong></td>
+<td>Timed Up and Go. Only available for V4/V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>TUG_TIME</strong></td>
+<td>Time to complete Timed Up and Go in seconds. Only available for
+V4/V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>TUG_SCORE</strong></td>
+<td>Functional mobility score, 0-4 points. Only available for
+V4/V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>How is this score calculated?</td>
+<td>NA</td>
+<td>Ask <a href="mailto:enisa.shevroja@chuv.ch"><strong>enisa.shevroja@chuv.ch</strong></a></td>
+<td><font color="red">TODO</font></td>
+</tr>
+<tr class="odd">
+<td><strong>6MGS</strong></td>
+<td>Gait Speed: 6-meter walk time in m/s.</td>
+<td><code>ewgsop2_sarcopenia_stage</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>PHYSTEST_COMMENT</strong></td>
+<td>Comment on Timed Up and Go or Gait Speed. High misingness and not
+needed for main analysis.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>SARCF_STRENGHT</strong></td>
+<td>SARC-F: Difficulty in lifting and carrying 10 pounds. Only available
+for V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>SARCF_WALK</strong></td>
+<td>SARC-F: Difficulty walking across a room. Only available for
+V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>SARCF_CHAIR</strong></td>
+<td>SARC-F: Difficulty transferring from a chair or bed.Only available
+for V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>SARCF_STAIRS</strong></td>
+<td>SARC-F: Difficulty climbing a flight of 10 stairs. Only available
+for V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>SARCF_FALL</strong></td>
+<td>SARC-F: How many times have you fallen in the past year. Only
+available for V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="even">
+<td><strong>SARCF_TOTAL</strong></td>
+<td>Sarcopenia Screening: total of each other items. Only available for
+V5.</td>
+<td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+</tr>
+<tr class="odd">
+<td><strong>HGS_R1</strong></td>
+<td>Hand grip 1st measure on right hand (measured if hand is dominant).
+Only available for V5.</td>
+<td><code>HGS_MAX</code> (already in raw dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>HGS_R2</strong></td>
+<td>Hand grip 2st measure on right hand (measured if hand is dominant).
+Only available for V5.</td>
+<td><code>HGS_MAX</code> (already in raw dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>HGS_R3</strong></td>
+<td>Hand grip 3st measure on right hand (measured if hand is dominant).
+Only available for V5.</td>
+<td><code>HGS_MAX</code> (already in raw dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>HGS_L1</strong></td>
+<td>Hand grip 1st measure on left hand (measured if hand is dominant).
+Only available for V5.</td>
+<td><code>HGS_MAX</code> (already in raw dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>HGS_L2</strong></td>
+<td>Hand grip 2st measure on left hand (measured if hand is dominant).
+Only available for V5.</td>
+<td><code>HGS_MAX</code> (already in raw dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="even">
+<td><strong>HGS_L3</strong></td>
+<td>Hand grip 3st measure on left hand (measured if hand is dominant).
+Only available for V5.</td>
+<td><code>HGS_MAX</code> (already in raw dataset)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>HGS_MAX</strong> (Osteo)</td>
+<td>Max Grip Strength (Peak of 6 measures) in kg. Only available for
+V5.</td>
+<td><code>ewgsop2_sarcopenia_stage</code></td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 <tr class="even">
 <td><strong>L_…LEAN_MASS/ L_ALM_…</strong></td>
-<td>-</td>
-<td>-</td>
-<td>Excluded</td>
-<td>0..*</td>
-<td>-</td>
 <td>multiple values for lean mass from Lunar DXA for V5, will not be
 used</td>
 <td>NA</td>
+<td>No</td>
+<td>No</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
+<td>NA</td>
 </tr>
 <tr class="odd">
-<td>ewgsop2_sarcopenia_stage</td>
-<td>-</td>
-<td>Factor</td>
-<td>Primary Outcome</td>
-<td>0..*</td>
-<td>0=No sarcopenia, 1=Probable sarcopenia, 2=Confirmed Sarcopenia,
-3=Severe sarcopenia</td>
+<td><strong>ewgsop2_sarcopenia_stage</strong></td>
 <td><p>Mapping:</p>
 <ul>
 <li><p>no</p></li>
@@ -2519,23 +2478,28 @@ used</td>
 &lt;5.5 kg/m² (women)</p></li>
 <li><p>severe: criteria of confirmed + &lt;= 0.8 m/s</p></li>
 </ul></td>
-<td>missing values at baseline are excluded, missing values for follow
-ups ???</td>
+<td>NA</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 <tr class="even">
-<td><p>FNIH_sarcopenia</p>
-<!--# to be completed --></td>
-<td>-</td>
+<td><strong>FNIH_sarcopenia</strong></td>
+<td>FNIH criteria for sarcopenia for sensitivity analysis, Sarcopenia
+when grip strength &lt; 16 kg AND ALM/BMI &lt; 0.512</td>
+<td>NA</td>
+<td>No</td>
+<td>Yes</td>
 <td></td>
-<td>Secondary Outcome</td>
-<td>0..*</td>
 <td></td>
-<td>FNIH criteria for sarcopenia for sensitivity analysis</td>
+<td></td>
 <td></td>
 </tr>
 </tbody>
 </table>
-</div>
 </div>
 
 

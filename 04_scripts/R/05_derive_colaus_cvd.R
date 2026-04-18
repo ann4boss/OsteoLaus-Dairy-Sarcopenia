@@ -28,10 +28,7 @@
 #
 # =============================================================================
 
-.CVD_FLAGS <- c(
-    "miac", "strk", "chf",  "cad",  "angn", "cmp",
-    "hdc",  "hdv",  "artm", "vslg", "ccth", "cabg", "pcin"
-)
+
 
 #' Derive cdv_event composite for a CoLaus long tibble.
 #'
@@ -43,16 +40,19 @@
 derive_cvd <- function(df) {
     
     # ── Check Required Columns ----------------------------------------------
+    .CVD_FLAGS <- c("miac", "strk", "chf",  "cad",  "angn", "cmp", 
+                    "hdc",  "hdv",  "artm", "vslg", "ccth", "cabg", "pcin")
     actual_cols <- df$vars
-    flags_present <- intersect(.CVD_FLAGS, actual_cols)
-    
-    if (length(flags_present) == 0) {
+    required_cols <- .CVD_FLAGS
+    missing_cols <- setdiff(required_cols, actual_cols)
+    if (length(missing_cols) > 0) {
         cli::cli_warn(
             "derive_cvd: No CVD component flags found in {.val {head(actual_cols, 5)}}... 
             {.col cdv_event} will not be derived."
         )
         return(df)
     }
+    
     
     # ── Ensure Lazy State ----------------------------------------------
     if (!inherits(df, "dtplyr_step")) df <- dtplyr::lazy_dt(df)
