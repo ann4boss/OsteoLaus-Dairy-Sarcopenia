@@ -18,7 +18,7 @@ Link of CoLaus to the closest OsteoLaus visit...
 Dairy consumption and other dietary intake were assessed during the CoLaus visits from the first follow up visit onwards using a self-administered semi-quantitative food frequency questionnaire (FFQ). This FFQ included a list of 97 food items, consumption frequencies ranging from “less than once during the last 4 weeks” to “2 or more times per day”, and three different serving sizes for each item (smaller, equal, or bigger) compared to a reference size [@marques-vidal2018]. The amount (either g/day or mL/day) per item was calculated by combining frequency times portion sizes. Portion sizes were taken as defined in *Bernstein et al. (1995)* <!--# source!! --> and can be see in Table X
 
 |  |  |  |  |  |
-|---------|----------------|---------|--------------------|--------------------|
+|---------------|---------------|---------------|---------------|---------------|
 | **FFQ \#** | **Description** | Unit | **Men (S / N / L)** | **Women (S / N / L)** |
 | **1** | Plain yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
 | **2** | Low-fat yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
@@ -61,9 +61,9 @@ The age was derived by the birth date and examination date.
 
 Smoking is known to be linked to lower muscle force and reduced lean body mass [@degens2015]. Thus, the smoking status of the participant was included as covariate. Smoking history of participants was collected through self-report. Participants were grouped into three categories:
 
--   Current smokers: those who were actively smoking at the time of the study, regardless of how much they smoked
--   Former smokers: those who had smoked in the past but had quit before the study, regardless of how long ago they quit
--   Never smokers: those who had never smoked
+- Current smokers: those who were actively smoking at the time of the study, regardless of how much they smoked
+- Former smokers: those who had smoked in the past but had quit before the study, regardless of how long ago they quit
+- Never smokers: those who had never smoked
 
 Smoking status was recorded at each CoLaus study visit, and a summary over time was created. Some reported changes were not realistic, for example switching from never smoker to former or current smoker, or from former or current smoker to never smoker. In these cases, the “never smoker” status was changed to “former smoker”, assuming participants may have answered based on their current situation rather than their lifetime history. Participants with missing smoking data at the baseline visit were excluded. Missing values at later visits were replaced with the most recent available smoking status.
 
@@ -71,10 +71,10 @@ Smoking status was recorded at each CoLaus study visit, and a summary over time 
 
 Alcohol intake was assessed using a self-reported questionnaire covering consumption patterns over the previous 7 days. Alcohol consumption was analysed as both a categorical and a continuous variable. Following Swiss national guidelines, a standard drink was defined as a single glass of wine, a bottle of beer, or a shot of spirits, each containing approximately 10 g to 12 g of pure ethanol [@standardglas]. Participants were categorized into four groups based on their total weekly intake:
 
--   Non-drinkers: 0 units/week (0 g/day), which includes both lifetime and current abstainers.
--   Light drinkers: ≥1 to 3 units/week (\>0–6 g/day), representing occasional consumption.
--   Moderate drinkers: ≥4 to 7 units/week (\>6–12 g/day), representing frequent consumption within the Swiss low-risk limit for women.
--   Heavy drinkers: \>7 units/week (\>12 g/day), categorized as hazardous consumption exceeding the Swiss national guidelines for women.
+- Non-drinkers: 0 units/week (0 g/day), which includes both lifetime and current abstainers.
+- Light drinkers: ≥1 to 3 units/week (\>0–6 g/day), representing occasional consumption.
+- Moderate drinkers: ≥4 to 7 units/week (\>6–12 g/day), representing frequent consumption within the Swiss low-risk limit for women.
+- Heavy drinkers: \>7 units/week (\>12 g/day), categorized as hazardous consumption exceeding the Swiss national guidelines for women.
 
 While this categorization provides a structured metric for analysis, it is noted that self-reported dietary and alcohol questionnaires often slightly underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative FFQs tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
 
@@ -112,7 +112,7 @@ hypertension
 
 <!--# tbc -->
 
-cardio vascular disease
+cardio vascular disease <!--# can only be used as descriptive since only available for baseline -->
 
 ### **Anthropometric**
 
@@ -130,7 +130,13 @@ Gait speed (m/s), assessed using a 6-meter walk test
 
 Participants were classified into quartiles according to their baseline daily intake of dairy products (grams per day) for descriptive analysis.
 
-...
+### Missing values
+
+The analysis was performed once with complete cases and once applying multiple imputation.
+
+### Selection of Covariant
+
+data-driven methods for selection of covariates
 
 ## Ethics
 
