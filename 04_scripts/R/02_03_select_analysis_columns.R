@@ -1,0 +1,75 @@
+# =============================================================================
+# R/select_analysis_columns.R
+# =============================================================================
+# Selects the final set of columns required for analysis from the fully
+# derived CoLaus and OsteoLaus tibbles. Columns not present in a given
+# cohort are silently ignored (e.g. DXA columns absent from CoLaus).
+# =============================================================================
+
+# All required columns in a single named vector.
+# Names are used in the missing-column report; values are the actual column names.
+.ANALYSIS_COLS <- c(
+    # Identifiers
+    "pt", "exam_date_iso", ".visit", ".cohort",
+    # imputation
+    ".imp", ".id",
+    # Anthropometry
+    "Age", "Height", "Weight", "BMI", "BMI_category",
+    # Sociodemographics
+    "mrtsts2", "education_level", #"ethori_self", 
+    # Lifestyle & clinical
+    "smoking_status", "smoking_impute_source",
+    "alcohol_category", 
+    #"pa_levels_tertile","pa_levels_who",
+    "pa_levels_tertile_f1", "pa_levels_tertile_f2", "pa_levels_who_f1", "pa_levels_who_f2",
+    "diabetes_status", "hrt_status", "htn_status",
+    # Medications
+    "hypolip_drug_status", "corticoids_status", "vitD_status",
+    "calcium_status", "benzo_status", "bisphosphonate_status",
+    # Diet
+    "sumtot1",
+    "dairy_total_gday", "dairy_fermented_gday", "dairy_non_fermented_gday",
+    "dairy_lowfat_gday", "dairy_highfat_gday",
+    "dairy_guidelines_port",
+    "dairy_quartile_baseline", "dairy_quartile_overall",
+    # Outcomes
+    "HGS_MAX", "gait_speed",
+    "ALM", "ALM_HT2", "ALM_BMI", "ALM_WT", "DXA_method"
+)
+
+
+#' Select analysis columns from a fully derived CoLaus or OsteoLaus tibble.
+#'
+#' Keeps only the columns listed in .ANALYSIS_COLS. Columns absent from the
+#' input (expected for cohort-specific variables) are silently skipped and
+#' reported in a summary message so omissions are transparent.
+#'
+#' @param df Fully derived tibble (output of the derivation pipeline).
+#' @return Tibble containing only the available analysis columns, in the
+#'   order defined by .ANALYSIS_COLS.
+select_analysis_columns <- function(df) {
+    
+    cohort <- unique(df$.cohort)
+    
+    cli::cli_h2("Select Analysis Columns ({cohort})")
+    
+    present <- intersect(.ANALYSIS_COLS, names(df))
+    absent  <- setdiff(.ANALYSIS_COLS, names(df))
+    
+    if (length(absent) > 0) {
+        cli::cli_inform(c(
+            "i" = "{length(absent)} column(s) not present in {cohort} data \\
+                   (expected for cohort-specific variables):",
+            "*" = "{.val {absent}}"
+        ))
+    }
+    
+    out <- dplyr::select(df, dplyr::all_of(present))
+    
+    cli::cli_inform(c(
+        "v" = "Selected {length(present)} / {length(.ANALYSIS_COLS)} columns.",
+        "i" = "{nrow(out)} rows retained."
+    ))
+    
+    return(out)
+}
