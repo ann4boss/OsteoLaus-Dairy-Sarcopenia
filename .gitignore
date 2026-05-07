@@ -25,3 +25,5 @@
 07_manuscript/*.tex
 07_manuscript/*.spl
 _targets
+.positai
+06_outputs
