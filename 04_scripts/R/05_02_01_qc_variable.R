@@ -1,34 +1,27 @@
 # =============================================================================
-# R/05_qc_variables.R
+# R/qc_variables.R
 # =============================================================================
-# Variable-level quality control on the stacked long tibble produced by
-# 04_stack_visits.R.
+# Variable-level quality control on the stacked long tibble
 #
 # Checks performed:
 #   1. Missingness summary (n_miss, pct_miss) per variable per cohort/visit
 #   2. Descriptive statistics for numeric variables
 #      (min, max, median, mean, SD, IQR, n_valid)
-#   3. Histograms for all numeric variables (saved to <out_dir>/histograms/)
-#   4. BMI present despite missing Height or Weight
-#   5. Implausible value counts for pre-defined variables
+#   3. BMI present despite missing Height or Weight
+#   4. Implausible value counts for pre-defined variables
 #
-# Usage:
-#   source("05_qc_variables.R")
-#   qc_vars_result <- qc_variables(stacked_df, out_dir = "output/qc_variables")
 #
 # Returns a named list:
 #   $missingness    — long tibble: variable × cohort/visit missingness
 #   $numeric_stats  — long tibble: descriptive stats for numeric columns
 #   $bmi_anomaly    — tibble: rows where BMI present but Height or Weight missing
 #   $implausible    — tibble: counts of implausible values per variable/rule
-#
 # =============================================================================
 
 
 # =============================================================================
 # Implausible-range rules
 # =============================================================================
-# Add or edit entries here to extend checks.
 # Each entry:
 #   variable  : column name (post-harmonisation base name)
 #   min / max : inclusive plausible range (use NA to skip that bound)
@@ -39,7 +32,7 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
   ~variable,          ~min,    ~max,   ~label,
   # ── Anthropometry ─────────────────────────────────────────────────────────
   "Age",               34,      100,   "Age out of 34–100 y",
-  "Height",           100,      230,   "Height out of 100–230 cm",
+  "Height",           100,      200,   "Height out of 100–200 cm",
   "Weight",            20,      200,   "Weight out of 20–200 kg",
   "BMI",               10,       70,   "BMI out of 10–70 kg/m²",
   "WHR",                0.4,      1.6, "WHR out of 0.4–1.6",
@@ -62,7 +55,6 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
   "SARCF_TOTAL",        0,       10,   "SARCF_TOTAL out of 0–10",
   # ── Diet (energy intake) ──────────────────────────────────────────────────
   "sumtot1",          400,     3500,   "sumtot1 (kcal, incl. alcohol) out of 400–3500",
-  "sumtot3",          400,     3500,   "sumtot3 (kcal, excl. alcohol) out of 400–3500",
   # ── Alcohol ───────────────────────────────────────────────────────────────
   "sumalco",            0,      400,   "sumalco out of 0–400 g/day",
   "conso_hebdo",        0,      80,   "conso_hebdo out of 0–80 units/week"
@@ -87,8 +79,6 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
 #' @param df Stacked long tibble from stack_visits().
 #' @return Tibble with columns: cohort, visit, variable, n_total, n_miss, pct_miss.
 .qc_missingness <- function(df) {
-  
-  cli::cli_h2("1 / 5  Missingness")
   
   # Work on collected tibble
   df <- dplyr::collect(df)
@@ -128,7 +118,6 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
 #' @return Tibble with one row per variable × cohort × visit.
 .qc_numeric_stats <- function(df) {
   
-  cli::cli_h2("2 / 5  Numeric descriptive statistics")
   
   df <- dplyr::collect(df)
   
@@ -173,95 +162,9 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
 }
 
 
-# =============================================================================
-# 3. Histograms
-# =============================================================================
-
-#' Save one histogram per numeric variable, faceted by cohort × visit.
-#'
-#' @param df        Stacked long tibble.
-#' @param out_dir   Directory to write PNG files into.
-#' @param width,height  Plot dimensions in inches.
-.qc_histograms <- function(df, out_dir, width = 8, height = 5) {
-  
-  cli::cli_h2("3 / 5  Histograms")
-  
-  hist_dir <- file.path(out_dir, "histograms")
-  dir.create(hist_dir, showWarnings = FALSE, recursive = TRUE)
-  
-  df <- dplyr::collect(df)
-  
-  num_cols <- names(df)[sapply(df, is.numeric)]
-  num_cols <- setdiff(num_cols, c("pt", "visit_num"))
-  
-  cohorts <- unique(as.character(df$.cohort))
-  n_plots  <- length(cohorts) * length(num_cols)
-  cli::cli_inform("Saving up to {n_plots} histogram(s) to {.path {hist_dir}} ({length(cohorts)} cohort(s) × {length(num_cols)} variable(s))")
-  
-  for (cohort in cohorts) {
-    
-    df_cohort <- df |> dplyr::filter(.cohort == cohort)
-    
-    for (col in num_cols) {
-      
-      # Skip variables not present (or all-NA) for this cohort
-      if (!col %in% names(df_cohort)) next
-      
-      plot_df <- df_cohort |>
-        dplyr::select(dplyr::all_of(c(".cohort", ".visit", col))) |>
-        dplyr::filter(!is.na(.data[[col]])) |>
-        dplyr::mutate(visit_label = paste0(.visit))
-      
-      if (nrow(plot_df) == 0) next
-      
-      # Add implausible-range lines if rule exists for this variable
-      rule <- IMPLAUSIBLE_RULES |> dplyr::filter(variable == col)
-      
-      p <- ggplot2::ggplot(plot_df,
-                           ggplot2::aes(x = .data[[col]])) +
-        ggplot2::geom_histogram(bins = 50, fill = "#4e79a7", colour = "white", linewidth = 0.2) +
-        ggplot2::facet_wrap(~ visit_label, scales = "free_y") +
-        ggplot2::labs(
-          title    = paste0(col, "  [", cohort, "]"),
-          subtitle = cohort,
-          x        = col,
-          y        = "Count"
-        ) +
-        ggplot2::theme_bw(base_size = 11) +
-        ggplot2::theme(
-          strip.background = ggplot2::element_rect(fill = "#dce9f5"),
-          plot.title       = ggplot2::element_text(face = "bold"),
-          plot.subtitle    = ggplot2::element_text(colour = "grey40")
-        )
-      
-      # Overlay plausible-range bounds
-      if (nrow(rule) > 0) {
-        if (!is.na(rule$min)) {
-          p <- p + ggplot2::geom_vline(xintercept = rule$min,
-                                       colour = "#e15759", linetype = "dashed", linewidth = 0.7)
-        }
-        if (!is.na(rule$max)) {
-          p <- p + ggplot2::geom_vline(xintercept = rule$max,
-                                       colour = "#e15759", linetype = "dashed", linewidth = 0.7)
-        }
-        p <- p + ggplot2::labs(
-          caption = paste0("Red dashed lines: plausible range [",
-                           rule$min, ", ", rule$max, "]")
-        )
-      }
-      
-      # Filename: <cohort>_<variable>.png — cohort prefix prevents overwrites
-      fname <- file.path(hist_dir, paste0(cohort, "_", col, ".png"))
-      ggplot2::ggsave(fname, plot = p, width = width, height = height, dpi = 150)
-    }
-  }
-  
-  cli::cli_inform(c("v" = "Histograms saved."))
-}
-
 
 # =============================================================================
-# 4. BMI present despite missing Height or Weight
+# 3. BMI present despite missing Height or Weight
 # =============================================================================
 
 #' Flag rows where BMI is non-missing but Height or Weight is NA.
@@ -272,7 +175,6 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
 #' @return Tibble of offending rows (key columns only), or empty tibble.
 .qc_bmi_anomaly <- function(df) {
   
-  cli::cli_h2("4 / 5  BMI present despite missing Height or Weight")
   
   df <- dplyr::collect(df)
   
@@ -312,7 +214,7 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
 
 
 # =============================================================================
-# 5. Implausible values
+# 4. Implausible values
 # =============================================================================
 
 #' Count values outside plausible ranges defined in IMPLAUSIBLE_RULES.
@@ -322,8 +224,7 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
 #'   n_implausible, n_valid, pct_implausible.
 .qc_implausible <- function(df) {
   
-  cli::cli_h2("5 / 5  Implausible values")
-  
+ 
   df <- dplyr::collect(df)
   
   rules_present <- IMPLAUSIBLE_RULES |>
@@ -390,18 +291,17 @@ IMPLAUSIBLE_RULES <- tibble::tribble(
 #'   $implausible   — counts of values outside plausible ranges
 qc_variables <- function(df,
                          cohort = NULL,
-                         out_dir   = "06_outputs/qc_variables",
-                         save_csv  = TRUE,
-                         save_hist = TRUE) {
+                         out_dir   = NULL,
+                         save_csv  = TRUE) {
   
   cli::cli_h1("Variable-level QC")
   
   
   
-  # Ensure plain tibble ─────────────────────────────────────────────────────
+  # Ensure plain tibble -------------------------------------------------------
   if (inherits(df, "dtplyr_step")) df <- dplyr::as_tibble(df)
   
-  # Output directory ────────────────────────────────────────────────────────
+  # Output directory ------------------------------------------------------
   if (!is.null(out_dir)) {
     dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)
   }
@@ -412,14 +312,6 @@ qc_variables <- function(df,
   bmi_anom  <- .qc_bmi_anomaly(df)
   impl_tbl  <- .qc_implausible(df)
   
-  # ── Histograms ────────────────────────────────────────────────────────────
-  if (save_hist && !is.null(out_dir)) {
-    if (!requireNamespace("ggplot2", quietly = TRUE)) {
-      cli::cli_warn("ggplot2 not available — skipping histograms.")
-    } else {
-      .qc_histograms(df, out_dir)
-    }
-  }
   
   # ── CSV export ────────────────────────────────────────────────────────────
   if (save_csv && !is.null(out_dir)) {
@@ -435,30 +327,7 @@ qc_variables <- function(df,
     cli::cli_inform(c("v" = "CSV files written to {.path {out_dir}}"))
   }
   
-  # ── Console summary of implausible hits ───────────────────────────────────
-  impl_hits <- impl_tbl |> dplyr::filter(n_implausible > 0)
   
-  if (nrow(impl_hits) == 0) {
-    cli::cli_inform(c("v" = "No implausible values detected."))
-  } else {
-    cli::cli_warn(c(
-      "!" = "{nrow(impl_hits)} variable × cohort × visit combination(s) contain implausible values:"
-    ))
-    
-  }
-  
-  # ── Console summary of missingness extremes ───────────────────────────────
-  high_miss <- miss_tbl |>
-    dplyr::filter(pct_miss > 80, !variable %in% c("pt", ".cohort", ".visit", "visit_num"))
-  
-  if (nrow(high_miss) > 0) {
-    cli::cli_warn(c(
-      "!" = "{nrow(high_miss)} variable(s) exceed 80% missingness in at least one visit:"
-    ))
-    
-  }
-  
-  cli::cli_h1("Variable QC complete")
   
   # ── Return ────────────────────────────────────────────────────────────────
   invisible(list(

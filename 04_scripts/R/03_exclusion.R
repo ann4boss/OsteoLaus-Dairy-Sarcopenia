@@ -8,7 +8,7 @@ apply_exclusions <- function(data,
                              qc_table,
                              covariant_list,
                              exposure,
-                             outcome,
+                             outcome = NULL,
                              visit_min = 2L,
                              pt_col = "pt",
                              visit_col = ".visit_osteo",
@@ -16,6 +16,15 @@ apply_exclusions <- function(data,
                              imp_col = ".imp",
                              return_tracking = TRUE) {
   stopifnot(is.data.frame(data), is.data.frame(qc_table))
+
+  normalize_column_names <- function(cols) {
+    cols <- as.character(cols)
+    cols[!is.na(cols) & nzchar(cols)]
+  }
+
+  covariant_list <- normalize_column_names(covariant_list)
+  exposure <- normalize_column_names(exposure)
+  outcome <- normalize_column_names(outcome)
   
   qc_flag_cols <- c(
     "qc_pt_present",
@@ -93,8 +102,13 @@ apply_exclusions <- function(data,
     after_qc <- data_with_row_id |>
       dplyr::filter(!(.data[[pt_col]] %in% qc_failed_pt))
     
-    missing_var_candidates <- after_qc |>
-      dplyr::filter(dplyr::if_any(dplyr::all_of(row_complete_cols), is.na))
+    if (length(row_complete_cols) > 0) {
+      missing_var_candidates <- after_qc |>
+        dplyr::filter(dplyr::if_any(dplyr::all_of(row_complete_cols), is.na))
+    } else {
+      missing_var_candidates <- after_qc |>
+        dplyr::filter(FALSE)
+    }
     
     missing_var_rows <- missing_var_candidates |>
       dplyr::mutate(
@@ -107,8 +121,12 @@ apply_exclusions <- function(data,
         )
       )
     
-    after_missing_vars <- after_qc |>
-      dplyr::filter(dplyr::if_all(dplyr::all_of(row_complete_cols), ~ !is.na(.x)))
+    if (length(row_complete_cols) > 0) {
+      after_missing_vars <- after_qc |>
+        dplyr::filter(dplyr::if_all(dplyr::all_of(row_complete_cols), ~ !is.na(.x)))
+    } else {
+      after_missing_vars <- after_qc
+    }
     
     range_excluded_rows <- after_missing_vars |>
       dplyr::filter(FALSE) |>
@@ -133,7 +151,7 @@ apply_exclusions <- function(data,
         dplyr::filter(dplyr::between(.data[["sumtot1"]], 500, 4200))
     }
     
-    if (identical(outcome, "HGS_MAX")) {
+    if ("HGS_MAX" %in% outcome) {
       hgs_excluded_rows <- filtered |>
         dplyr::filter(.data[["HGS_MAX"]] <= 0) |>
         dplyr::mutate(
@@ -144,6 +162,67 @@ apply_exclusions <- function(data,
       range_excluded_rows <- dplyr::bind_rows(range_excluded_rows, hgs_excluded_rows)
       filtered <- filtered |>
         dplyr::filter(.data[["HGS_MAX"]] > 0)
+    }
+    
+    # -------------------------------------------------------------------------
+    # Baseline sarcopenia exclusion
+    # -------------------------------------------------------------------------
+    
+    if ("ewgsop2_sarcopenia_stage" %in% outcome) {
+      
+      baseline_excluded_pt <- filtered |>
+        dplyr::filter(.data[[visit_col]] == 1) |>
+        dplyr::filter(
+          is.na(.data[["ewgsop2_sarcopenia_stage"]]) |
+            .data[["ewgsop2_sarcopenia_stage"]] != "No sarcopenia"
+        ) |>
+        dplyr::pull(.data[[pt_col]]) |>
+        unique()
+      
+      baseline_excluded_rows <- filtered |>
+        dplyr::filter(.data[[pt_col]] %in% baseline_excluded_pt) |>
+        dplyr::mutate(
+          exclusion_stage = "participant_baseline",
+          exclusion_reason = "baseline_sarcopenia_or_missing",
+          exclusion_detail = "baseline EWGSOP2 not 'No sarcopenia'"
+        )
+      
+      range_excluded_rows <- dplyr::bind_rows(
+        range_excluded_rows,
+        baseline_excluded_rows
+      )
+      
+      filtered <- filtered |>
+        dplyr::filter(!(.data[[pt_col]] %in% baseline_excluded_pt))
+    }
+    
+    
+    if ("fnih_sarcopenia" %in% outcome) {
+      
+      baseline_excluded_pt <- filtered |>
+        dplyr::filter(.data[[visit_col]] == 1) |>
+        dplyr::filter(
+          is.na(.data[["fnih_sarcopenia"]]) |
+            .data[["fnih_sarcopenia"]] == "Sarcopenia"
+        ) |>
+        dplyr::pull(.data[[pt_col]]) |>
+        unique()
+      
+      baseline_excluded_rows <- filtered |>
+        dplyr::filter(.data[[pt_col]] %in% baseline_excluded_pt) |>
+        dplyr::mutate(
+          exclusion_stage = "participant_baseline",
+          exclusion_reason = "baseline_sarcopenia_or_missing",
+          exclusion_detail = "baseline FNIH sarcopenia or missing"
+        )
+      
+      range_excluded_rows <- dplyr::bind_rows(
+        range_excluded_rows,
+        baseline_excluded_rows
+      )
+      
+      filtered <- filtered |>
+        dplyr::filter(!(.data[[pt_col]] %in% baseline_excluded_pt))
     }
     
     visit_counts_before <- after_qc |>

@@ -42,9 +42,10 @@
 
 .derive_chain_osteo <- function(df) {
     df |>
-        derive_bmi()         |>
+        derive_bmi()          |>
         derive_bmi_category() |>
-        derive_alm_indices()
+        derive_alm_indices()  |>
+        split_alm_by_method()
 }
 
 # Map cohort name to chain function.

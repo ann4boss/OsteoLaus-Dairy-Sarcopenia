@@ -16,25 +16,25 @@
     # Anthropometry
     "Age", "Height", "Weight", "BMI", "BMI_category",
     # Sociodemographics
-    "mrtsts2", "education_level", #"ethori_self", 
+    "mrtsts2", "education_level", 
     # Lifestyle & clinical
     "smoking_status", "smoking_impute_source",
-    "alcohol_category", 
-    #"pa_levels_tertile","pa_levels_who",
+    "alcohol_category_conso", "alcohol_category_sumalco", 
     "pa_levels_tertile_f1", "pa_levels_tertile_f2", "pa_levels_who_f1", "pa_levels_who_f2",
-    "diabetes_status", "hrt_status", "htn_status",
+    "diabetes_status",  "htn_status",
     # Medications
-    "hypolip_drug_status", "corticoids_status", "vitD_status",
+    "hrt_status", "hypolip_drug_status", "corticoids_status", "vitD_status",
     "calcium_status", "benzo_status", "bisphosphonate_status",
     # Diet
-    "sumtot1",
+    "sumtot1", "sumprot1", "sumgluc1", "sumlipi1",
     "dairy_total_gday", "dairy_fermented_gday", "dairy_non_fermented_gday",
     "dairy_lowfat_gday", "dairy_highfat_gday",
     "dairy_guidelines_port",
     "dairy_quartile_baseline", "dairy_quartile_overall",
     # Outcomes
     "HGS_MAX", "gait_speed",
-    "ALM", "ALM_HT2", "ALM_BMI", "ALM_WT", "DXA_method"
+    "ALM", "ALM_HT2", "ALM_BMI", "ALM_WT", "DXA_method",
+    "ALM_Lunar", "ALM_Hology", "ALM_HT2_Lunar", "ALM_HT2_Hology"
 )
 
 

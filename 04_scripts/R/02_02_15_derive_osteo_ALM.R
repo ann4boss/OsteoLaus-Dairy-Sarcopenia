@@ -151,3 +151,57 @@ derive_alm_indices <- function(df) {
     
     return(df)
 }
+
+
+# =============================================================================
+# Split ALM-derived variables by DXA method
+# =============================================================================
+
+#' Create method-specific ALM columns based on DXA_method.
+#'
+#' @param df Data frame containing ALM-derived variables and DXA_method.
+#' @return df with method-specific ALM columns added.
+split_alm_by_method <- function(df) {
+    
+    required_cols <- c("DXA_method", "ALM", "ALM_HT2", "ALM_BMI", "ALM_WT")
+    
+    missing_cols <- setdiff(required_cols, names(df))
+    if (length(missing_cols) > 0L) {
+        cli::cli_warn(c(
+            "split_alm_by_method(): missing required columns: {.val {missing_cols}}.",
+            "i" = "Method-specific ALM columns were not created."
+        ))
+        return(df)
+    }
+    
+    derive_method_col <- function(var, method) {
+        dplyr::if_else(
+            df$DXA_method == method,
+            df[[var]],
+            NA_real_
+        )
+    }
+    
+    df <- df |>
+        dplyr::mutate(
+            ALM_Hologic    = derive_method_col("ALM", "Hologic"),
+            ALM_Lunar     = derive_method_col("ALM", "Lunar"),
+            
+            ALM_HT2_Hologic = derive_method_col("ALM_HT2", "Hologic"),
+            ALM_HT2_Lunar  = derive_method_col("ALM_HT2", "Lunar"),
+            
+            ALM_BMI_Hologic = derive_method_col("ALM_BMI", "Hologic"),
+            ALM_BMI_Lunar  = derive_method_col("ALM_BMI", "Lunar"),
+            
+            ALM_WT_Hologic  = derive_method_col("ALM_WT", "Hologic"),
+            ALM_WT_Lunar   = derive_method_col("ALM_WT", "Lunar")
+        )
+    
+    cli::cli_h2("Split ALM by DXA method")
+    cli::cli_inform(c(
+        "v" = "Method-specific ALM columns created:",
+        "*" = "Hologic and Lunar splits for ALM, ALM_HT2, ALM_BMI, ALM_WT"
+    ))
+    
+    return(df)
+}

@@ -63,10 +63,10 @@ harmonise_osteo <- function(df) {
     prefix <- COHORT_META[[cohort]][["visit_prefix"]][[visit]]
     df <- strip_prefix(df, prefix)
     
-    # V5: strip additional H_ prefix from DXA columns
-    # e.g. "H_ALM" -> "ALM".
+    # V5: strip additional L_ prefix from DXA columns
+    # e.g. "L_ALM" -> "ALM".
     if (visit == "5") {
-        df <- strip_prefix(df, "H_")
+        df <- strip_prefix(df, "L_")
     }
     
     # ── Start dtplyr pipeline -----------------------------------------
@@ -75,7 +75,7 @@ harmonise_osteo <- function(df) {
         # ── DXA Method & IDs -----------------------------------------
         dplyr::mutate(
             DXA_method = factor(
-                dplyr::if_else(visit %in% c("3", "4", "5"), "Hologic", "Lunar")
+                dplyr::if_else(visit %in% c("3", "4", "5"), "Lunar", "Hologic")
             ),
             pt            = as.integer(pt),
             exam_date_iso = parse_exam_date(SCAN_date)

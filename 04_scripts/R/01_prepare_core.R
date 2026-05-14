@@ -20,8 +20,6 @@
 #   $osteo_long          — stacked long tibble for OsteoLaus (all visits)
 #   $qc_tbl              — participant-level QC flags
 #   $qc_summary          — scalar QC summary
-#   $qc_variables_colaus — variable-level QC for CoLaus
-#   $qc_variables_osteo  — variable-level QC for OsteoLaus
 # =============================================================================
 
 prepare_core <- function(
@@ -78,19 +76,6 @@ prepare_core <- function(
         osteo_v4_harm,  osteo_v5_harm
     )
     
-    # ── 05. QC – variable-level ────────────────────────────────────────────
-    cli::cli_h1("05  QC – variable-level")
-    
-    qc_variables_colaus <- qc_variables(df = colaus_long, 
-                                        cohort = "colaus",
-                                        out_dir= "06_outputs/qc_variables",
-                                        save_csv  = TRUE,
-                                        save_hist = TRUE)
-    qc_variables_osteo  <- qc_variables(df = osteo_long,  
-                                        cohort = "osteo",
-                                        out_dir   = "06_outputs/qc_variables",
-                                        save_csv  = TRUE,
-                                        save_hist = TRUE)
     
     # ── Done ────────────────────────────────────────────────────────────────
     cli::cli_h1("prepare_core complete")
@@ -103,8 +88,6 @@ prepare_core <- function(
         colaus_long         = colaus_long,
         osteo_long          = osteo_long,
         qc_tbl              = qc_out$tbl,
-        qc_summary          = qc_out$summary,
-        qc_variables_colaus = qc_variables_colaus,
-        qc_variables_osteo  = qc_variables_osteo
+        qc_summary          = qc_out$summary
     )
 }

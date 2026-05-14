@@ -12,6 +12,7 @@
 # Derivation chain
 # ----------------
 #   1. sarcopenia — staging using unified HGS_MAX, ALM, and gait_speed
+#   2. visit_num - 
 #
 # =============================================================================
 
@@ -22,60 +23,10 @@
 # Main derivation chain for merged data
 .derive_chain_combined <- function(df) {
     df |>
-        derive_sarcopenia()
+        derive_sarcopenia() |>
+        derive_visit_time()
 }
 
-# Detect custom MICE result structure
-.is_mice_result <- function(data) {
-    is.list(data) &&
-        all(c("long", "m") %in% names(data)) &&
-        is.data.frame(data$long) &&
-        ".imp" %in% names(data$long)
-}
-
-# Apply derivation chain to plain data
-.derive_combined_single <- function(df) {
-    
-    .derive_chain_combined(df)
-}
-
-# MICE path
-.derive_combined_mice <- function(mice_result) {
-    
-    long_df <- mice_result$long
-    
-    imp_ids <- sort(setdiff(unique(long_df$.imp), 0L))
-    
-    cli::cli_h1(
-        "Derive Combined Variables: {mice_result$m} imputed datasets"
-    )
-    
-    out <- purrr::map(imp_ids, function(i) {
-        
-        cli::cli_inform(
-            "  [{i}/{mice_result$m}] deriving combined variables ..."
-        )
-        
-        long_df |>
-            dplyr::filter(.data$.imp == i) |>
-            dplyr::select(-".imp")      |>
-            .derive_combined_single()      |>
-            dplyr::mutate(.imp = i, .before = 1L)
-        
-    }) |>
-        dplyr::bind_rows()
-    
-    cli::cli_inform(c(
-        "v" = "derive_combined() complete.",
-        "i" = "{nrow(out)} rows across {mice_result$m} datasets."
-    ))
-    
-    dplyr::as_tibble(out)
-}
-
-# -----------------------------------------------------------------------------
-# Public function
-# -----------------------------------------------------------------------------
 
 #' Derive variables for merged OsteoLaus-CoLaus datasets,
 #' with optional MICE support.
@@ -112,13 +63,12 @@ derive_combined <- function(data, imputed = NULL) {
         isTRUE(imputed)
     }
     
-    if (is_imputed && !has_imp) {
-        cli::cli_abort("derive_combined(imputed = TRUE) requires a {.col .imp} column or a MICE result list.")
-    }
-    
     if (!is_imputed) {
         cli::cli_h1("Deriving Combined Variables")
-        return(dplyr::as_tibble(derive_sarcopenia(long_df)))
+        return(
+            .derive_chain_combined(long_df) |>
+                dplyr::as_tibble()
+        )
     }
     
     imp_ids <- sort(setdiff(unique(long_df$.imp), 0L))
@@ -127,20 +77,14 @@ derive_combined <- function(data, imputed = NULL) {
     cli::cli_h1("Derive Combined Variables: {m} imputed datasets")
     
     out <- purrr::map(imp_ids, function(i) {
-        cli::cli_inform("  [{i}/{m}] deriving combined variables ...")
         
         long_df |>
             dplyr::filter(.data$.imp == i) |>
             dplyr::select(-.data$.imp, -dplyr::any_of(".id")) |>
-            derive_sarcopenia() |>
+            .derive_chain_combined() |>
             dplyr::mutate(.imp = i, .before = 1L)
     }) |>
         dplyr::bind_rows()
-    
-    cli::cli_inform(c(
-        "v" = "derive_combined() complete.",
-        "i" = "{nrow(out)} rows across {m} imputed datasets."
-    ))
     
     dplyr::as_tibble(out)
 }

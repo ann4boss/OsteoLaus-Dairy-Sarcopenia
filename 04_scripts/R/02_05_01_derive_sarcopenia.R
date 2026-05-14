@@ -58,18 +58,27 @@ derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
             ewgsop2_low_perf = !is.na(.data$gait_speed) &
                 .data$gait_speed <= ewgsop2$gait_ms,
 
-            ewgsop2_stage_n = dplyr::case_when(
+            ewgsop2_sarcopenia_stage = dplyr::case_when(
                 is.na(.data$HGS_MAX) ~ NA_integer_,
-                .data$ewgsop2_low_strength & .data$ewgsop2_low_mass & .data$ewgsop2_low_perf ~ 3L,
-                .data$ewgsop2_low_strength & .data$ewgsop2_low_mass ~ 2L,
-                .data$ewgsop2_low_strength ~ 1L,
+                
+                .data$ewgsop2_low_strength %in% TRUE &
+                    .data$ewgsop2_low_mass %in% TRUE &
+                    .data$ewgsop2_low_perf %in% TRUE ~ 3L,
+                
+                .data$ewgsop2_low_strength %in% TRUE &
+                    .data$ewgsop2_low_mass %in% TRUE ~ 2L,
+                
+                .data$ewgsop2_low_strength %in% TRUE ~ 1L,
+                
                 TRUE ~ 0L
-            ),
-
-            ewgsop2_sarcopenia_stage = factor(
-                .data$ewgsop2_stage_n,
+            ) |> factor(
                 levels = 0:3,
-                labels = c("No sarcopenia", "Probable", "Confirmed", "Severe"),
+                labels = c(
+                    "No sarcopenia",
+                    "Probable",
+                    "Confirmed",
+                    "Severe"
+                ),
                 ordered = TRUE
             ),
 
@@ -89,11 +98,19 @@ derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
     report_stats <- out |>
         dplyr::summarise(
             n_total = dplyr::n(),
-            n_staged = sum(!is.na(.data$ewgsop2_stage_n)),
-            n_sarcopenic = sum(.data$ewgsop2_stage_n >= 2L, na.rm = TRUE),
+            
+            n_staged = sum(
+                !is.na(.data$ewgsop2_sarcopenia_stage)
+            ),
+            
+            n_sarcopenic = sum(
+                .data$ewgsop2_sarcopenia_stage %in%
+                    c("Confirmed", "Severe"),
+                na.rm = TRUE
+            ),
+            
             .groups = "drop"
         )
-
     prevalence <- if (report_stats$n_staged > 0L) {
         round(report_stats$n_sarcopenic / report_stats$n_staged * 100, 1)
     } else {
@@ -107,8 +124,6 @@ derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
         " " = "Prevalence (Confirmed/Severe): {prevalence}%"
     ))
     
-    # remove ewgsop2_stage_n
-    rm(ewgsop2_stage_n)
     
     return(out)
 }

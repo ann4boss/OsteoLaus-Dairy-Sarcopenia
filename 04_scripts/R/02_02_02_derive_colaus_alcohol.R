@@ -1,8 +1,9 @@
 # =============================================================================
 # R/derive_colaus_alcohol.R
 # =============================================================================
-# Derives alcohol_category from conso_hebdo (units/week)
-#
+# Derives alcohol_category from conso_hebdo (units/week) and from sumalco (grams/day)
+# for sensitivity analysis
+# 
 # conso_hebdo is the primary source. sumalco is used as comparison.
 #
 # Thresholds are applied on a per-weekly basis:
@@ -22,7 +23,7 @@
 #' @param df CoLaus long tibble after harmonisation and stacking.
 #' @param g_per_unit Grams of ethanol per standard drink unit. Default 10.
 #' @return df with sumalco_units, alcohol_category_conso,
-#'   alcohol_category_sumalco, alcohol_agreement, and alcohol_category added.
+#'   alcohol_category_sumalco, and alcohol_agreement.
 derive_alcohol <- function(df, g_per_unit = 10) {
     
     # ── Ensure source columns are present ------------------------------------
@@ -82,19 +83,13 @@ derive_alcohol <- function(df, g_per_unit = 10) {
             ) |> factor(levels = c("Agree", "Conso higher", "Sumalco higher"))
         )
     
-    # ── Final category: conso_hebdo, NA if missing --------------------------
+    # ── Relocate derived variables -------------------------------------------
     df <- df |>
-        dplyr::mutate(
-            alcohol_category = dplyr::if_else(
-                !is.na(alcohol_category_conso),
-                alcohol_category_conso,
-                NA
-            )
-        ) |>
         dplyr::relocate(
             conso_hebdo, sumalco, sumalco_units,
-            alcohol_category_conso, alcohol_category_sumalco,
-            alcohol_agreement, alcohol_category,
+            alcohol_category_conso,
+            alcohol_category_sumalco,
+            alcohol_agreement,
             .after = dplyr::last_col()
         )
     
@@ -104,27 +99,48 @@ derive_alcohol <- function(df, g_per_unit = 10) {
     # Coverage
     n_conso_present   <- sum(!is.na(df$conso_hebdo))
     n_sumalco_present <- sum(!is.na(df$sumalco))
-    n_derived         <- sum(!is.na(df$alcohol_category))
-    n_missing         <- n_rows - n_derived
+    n_derived_conso    <- sum(!is.na(df$alcohol_category_conso))
+    n_derived_sumalco  <- sum(!is.na(df$alcohol_category_sumalco))
+    
+    n_missing_conso    <- n_rows - n_derived_conso
+    n_missing_sumalco  <- n_rows - n_derived_sumalco
     
     cli::cli_inform(c(
         "i" = "Total rows: {n_rows}",
+        
         "*" = "conso_hebdo present (primary source): {n_conso_present} ({round(n_conso_present / n_rows * 100, 1)}%)",
         "*" = "sumalco present (comparison source) : {n_sumalco_present} ({round(n_sumalco_present / n_rows * 100, 1)}%)",
-        "v" = "alcohol_category derived            : {n_derived} ({round(n_derived / n_rows * 100, 1)}%)",
-        if (n_missing > 0)
-            c("!" = "Missing alcohol_category (conso_hebdo absent): {n_missing} rows")
-        else
-            c("v" = "No missing alcohol_category values.")
+        
+        "v" = "alcohol_category_conso derived   : {n_derived_conso} ({round(n_derived_conso / n_rows * 100, 1)}%)",
+        "v" = "alcohol_category_sumalco derived: {n_derived_sumalco} ({round(n_derived_sumalco / n_rows * 100, 1)}%)"
     ))
     
     # Distribution of final category
-    dist <- df |>
-        dplyr::count(alcohol_category, .drop = FALSE) |>
-        dplyr::mutate(pct = round(n / n_derived * 100, 1))
+    dist_conso <- df |>
+        dplyr::count(alcohol_category_conso, .drop = FALSE) |>
+        dplyr::mutate(
+            pct = round(n / n_derived_conso * 100, 1)
+        )
     
-    cli::cli_inform(c("i" = "Distribution of alcohol_category (among derived rows):"))
-    cli::cli_inform(paste(capture.output(print(dist, n = Inf)), collapse = "\n"))
+    dist_sumalco <- df |>
+        dplyr::count(alcohol_category_sumalco, .drop = FALSE) |>
+        dplyr::mutate(
+            pct = round(n / n_derived_sumalco * 100, 1)
+        )
+    
+    cli::cli_inform(c(
+        "i" = "Distribution of alcohol_category_conso:"
+    ))
+    cli::cli_inform(
+        paste(capture.output(print(dist_conso, n = Inf)), collapse = "\n")
+    )
+    
+    cli::cli_inform(c(
+        "i" = "Distribution of alcohol_category_sumalco:"
+    ))
+    cli::cli_inform(
+        paste(capture.output(print(dist_sumalco, n = Inf)), collapse = "\n")
+    )
     
     # Agreement between sources
     diag <- df |>
