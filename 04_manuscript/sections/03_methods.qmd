@@ -18,7 +18,7 @@ Link of CoLaus to the closest OsteoLaus visit...
 Dietary intake, including dairy consumption, was assessed during the CoLaus visits from the first follow up visit onwards using a self-administered semi-quantitative food frequency questionnaire (FFQ). The FFQ was developed and validated in Geneva [@bernstein1995; @marques-vidal2018] and reflects the intake of 97 food items over the past 4 weeks. The questionnaire also included consumption frequencies ranging from “less than once during the last 4 weeks” to “2 or more times per day” and three different serving sizes (smaller, equal, or larger) for each item compared to a reference size [@marques-vidal2018]. The amount (either in g/day or mL/day) per item was calculated by multiplying frequency and portion size. Portion sizes were defined as seen in @tbl-PortionSize for dairy products. The FFQ responses were also converted into nutrients and energy based on the French CIQUAL food composition table [@ciqual].
 
 | **FFQ** | **Description** | **Unit** | **Men (S / E / L)** | **Women (S / E / L)** |
-|---------------|---------------|---------------|---------------|------------------|
+|---------------|---------------|---------------|---------------|---------------|
 | **1** | Plain yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
 | **2** | Low-fat yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
 | **3** | Fruit/aroma yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
@@ -101,7 +101,7 @@ While this categorization provides a structured metric for analysis, it is noted
 
 Physical activity (PA) is a key factor influencing muscle related outcomes <!--# source -->.
 
-PA was measured using a Physical Activity Frequency Questionnaire (PAFQ) developed in 1998 for the Geneva population and containing 70 types of physical activity [@bernstein1998]. The questionnaire recorded how many days during the past week (0-7 days) each activity was performed and the duration per day (0-10 hours in 15-minute increments) \[@verhoog2019\]. Each activity was classified according to its metabolic equivalent of task (MET) value as sedentary behaviour (\< 2 METs), light physical activity (2 to \< 3 METs), moderate physical activity (3-6 METs), or vigorous physical activity (\> 6 METs).
+PA was measured using a Physical Activity Frequency Questionnaire (PAFQ) developed in 1998 for the Geneva population and containing 70 types of physical activity [@bernstein1998]. The questionnaire recorded how many days during the past week (0-7 days) each activity was performed and the duration per day (0-10 hours in 15-minute increments) [@verhoog2019]. Each activity was classified according to its metabolic equivalent of task (MET) value as sedentary behaviour (\< 2 METs), light physical activity (2 to \< 3 METs), moderate physical activity (3-6 METs), or vigorous physical activity (\> 6 METs).
 
 This assessment was only available at the first and second follow-up visits of the CoLaus study. A previous study in a subpopulation of CoLaus showed a moderate correlation between self-reported activity levels measured with the PAFQ and accelerometer-based measurements of physical activity [@verhoog2019]. Since self-reported questionnaires tend to overestimate physical activity and underestimate sedentary behaviour, participants were categorised into tertiles representing low, moderate, and high physical activity levels.
 
@@ -121,11 +121,11 @@ Blood samples were collected in the morning after an overnight fast. Analyses we
 
 <!--# tbc -->
 
-HRT
+Hormone replacement therapy (HRT) use was assessed using self-reported questionnaire data. Participants were asked whether they were currently using HRT and at what age HRT was started. Based on these responses, HRT status was classified into three categories: current HRT use, past HRT use, and never/not current HRT use. Participants who answered “Yes” to current HRT use were classified as current users. Participants who answered “No” but provided a valid age at HRT initiation were classified as past users. Participants who answered “No” and had no indication of previous HRT use were classified as never/not current users. HRT status was set to missing when information on current HRT use was unavailable.
 
 <!--# tbc -->
 
-hypertension
+Hypertension status was derived using a hierarchical approach based on three sources of information: measured hypertension, documented antihypertensive treatment, and self-reported antihypertensive medication use. Measured hypertension was defined as systolic blood pressure ≥ 140 mmHg and/or diastolic blood pressure ≥ 90 mmHg and was considered the primary source. Participants were classified as having hypertension if measured hypertension was present. If measured hypertension data were missing, documented antihypertensive treatment was used. If both measured hypertension and documented treatment data were unavailable, self-reported antihypertensive medication use was considered. Participants were classified as not having hypertension when at least one data source was available and none indicated hypertension. Hypertension status was set to missing when all three sources were unavailable.
 
 ### Medication and supplement use
 
@@ -145,15 +145,31 @@ calcium supplementation
 
 ## Outcome Variables
 
-Handgrip strength (kg), measured using a JAMAR dynamometer
+### Handgrip strength
 
-Appendicular lean mass (ALM) and derived indices (ALMI and ALM/BMI for sensitivity analysis), measured by DXA (GE Lunar iDXA™)
+In all CoLaus visits, maximal handgrip strength (HGS) was measured using a JAMAR Baseline® hydraulic hand dynamometer (Fabrication Enterprises, Inc., White Plains, NY, USA) following the guidelines of the American Society of Hand Therapists. Measurements were recorded in pounds (lbs) and converted to kilograms (kg) using a conversion factor of 0.454 <!--# I actually do not know what was applied -->.
 
--\> different DXA methods use Lunar as main and check in sensitivity since not as simple to convert -\> reference paper
+In OsteoLaus, HGS was measured only at visit V5 using the same protocol. The highest value from three attempts of the dominant hand was used for analysis. In this cohort, measurements were recorded directly in kilograms. Additional details on the measurement procedure are described in Vendrami et al. (2025) \[@vendrami2025\].
 
-Gait speed (m/s), assessed using a 6-meter walk test
+### Appendicular lean mass 
 
-Sarcopenia
+The appendicular lean mass (ALM) is calculated by summing the lean mass of all four extrimities. This is the total amount of fat-free, bone-free tissue of the arms and legs. The lean mass was measured at all five OsteoLaus visits. However, two different devices were used depending on the visiting time point. For the first two visits the Hologic Horizon A System™ was used whereas for the three next visit the GE Lunar iDXA™ device was used. A study within the same cohort revealed that the Hologic Horizon A System generally leads to a higher lean mass (1293.7 g ± 1643.5 g) [@vendrami2024]. However, the lean mass of the arms and legs are higher for the Lunar iDXA device (arms 151.4 g ± 274.8 g ;legs: 777.1 g ± 490.0 g).
+
+Because ALM measurements differed systematically between Hologic and Lunar DXA devices, ALM values were harmonised using previously published cross-calibration equations derived within the same cohort [@vendrami2024]. While calibration of arm lean mass did not substantially reduce measurement error, calibration performance was markedly better for leg lean mass, which represents the largest component of ALM. Consequently, calibration of total ALM improved the mean absolute error from approximately 917 g before harmonisation to 498 g after harmonisation. Therefore, ALM values obtained from Hologic devices were converted to Lunar-equivalent values using the following equation:
+
+$ALM_{Holigic}=−369.3+0.967\cdot ALM_{Lunar}$
+
+Appendicular lean mass index (ALMI) was calculated as ALM divided by height squared. ALM was first converted from grams to kilograms and height from centimetres to metres prior to index computation. ALMI was computed only for participants with non-missing ALM and height values greater than zero, and results were expressed in kg/m²:
+
+$ALMI = \frac{ALM}{height^2}$
+
+### Gait speed
+
+Gait speed (GS) shows the <!--# blablbalb -->. Participants' GS was measured with 6-metre walk at a normal pace (m/s). Detail of this method was described in Vendrami et al. [@vendrami2025]. GS was
+
+### Sarcopenia
+
+xx
 
 ## Statistical Methods
 
@@ -161,7 +177,7 @@ Participants were classified into quartiles according to their baseline daily in
 
 ### Missing values
 
-The analysis was performed once with complete cases and once applying multiple imputation.
+The analysis was performed once with complete cases and once applying multiple imputation. With or without imputation, participants with missing values were excluded.
 
 ### Imputation
 
@@ -173,6 +189,16 @@ selection of covariates accoriding to what?
 
 ### Models
 
+x
+
 ## Ethics
 
-<!--# The Institutional Ethics Committee of the University of Lausanne approved the CoLaus/PsyCoLaus and, subsequently, the OsteoLaus studies. All participants signed a written informed consent form after having received a detailed description of the goal and funding of the studies. This article follows the STROBE guidelines [SOURCE].-->
+CoLaus \textbar{} PsyCoLaus and the OsteoLaus studies were approved by the Institutional Ethics Committee of the University of Lausanne. All participants signed a written informed consent form after having received a detailed description of the goal and funding of the studies.
+
+This article follows the STROBE guidelines \[SOURCE\].
+
+## Data and code availability
+
+The used data is not openly accessible, but can be requested at XX.
+
+All code used to analyse the data can be found on github XXX.
