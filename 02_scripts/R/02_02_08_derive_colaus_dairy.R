@@ -219,63 +219,80 @@ derive_dairy_cumavg <- function(df,
         }
     }
     
-    if (!is.numeric(df[[visit_col]])) {
+    # ── Safe visit handling --------------------------------------------------
+    if (is.factor(df[[visit_col]])) {
+        if (!is.ordered(df[[visit_col]])) {
+            cli::cli_inform(c(
+                "!" = "visit column is an unordered factor; treating level order as visit order."
+            ))
+            df[[visit_col]] <- factor(df[[visit_col]], ordered = TRUE)
+        }
+    } else if (!is.numeric(df[[visit_col]])) {
         cli::cli_inform(c(
-            "x" = "derive_dairy_cumavg: {.val {visit_col}} must be numeric.",
-            "i" = "Found class: {.cls {class(df[[visit_col]])}}."
+            "x" = "visit column must be numeric or factor."
         ))
+        return(df)
     }
     
-    # ── Helper: running mean ignoring NAs ------------------------------------
-    # Returns NA (not 0) when no non-missing values exist up to position i.
+    # ── Helper: cumulative mean (computed once per vector) -------------------
     cumulative_mean_na <- function(x) {
-        vapply(seq_along(x), function(i) {
-            vals        <- x[seq_len(i)]
-            non_missing <- vals[!is.na(vals)]
-            if (length(non_missing) == 0L) NA_real_ else mean(non_missing)
-        }, FUN.VALUE = numeric(1))
+        n <- length(x)
+        out <- numeric(n)
+        
+        run_sum <- 0
+        run_n   <- 0
+        
+        for (i in seq_len(n)) {
+            if (!is.na(x[i])) {
+                run_sum <- run_sum + x[i]
+                run_n   <- run_n + 1
+            }
+            out[i] <- if (run_n == 0) NA_real_ else run_sum / run_n
+        }
+        out
     }
     
-    # ── Derivation -----------------------------------------------------------
-    # Preserve original row order so we can restore it after sorting.
+    # ── Ordering -------------------------------------------------------------
     df <- df |>
         dplyr::mutate(.row_order = dplyr::row_number()) |>
         dplyr::arrange(.data[[id_col]], .data[[visit_col]])
     
+    # ── Core computation (NO recomputation of cumulative means) --------------
+    df <- dplyr::group_by(df, .data[[id_col]])
+    
+    for (v in .DAIRY_VARS) {
+        
+        cum <- cumulative_mean_na(df[[v]])
+        
+        df[[paste0(v, "_cumavg")]] <- cum
+        df[[paste0(v, "_cumavg_lag1")]] <- dplyr::lag(cum, 1L, default = NA_real_)
+    }
+    
     df <- df |>
-        dplyr::group_by(.data[[id_col]]) |>
-        dplyr::mutate(
-            dplyr::across(
-                dplyr::all_of(.DAIRY_VARS),
-                list(
-                    # cumulative average up to and including the current visit
-                    cumavg = \(x) cumulative_mean_na(x),
-                    
-                    # lag-1: cumulative average up to the preceding visit
-                    cumavg_lag1 = \(x) dplyr::lag(
-                        cumulative_mean_na(x),
-                        n       = 1L,
-                        default = NA_real_
-                    )
-                ),
-                .names = "{.col}_{.fn}"
-            )
-        ) |>
         dplyr::ungroup() |>
-        dplyr::arrange(.row_order) |>   # restore original row order
+        dplyr::arrange(.row_order) |>
         dplyr::select(-.row_order)
     
     # ── Summary --------------------------------------------------------------
-    new_cols <- c(
-        outer(.DAIRY_VARS, c("cumavg", "cumavg_lag1"), paste, sep = "_")
-    )
+    new_cols <- unlist(lapply(.DAIRY_VARS, function(v) {
+        c(paste0(v, "_cumavg"),
+          paste0(v, "_cumavg_lag1"))
+    }))
     
-    valid_counts <- vapply(new_cols, function(col) sum(!is.na(df[[col]])), integer(1))
+    valid_counts <- vapply(new_cols, function(col) {
+        sum(!is.na(df[[col]]))
+    }, integer(1))
+    
+    visit_order_msg <- if (is.factor(df[[visit_col]])) {
+        paste("factor level order:", paste(levels(df[[visit_col]]), collapse = ", "))
+    } else {
+        paste("ascending numeric", visit_col)
+    }
     
     cli::cli_h2("Cumulative average dairy derivation")
     cli::cli_inform(c(
         "v" = "derive_dairy_cumavg: 10 new columns added.",
-        "i" = "Visit ordering: ascending numeric {.val {visit_col}}.",
+        "i" = paste0("Visit ordering: ", visit_order_msg),
         "i" = "Non-missing counts per new column:"
     ))
     cli::cli_dl(setNames(as.list(valid_counts), new_cols))

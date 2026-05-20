@@ -34,6 +34,7 @@
     # Outcomes
     "HGS_MAX", "gait_speed",
     "ALM", "ALM_HT2", "ALM_BMI", "ALM_WT", "DXA_method",
+    "ALM_harmonised", "ALM_HT2_harmonised", "ALM_BMI_harmonised", "ALM_WT_harmonised",
     "ALM_Lunar", "ALM_Hology", "ALM_HT2_Lunar", "ALM_HT2_Hology"
 )
 

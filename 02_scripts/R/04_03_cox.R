@@ -150,7 +150,7 @@ run_cox_sarcopenia <- function(
     
     # ── Output directory ------------------------------------------------------
     out_dir <- file.path(
-        "06_outputs",
+        "03_outputs",
         "Cox",
         paste0(config_tag, "_", timestamp)
     )

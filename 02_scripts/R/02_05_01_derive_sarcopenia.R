@@ -10,7 +10,7 @@
 #
 # Staging logic (applied in 06_derived_combined.R):
 #   Probable sarcopenia : HGS_peak < hgs_kg
-#   Confirmed sarcopenia: probable + ALM_HT2 < almi_kgm2
+#   Confirmed sarcopenia: probable + ALM_HT2_harmonised < almi_kgm2
 #   Severe sarcopenia   : confirmed + gait_speed <= gait_ms
 #
 # Reference: Cruz-Jentoft et al. Age Ageing. 2019;48(1):16-31.
@@ -38,11 +38,11 @@ FNIH <- list(
 #' Compute definitive sarcopenia staging.
 #'
 #' @param df Output of merge_closest_exams_final(). 
-#'               Must contain: HGS_MAX, ALM_HT2, gait_speed, ALM_BMI.
+#'               Must contain: HGS_MAX, ALM_HT2_harmonised, gait_speed, ALM_BMI.
 #' @return df with sarcopenia staging columns appended.
 derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
 
-    required <- c("HGS_MAX", "ALM_HT2", "gait_speed", "ALM_BMI")
+    required <- c("HGS_MAX", "ALM_HT2_harmonised", "gait_speed", "ALM_BMI_harmonised")
     missing <- setdiff(required, names(df))
 
     if (length(missing) > 0L) {
@@ -59,13 +59,13 @@ derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
         ),
         
         ewgsop2_low_mass = dplyr::case_when(
-            is.na(.data$ALM_HT2) ~ NA,
+            is.na(.data$ALM_HT2_harmonised) ~ NA,
             .data$ALM_HT2 < ewgsop2$almi_kgm2 ~ TRUE,
         ),
         
         ewgsop2_low_mass = dplyr::case_when(
-            is.na(.data$ALM_HT2) ~ NA,
-            .data$ALM_HT2 < ewgsop2$almi_kgm2 ~ TRUE,
+            is.na(.data$ALM_HT2_harmonised) ~ NA,
+            .data$ALM_HT2_harmonised < ewgsop2$almi_kgm2 ~ TRUE,
             TRUE ~ FALSE
         ),
         
