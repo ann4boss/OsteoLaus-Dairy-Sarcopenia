@@ -85,7 +85,7 @@ build_analysis_dataset <- function(colaus_long,
     
     list(
         colaus_selected = colaus_selected,
-        osteo_selected = colaus_selected,
+        osteo_selected = osteo_selected,
         merge_qc = merged$qc,
         merged_derived = merged_derived
     )

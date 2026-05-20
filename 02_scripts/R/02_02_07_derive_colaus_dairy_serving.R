@@ -1,7 +1,7 @@
 # =============================================================================
 # R/derive_colaus_dairy_serving.R
 # =============================================================================
-# Derives dairy serving counts and Swiss-guideline compliance from FFQ
+# Derives dairy serving and Swiss-guideline compliance from FFQ
 # frequency and portion-size columns.
 #
 # SWISS GUIDELINE REFERENCE
@@ -14,8 +14,8 @@
 #   •  60 g soft cheese (e.g. Camembert, Brie)
 # The guideline is considered met when a participant consumes 2 portions on
 # some days and 3 portions on others across the week; i.e., the average is
-# between 2 and 3 portions/day. We operationalise compliance as >= 2 servings
-# per day (>= 14 servings/week) as the lower bound of the recommendation.
+# between 2 and 3 portions/day. We implemented compliance as >= 2 servings
+# per day as the lower bound of the recommendation.
 #
 # FFQ ITEM SELECTION
 # ──────────────────
@@ -52,7 +52,7 @@
 #
 # Method 2 — Portion-adjusted sum (dairy_portion_total):
 #   Weights each frequency score by the participant's self-reported portion
-#   size (FFQp columns: "Less" = 0.5, "Equal" = 1.0, "More" = 1.5).
+#   size (FFQp columns: "Less" = 0.5, "Equal" = 1.0, "Larger" = 1.5).
 #   Better reflects actual intake volume but introduces additional measurement
 #   error from the portion-size question.
 #
@@ -110,7 +110,7 @@ derive_dairy_servings <- function(df) {
                             dplyr::across(dplyr::all_of(.PORT_COLS), ~ dplyr::case_when(
                                 .x == "Less"  ~ 0.5,
                                 .x == "Equal" ~ 1.0,
-                                .x == "More"  ~ 1.5,
+                                .x == "Larger"  ~ 1.5,
                                 TRUE          ~ NA_real_
                             )),
                         na.rm = TRUE

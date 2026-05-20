@@ -1,12 +1,10 @@
-# TODO: FFQ4 cottage cheese 0% is more consumed in women than men? is this correct? Are these values coming from Bernstein et al?
 # =============================================================================
 # R/derive_colaus_dairy.R
 # =============================================================================
-# Derives dairy intake sub-categories by summing FFQ amount columns.
+# Derives dairy intake by summing FFQ amount columns.
 #
-# FFQ amount columns are in grams/day as output from the dietary analysis.
 # Each FFQ item contributes to one or more sub-categories as specified in the
-# data dictionary.
+# data dictionary (see below).
 #
 # Sub-category definitions
 # ─────────────────────────
@@ -16,8 +14,9 @@
 #   dairy_lowfat_gday        low-fat dairy items
 #   dairy_highfat_gday       high-fat dairy items
 #
-# Item -> sub-category mapping:
-#   FFQ1amount  -> total, fermented, high-fat      plain yogurt
+# Data dictionary
+# ─────────────────────────
+#   FFQ1amount  -> total, fermented, high-fat        plain yogurt
 #   FFQ2amount  -> total, fermented, low-fat         low-fat yogurt
 #   FFQ3amount  -> total, fermented, high-fat        fruit yogurt
 #   FFQ4amount  -> total, fermented, low-fat         cottage cheese 0%
@@ -55,7 +54,7 @@ derive_dairy <- function(df) {
     .DAIRY_FERMENT      <- paste0("FFQ", c(1:8), "amount")
     .DAIRY_NON_FERM     <- paste0("FFQ", c(52, 53, 63, 68, 71, 82:86), "amount")
     .DAIRY_LOWFAT       <- paste0("FFQ", c(2, 4, 82, 85), "amount")
-    .DAIRY_HIGHFAT      <- paste0("FFQ", c(1, 3, 5, 6, 7, 8,52, 53, 63, 68, 71, 83, 84, 86), "amount")
+    .DAIRY_HIGHFAT      <- paste0("FFQ", c(1, 3, 5, 6, 7, 8, 52, 53, 63, 68, 71, 83, 84, 86), "amount")
     
     
     # ── Column Check ----------------------------------------------
@@ -114,7 +113,7 @@ derive_dairy <- function(df) {
         ) |>
         dplyr::as_tibble()
     
-    # ── QC -------------------------------------------------------------------
+    # ── Summary -------------------------------------------------------------------
     stats <- df |>
         dplyr::summarise(
             n_exceed = sum(
@@ -145,6 +144,141 @@ derive_dairy <- function(df) {
         " " = "low-fat: {stats$valid_lowfat}",
         " " = "high-fat: {stats$valid_highfat}"
     ))
+    
+    return(df)
+}
+
+
+
+# =============================================================================
+# Cumulative average dairy intake
+# =============================================================================
+#
+# Cumulative average derivation
+# ─────────────────────────────
+# For each participant and each dairy sub-category, two additional variables
+# are derived:
+#
+#   <var>_cumavg      Running mean of all non-missing values from OsteoLaus
+#                     baseline (the lowest visit number) up to and including
+#                     the current visit.
+#
+#   <var>_cumavg_lag1 Same running mean but lagged by one wave (i.e. the
+#                     cumulative average computed up to the *preceding* visit).
+#                     Intended for sensitivity analyses. NA at the first visit.
+#
+# Behaviour with missing values
+# ─────────────────────────────
+# • A missing value at a given visit does NOT break the cumulative average;
+#   it is simply skipped (na.rm = TRUE within the running mean).
+# • However, if *no* non-missing observation exists up to and including the
+#   current visit, the cumulative average is NA (not 0).
+# • The lag-1 variable is NA at the first visit (no prior wave exists) and
+#   carries NA forward whenever the underlying cumulative average is NA.
+#
+# =============================================================================
+
+#' Derive cumulative average dairy intakes for a CoLaus long tibble.
+#'
+#' @param df  CoLaus long tibble (one row per participant × visit) that already
+#'   contains the five dairy sub-category columns produced by `derive_dairy()`.
+#' @param id_col    Name of the participant identifier column (default `"id"`).
+#' @param visit_col Name of the numeric visit identifier column (default
+#'   `"visit"`). Rows are sorted ascending on this column within each
+#'   participant; no explicit visit order needs to be supplied.
+#'
+#' @return `df` with ten new columns added (cumavg + cumavg_lag1 for each of
+#'   the five dairy sub-categories). Row order is restored to match the input.
+derive_dairy_cumavg <- function(df,
+                                id_col    = "pt",
+                                visit_col = ".visit") {
+    
+    # ── Checks ---------------------------------------------------------------
+    .DAIRY_VARS <- c(
+        "dairy_total_gday",
+        "dairy_fermented_gday",
+        "dairy_non_fermented_gday",
+        "dairy_lowfat_gday",
+        "dairy_highfat_gday"
+    )
+    
+    missing_dairy <- setdiff(.DAIRY_VARS, names(df))
+    if (length(missing_dairy) > 0) {
+        cli::cli_inform(c(
+            "x" = "derive_dairy_cumavg: Missing dairy sub-category columns.",
+            "i" = "Run {.fn derive_dairy} before calling this function.",
+            "i" = "Missing: {.val {missing_dairy}}"
+        ))
+    }
+    
+    for (col in c(id_col, visit_col)) {
+        if (!col %in% names(df)) {
+            cli::cli_inform(
+                "derive_dairy_cumavg: Column {.val {col}} not found in data."
+            )
+        }
+    }
+    
+    if (!is.numeric(df[[visit_col]])) {
+        cli::cli_inform(c(
+            "x" = "derive_dairy_cumavg: {.val {visit_col}} must be numeric.",
+            "i" = "Found class: {.cls {class(df[[visit_col]])}}."
+        ))
+    }
+    
+    # ── Helper: running mean ignoring NAs ------------------------------------
+    # Returns NA (not 0) when no non-missing values exist up to position i.
+    cumulative_mean_na <- function(x) {
+        vapply(seq_along(x), function(i) {
+            vals        <- x[seq_len(i)]
+            non_missing <- vals[!is.na(vals)]
+            if (length(non_missing) == 0L) NA_real_ else mean(non_missing)
+        }, FUN.VALUE = numeric(1))
+    }
+    
+    # ── Derivation -----------------------------------------------------------
+    # Preserve original row order so we can restore it after sorting.
+    df <- df |>
+        dplyr::mutate(.row_order = dplyr::row_number()) |>
+        dplyr::arrange(.data[[id_col]], .data[[visit_col]])
+    
+    df <- df |>
+        dplyr::group_by(.data[[id_col]]) |>
+        dplyr::mutate(
+            dplyr::across(
+                dplyr::all_of(.DAIRY_VARS),
+                list(
+                    # cumulative average up to and including the current visit
+                    cumavg = \(x) cumulative_mean_na(x),
+                    
+                    # lag-1: cumulative average up to the preceding visit
+                    cumavg_lag1 = \(x) dplyr::lag(
+                        cumulative_mean_na(x),
+                        n       = 1L,
+                        default = NA_real_
+                    )
+                ),
+                .names = "{.col}_{.fn}"
+            )
+        ) |>
+        dplyr::ungroup() |>
+        dplyr::arrange(.row_order) |>   # restore original row order
+        dplyr::select(-.row_order)
+    
+    # ── Summary --------------------------------------------------------------
+    new_cols <- c(
+        outer(.DAIRY_VARS, c("cumavg", "cumavg_lag1"), paste, sep = "_")
+    )
+    
+    valid_counts <- vapply(new_cols, function(col) sum(!is.na(df[[col]])), integer(1))
+    
+    cli::cli_h2("Cumulative average dairy derivation")
+    cli::cli_inform(c(
+        "v" = "derive_dairy_cumavg: 10 new columns added.",
+        "i" = "Visit ordering: ascending numeric {.val {visit_col}}.",
+        "i" = "Non-missing counts per new column:"
+    ))
+    cli::cli_dl(setNames(as.list(valid_counts), new_cols))
     
     return(df)
 }

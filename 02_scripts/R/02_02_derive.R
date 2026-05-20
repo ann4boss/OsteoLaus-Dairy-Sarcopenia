@@ -33,6 +33,7 @@
         derive_dairy_servings() |>
         derive_dairy()          |>
         derive_dairy_quartile() |>
+        derive_dairy_cumavg()   |>
         derive_atc()            |>
         derive_smoking()        |>
         derive_bmi()            |>
