@@ -8,9 +8,9 @@ bibliography: references.bib
 
 ## Study design and population
 
-This study analysed data collected for the prospective CoLaus \textbar{} PsyCoLaus study as well as its substudy OsteoLaus. CoLaus includes citizens of Lausanne, Switzerland, aged 35 to 75 years, for a single-centre study between June 2003 and May 2006. Since then, four follow-up visits have been conducted at the following timelines: first (2009–2013), second (2014–2018), third (2018–2021), forth (2022–2026). The focus of this analysis was on the OsteoLaus cohort, which included 1475 women aged 50 to 80 years at baseline [@shevroja2019]. All women participating in the Baseline visit for CoLaus were enrolled for OsteoLaus to study fracture risk and assess the relationship between osteoporosis and cardiovascular diseases. Women with the following inclusion criteria were selected: Written informed consent, BMI between 15 kg/m^2^ and 40 kg/m^2^, at least two vertebrae and the femur accessible for measurement, available information on previous osteoporotic fractures, quantitative ultrasound of the heel is accessible for measurement, no known disease affecting bone metabolism, and no known disorders affecting skeletal sites. On average, measurements were taken every 2.5 years with these timelines: first visit (baseline, 2010–2012, n = 1475), second (2012–2015, n = 1349), third (2015–2018, n = 1242), fourth (2017–2020, n = 1104), and fifth (2020–2022, n = 944) visits. The number of participants decreased over time due to loss of follow‐up, death, institutionalisation, refusal, body mass index (BMI) over 40 kg/m^2^ or severe psychiatric disease [@vendrami2025a]. Further details of the recruitment process and methodology for CoLaus and OsteoLaus are described in Firmann et al. [@firmann2008] and Shevroja et al. [@shevroja2019], respectively. Additional information can also be found at [www.colaus-psycolaus.ch](www.colaus-psycolaus.ch). Figure 1 illustrates the study population and visit timeline.
+This study analysed data collected for the prospective CoLaus \textbar{} PsyCoLaus study as well as its substudy OsteoLaus. CoLaus includes citizens of Lausanne, Switzerland, aged 35 to 75 years, for a single-centre study between June 2003 and May 2006. Since then, four follow-up visits have been conducted at the following timelines: first (2009–2013), second (2014–2018), third (2018–2021), forth (2022–2026). The focus of this analysis was on the OsteoLaus cohort, which included 1475 women aged 50 to 80 years at baseline [@shevroja2019]. All women participating in the Baseline visit for CoLaus were enrolled for OsteoLaus to study fracture risk and assess the relationship between osteoporosis and cardiovascular diseases. Women with the following inclusion criteria were selected: Written informed consent, BMI between 15 kg/m^2^ and 40 kg/m^2^, at least two vertebrae and the femur accessible for measurement, available information on previous osteoporotic fractures, quantitative ultrasound of the heel is accessible for measurement, no known disease affecting bone metabolism, and no known disorders affecting skeletal sites. On average, measurements were taken every 2.5 years with these timelines: first visit (baseline, 2010–2012, n = 1475), second (2012–2015, n = 1349), third (2015–2018, n = 1242), fourth (2017–2020, n = 1104), and fifth (2020–2022, n = 944) visits. The number of participants decreased over time due to loss of follow‐up, death, institutionalisation, refusal, body mass index (BMI) over 40 kg/m^2^ or severe psychiatric disease [@vendrami2025a]. Further details of the recruitment process and methodology for CoLaus and OsteoLaus are described in Firmann et al. [@firmann2008] and Shevroja et al. [@shevroja2019], respectively. Additional information can also be found at [www.colaus-psycolaus.ch](www.colaus-psycolaus.ch). Figure 1 illustrates the study population and visit timeline and which variables were recorded.
 
-![Overview of visit timeline](images/Visit_Overview_Figure.png){fig-align="center"}
+![Overview of visit timeline](images/Study Overview.png){fig-align="left"}
 
 ## Dataset matching
 
@@ -22,32 +22,102 @@ For harmonised variables available in both cohorts, predefined source-priority r
 
 ## Exposure
 
-Dietary intake, including dairy consumption, was assessed during the CoLaus visits from the first follow up visit onwards using a self-administered semi-quantitative food frequency questionnaire (FFQ). The FFQ was developed and validated in Geneva [@bernstein1995; @marques-vidal2018] and reflects the intake of 97 food items over the past 4 weeks. The questionnaire also included consumption frequencies ranging from “less than once during the last 4 weeks” to “2 or more times per day” and three different serving sizes (smaller, equal, or larger) for each item compared to a reference size [@marques-vidal2018]. The amount (either in g/day or mL/day) per item was calculated by multiplying frequency and portion size. Portion sizes were defined as seen in @tbl-PortionSize for dairy products. The FFQ responses were also converted into nutrients and energy based on the French CIQUAL food composition table [@ciqual].
+Dietary intake, including dairy consumption, was assessed during the CoLaus visits from the first follow up visit onwards using a self-administered semi-quantitative food frequency questionnaire (FFQ). The FFQ was developed and validated in Geneva [@bernstein1995; @marques-vidal2018] and reflects the intake of 97 food items over the past 4 weeks. The questionnaire also included consumption frequencies ranging from “less than once during the last 4 weeks” to “2 or more times per day” and three different serving sizes (smaller, equal, or larger) for each item compared to a reference size [@marques-vidal2018]. The amount (either in g/day or mL/day) per item was calculated by multiplying frequency and portion size. Portion sizes were defined as seen in @tbl-ffq for dairy products. The FFQ responses were also converted into nutrients and energy based on the French CIQUAL food composition table [@ciqual].
 
-| **FFQ** | **Description** | **Unit** | **Men (S / E / L)** | **Women (S / E / L)** |
-|------|------------------|------|-------------|---------------|
-| **1** | Plain yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
-| **2** | Low-fat yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
-| **3** | Fruit/aroma yogurt | g | 90 / 180 / 270 | 90 / 180 / 270 |
-| **4** | Cottage cheese (0% fat) | g | 50 / 100 / 150 | 60 / 125 / 200 |
-| **5** | Cottage cheese, ricotta | g | 50 / 100 / 150 | 50 / 100 / 150 |
-| **6** | Feta, mozzarella | g | 30 / 60 / 90 | 20 / 40 / 60 |
-| **7** | Gruyère, tomme, camembert | g | 40 / 80 / 120 | 30 / 60 / 90 |
-| **8** | Cheese fondue | g | 175 / 350 / 525 | 175 / 350 / 525 |
-| **52** | Butter | g | 5 / 10 / 15 | 4 / 7 / 10 |
-| **53** | Cream (35% fat) | g | 10 / 20 / 30 | 8 / 15 / 23 |
-| **63** | Cream tart, cream cake | g | 50 / 100 / 150 | 50 / 100 / 150 |
-| **68** | Ice cream, sorbet | g | 60 / 120 / 180 | 50 / 100 / 150 |
-| **71** | Butter (for cooking) | g | 5 / 10 / 15 | 4 / 7 / 10 |
-| **82** | Milk in coffee (0% fat) | mL | 15 / 30 / 45 | 15 / 30 / 45 |
-| **83** | Milk in coffee (non 0% fat) | mL | 15 / 30 / 45 | 15 / 30 / 45 |
-| **84** | Coffee creamer | mL | 6 / 12 / 18 | 6 / 12 / 18 |
-| **85** | Milk as drink (0% fat) | mL | 75 / 150 / 225 | 75 / 150 / 225 |
-| **86** | Milk as drink (non 0% fat) | mL | 75 / 150 / 225 | 75 / 150 / 225 |
+```{r}
+#| label: tbl-ffq
+#| tbl-cap: "Food Frequency Questionnaire (FFQ) items and portion sizes"
+#| echo: false
+#| message: false
+#| warning: false
 
-: : Overview of portion sizes for dairy products
 
-\[\^1\]: Portion sizes are S: small, E: equal, and L: large compare the reference size.
+library(gt)
+
+ffq <- data.frame(
+  FFQ = c(1,2,3,4,5,6,7,8,52,53,63,68,71,82,83,84,85,86),
+  Description = c(
+    "Plain yogurt",
+    "Low-fat yogurt",
+    "Fruit/aroma yogurt",
+    "Cottage cheese (0% fat)",
+    "Cottage cheese, ricotta",
+    "Feta, mozzarella",
+    "Gruyère, tomme, camembert",
+    "Cheese fondue",
+    "Butter",
+    "Cream (35% fat)",
+    "Cream tart, cream cake",
+    "Ice cream, sorbet",
+    "Butter (for cooking)",
+    "Milk in coffee (0% fat)",
+    "Milk in coffee (non 0% fat)",
+    "Coffee creamer",
+    "Milk as drink (0% fat)",
+    "Milk as drink (non 0% fat)"
+  ),
+  Unit = c(rep("g", 13), rep("mL", 5)),
+  Men = c(
+    "90 / 180 / 270",
+    "90 / 180 / 270",
+    "90 / 180 / 270",
+    "50 / 100 / 150",
+    "50 / 100 / 150",
+    "30 / 60 / 90",
+    "40 / 80 / 120",
+    "175 / 350 / 525",
+    "5 / 10 / 15",
+    "10 / 20 / 30",
+    "50 / 100 / 150",
+    "60 / 120 / 180",
+    "5 / 10 / 15",
+    "15 / 30 / 45",
+    "15 / 30 / 45",
+    "6 / 12 / 18",
+    "75 / 150 / 225",
+    "75 / 150 / 225"
+  ),
+  Women = c(
+    "90 / 180 / 270",
+    "90 / 180 / 270",
+    "90 / 180 / 270",
+    "60 / 125 / 200",
+    "50 / 100 / 150",
+    "20 / 40 / 60",
+    "30 / 60 / 90",
+    "175 / 350 / 525",
+    "4 / 7 / 10",
+    "8 / 15 / 23",
+    "50 / 100 / 150",
+    "50 / 100 / 150",
+    "4 / 7 / 10",
+    "15 / 30 / 45",
+    "15 / 30 / 45",
+    "6 / 12 / 18",
+    "75 / 150 / 225",
+    "75 / 150 / 225"
+  )
+)
+
+gt(ffq) |>
+  cols_label(
+    FFQ = "No.",
+    Description = "Food item",
+    Unit = "Unit",
+    Men = "Men (S / E / L)",
+    Women = "Women (S / E / L)"
+  ) |>
+  tab_source_note(
+    source_note = "FFQ = food frequency questionnaire; S = small, E = medium, L = large portion."
+  ) |>
+  tab_options(
+    table.border.top.width = px(1),
+    table.border.bottom.width = px(1),
+    column_labels.border.bottom.width = px(1),
+    table.font.size = px(12)
+  )
+
+```
 
 I calculated total dairy intake in grams as the combined amount of milk, cheese, yoghurt, cream, butter, and dairy-based desserts consumed (FFQ1 to FFQ8, FFQ52, FFQ53, FFQ63, FFQ68, FFQ71, FFQ82 to FFQ86). Two assumptions were made. Firstly, the density of dairy product is approximately 1 g/cm^3^ to be able to sum products with different units millilitre of gram. Secondly, the assessment of ice cream consumption was combined with sorbet (not dairy based) within one variable (FFQ68). For the amount of ice cream, the entire amount of FFQ68 was considered a dairy product.
 
@@ -75,7 +145,7 @@ Following sociodemographic variables were not included as confounding factor. Se
 
 ### **Anthropometric**
 
-All participants had their height measured using the same portable stadiometer (Seca version 216, Seca, Chino, CA, USA) with precision 0.1 cm, and body weight with the same electronic scale (Seca Clara 803, Seca, Chino, CA, USA) with precision 0.1 kg. Both measurements were performed with the participant barefoot and in minimum clothing. Body mass index (BMI) was calculated as weight/height^2^. BMI was categorized into underweight (\< 18.5 kg/m^2^), normal (18.5-24.9 kg/m^2^), overweight (25.0–29.9 kg/m^2^), and obese (≥ 30.0 kg/m^2^) according to WHO guidelines.
+All participants had their height measured using the same portable stadiometer (Seca version 216, Seca, Chino, CA, USA) with precision 0.1 cm, and body weight with the same electronic scale (Seca Clara 803, Seca, Chino, CA, USA) with precision 0.1 kg. Both measurements were performed with the participant barefoot and in minimum clothing. Body mass index (BMI) was calculated as weight/height^2^. BMI was categorized into underweight (\< 18.5 kg/m^2^), normal (18.5-24.9 kg/m^2^), overweight (25.0 to 29.9 kg/m^2^), and obese ($\geq$ 30.0 kg/m^2^) according to WHO guidelines.
 
 ### Lifestyle
 
@@ -94,9 +164,9 @@ Alcohol consumption was assessed using two self-reported questionnaires. The fir
 Based on these responses, the amount of units consumed per week was calculated. According to Swiss national guidelines, one standard drink was defined as one glass of wine, one bottle of beer, or one shot of spirits, each containing about 10 g to 12 g of pure ethanol [@standardglas]. The alcohol intake in grams per day was converted into units per week using 10 g of ethanol per unit. Participants were then grouped into four categories based on their total weekly alcohol intake:
 
 - Non-drinkers: 0 units/week (0 g/day), which includes both lifetime and current abstainers.
-- Light drinkers: ≥1 to 3 units/week (\>0–6 g/day), representing occasional consumption.
-- Moderate drinkers: ≥4 to 7 units/week (\>6–12 g/day), representing frequent consumption within the Swiss low-risk limit for women.
-- Heavy drinkers: \>7 units/week (\>12 g/day), categorized as hazardous consumption exceeding the Swiss national guidelines for women.
+- Light drinkers: $\geq$ 1 to 3 units/week (\> 0–6 g/day), representing occasional consumption.
+- Moderate drinkers: $\geq$ 4 to 7 units/week (\> 6–12 g/day), representing frequent consumption within the Swiss low-risk limit for women.
+- Heavy drinkers: \> 7 units/week (\> 12 g/day), categorized as hazardous consumption exceeding the Swiss national guidelines for women.
 
 While this categorization provides a structured metric for analysis, it is noted that self-reported dietary and alcohol questionnaires often slightly underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative FFQs tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
 
@@ -106,7 +176,7 @@ PA was measured using a Physical Activity Frequency Questionnaire (PAFQ) develop
 
 This assessment was only available at the first and second follow-up visits of the CoLaus study. A previous study in a subpopulation of CoLaus showed a moderate correlation between physical activity measured with the PAFQ and accelerometer-based measurements [@verhoog2019]. Self-reported questionnaires tend to overestimate physical activity and underestimate sedentary behaviour. Therefore, physical activity was analysed as tertiles representing low, moderate, and high activity levels rather than as a continuous variable. Tertiles were used because no established reference values were available.
 
-The tertiles were defined using the combined amount of moderate and vigorous physical activity reported at the first follow-up visit and were subsequently applied to all time points. Only moderate and vigorous physical activity were included because these measures showed the smallest difference compared with accelerometer-based assessments [@verhoog2019].
+The tertiles were defined using the combined amount of moderate and vigorous physical activity reported at the first follow-up visit and were subsequently applied to all time points. Only moderate and vigorous physical activity were used to determine level because these measures showed the smallest difference compared with accelerometer-based assessments [@verhoog2019].
 
 ### Dietary assessment
 
@@ -142,15 +212,57 @@ Vitamin D supplementation
 
 calcium supplementation
 
+```{r}
+#| label: fig-DAG
+#| fig-cap: "Causal DAG Dairy Intake and Muscle Ageing"
+#| echo: false
+#| message: false
+#| warning: false
+
+library(dagitty)
+library(ggdag)
+library(ggplot2)
+
+dag <- dagitty("
+dag {
+  DairyIntake
+  HandgripStrength
+  ALM
+  GaitSpeed
+  Sarcopenia
+
+  Age
+  Education
+  PhysicalActivity
+  Smoking
+  Alcohol
+  EnergyIntake
+  Macronutrients
+  VitaminD
+  Calcium
+  Comorbidities
+  Medications
+  BMI
+
+  DairyIntake -> HandgripStrength
+  DairyIntake -> ALM
+  DairyIntake -> GaitSpeed
+  DairyIntake -> Sarcopenia
+}
+")
+
+ggdag(tidy_dagitty(dag), layout = "fr") + theme_dag()
+```
+
 ## Outcome Variables
 
 ### Handgrip strength
 
-In all CoLaus visits, maximal handgrip strength (HGS) was measured using a JAMAR Baseline® hydraulic hand dynamometer (Fabrication Enterprises, Inc., White Plains, NY, USA) following the guidelines of the American Society of Hand Therapists. Measurements were recorded in pounds (lbs) and converted to kilograms (kg) using a conversion factor of 0.454 <!--# I actually do not know what was applied -->.
+In all CoLaus visits, maximal handgrip strength (HGS) was measured using a JAMAR Baseline® hydraulic hand dynamometer (Fabrication Enterprises, Inc., White Plains, NY, USA) following the guidelines of the American Society of Hand Therapists. Measurements were recorded in pounds (lbs) and converted to kilograms (kg) using a conversion factor of 0.454. <!--# I actually do not know what was applied -->
 
-In OsteoLaus, HGS was measured only at visit V5 using the same protocol. The highest value from three attempts of the dominant hand was used for analysis. In this cohort, measurements were recorded directly in kilograms. Additional details on the measurement procedure are described in Vendrami et al. (2025) \[@vendrami2025\].
+In OsteoLaus, HGS was measured only at visit V5 using the same protocol. The highest value from three attempts of the dominant hand was used for analysis. In this cohort, measurements were recorded directly in kilograms. Additional details on the measurement procedure are described in Vendrami et al. (2025) [@vendrami2025].
 
-### Appendicular lean mass 
+### Appendicular lean mass
 
 The appendicular lean mass (ALM) is calculated by summing the lean mass of all four extrimities. This is the total amount of fat-free, bone-free tissue of the arms and legs. The lean mass was measured at all five OsteoLaus visits. However, two different devices were used depending on the visiting time point. For the first two visits the Hologic Horizon A System™ was used whereas for the three next visit the GE Lunar iDXA™ device was used. A study within the same cohort revealed that the Hologic Horizon A System generally leads to a higher lean mass (1293.7 g ± 1643.5 g) [@vendrami2024]. However, the lean mass of the arms and legs are higher for the Lunar iDXA device (arms 151.4 g ± 274.8 g ;legs: 777.1 g ± 490.0 g).
 
@@ -160,40 +272,74 @@ Appendicular lean mass index (ALMI) was calculated as ALM divided by height squa
 
 ### Gait speed
 
-Gait speed (GS) is used as a measure for physical performances and is a predictor for sarcopenia. Participants' GS was measured with 6-metre walk at a normal pace (m/s). Detail of this method was described in Vendrami et al. [@vendrami2025]. Slow GS is defined with the cut off value of 0.8 m/s
+Gait speed (GS) is used as a measure for physical performances and is a predictor for sarcopenia. Participants' GS was measured with 6-metre walk at a normal pace (m/s). Detail of this method was described in Vendrami et al. [@vendrami2025]. Slow GS is defined with the cut off value of 0.8 m/s.
 
 ### Sarcopenia
 
-xx
+Sarcopenia was derived using both the European Working Group on Sarcopenia in Older People 2 (EWGSOP2) criteria [@cruz-jentoft2019] and the Foundation for the National Institutes of Health (FNIH) criteria for sensitivity analyses [@studenski2014], applying female-specific thresholds as the cohort consisted exclusively of women. Under the EWGSOP2 definition, handgrip strength (HGS) \<16 kg was used to define low muscle strength, appendicular lean mass adjusted for height squared (ALM/height²) \<5.5 kg/m² to define low muscle mass, and gait speed ≤0.8 m/s to define low physical performance. Participants were classified into four ordered stages: no sarcopenia, probable sarcopenia (low muscle strength only), confirmed sarcopenia (low muscle strength and low muscle mass), and severe sarcopenia (low muscle strength, low muscle mass, and low physical performance). At visits F2 and F3, severe sarcopenia could not be assessed because gait speed was not measured at these time points. However, this did not affect the primary sarcopenia classification, as participants were considered sarcopenic if classified as either confirmed or severe. In addition, sarcopenia was classified according to the FNIH criteria, where sarcopenia was defined as the concurrent presence of low muscle strength (HGS \<16 kg) and low muscle mass relative to body mass index (ALM/BMI \<0.512). Participants were categorised as either “Sarcopenia” or “No sarcopenia” under this definition.
 
 ## Statistical Methods
 
+Analyses were conducted using R version 4.5.1 [@Rprogram].
+
 Participants were classified into quartiles according to their baseline daily intake of dairy products (grams per day) for descriptive analysis.
-
-### Missing values
-
-The analysis was performed once with complete cases and once applying multiple imputation. With or without imputation, participants with missing values were excluded.
 
 ### Imputation
 
-MICE
+Missing data were addressed using multiple imputation by chained equations (R package mice version 3.19.0) implemented with a fully conditional specification framework in wide format [@buuren2011]. Longitudinal data were first reshaped from long to wide format, with one row per participant and separate columns for each variable at each visit, allowing within-person correlations across visits to be incorporated during imputation. Twenty imputed datasets were generated (`m = 20`) with 20 iterations per dataset.
+
+<!--# add conversion, graphs? -->
+
+For the CoLaus dataset, continuous variables were imputed using predictive mean matching (PMM), binary categorical variables using logistic regression, and ordered categorical variables using proportional odds logistic regression. Derived variables were not directly imputed. Instead, imputation was performed on raw variables, after which derived variables were calculated from the imputed data. Auxiliary variables, including participant identifiers, examination dates, and additional lifestyle and clinical measures, were included as predictors only and were not themselves imputed. <!--# why? -->
+
+For the OsteoLaus dataset, continuous anthropometric and outcome variables, including age, weight, height, ALM components, gait speed, and HGS, were imputed using PMM. Visit-specific constraints were applied to reflect the study design and missing-by-design structure. Gait speed was imputed only at visits where it was measured (V4 and V5), and HGS only at V5. In addition, ALM variables obtained using different DXA devices were prevented from directly predicting one another across method groups.
+
+Predictor matrices were manually specified to preserve the longitudinal structure of the data. Measurements of the same variable across visits were allowed to predict one another, while temporal restrictions prevented future observations from predicting earlier visits. <!--# why? -->. Imputation targets were defined using a `where` matrix to ensure that only eligible missing cells were imputed.
+
+<!--# Post-imputation diagnostics included trace plots, density plots, and strip plots to assess convergence and distributional plausibility across imputations. In addition, numerical range checks were performed on imputed datasets to identify implausible values. -->
+
+### Missing values and data cleaning
+
+Participants and visits were excluded sequentially prior to analysis using predefined quality control and completeness criteria. First, participants failing cohort-level quality control checks were excluded. These checks assessed participant presence in the OsteoLaus cohort, availability of examination dates, stability of recorded sex across visits, monotonic increase in age over time, and uniqueness of participant identifiers.
+
+Subsequently, visit-level observations with missing values in any required exposure, outcome, or covariate variables were removed using complete-case filtering. Additional range-based exclusions were then applied to remove implausible values. Total energy intake was restricted to 500 to 4200 kcal/day <!--# justification -->, HGS was required to be \>0 kg, and dairy intake variables were restricted to 0 to 1000 g/day where applicable <!--# justification -->.
+
+For analyses using sarcopenia as the outcome, participants with prevalent sarcopenia at baseline were excluded to ensure incident case analyses. Under the EWGSOP2 definition, participants were excluded if baseline sarcopenia status was missing or classified as "Confirmed" or "Severe". Under the FNIH definition, participants were excluded if baseline sarcopenia was present or missing.
+
+After row-level exclusions, participants were required to contribute at least two study visits to be retained in the longitudinal analyses. Participants with fewer than two available visits either before or after row-level exclusions were removed.
 
 ### Selection of Covariant
 
 selection of covariates according to what?
 
-### Models
+### Linear mixed models
 
-x
+Linear mixed-effects models were implemented in R with the lmerTest package [@kuznetsova2017]. Model specifications were generated through a structured model grid combining prespecified outcomes, exposure definitions (continuous, restricted cubic splines, categorical quartiles, or guideline-based categories), data sources (complete-case or multiply imputed datasets), inclusion of exposure–time interactions, and random-effects structures with either random intercepts alone or random intercepts with random slopes for time at the participant level.
+
+Prior to model fitting, numerical covariates were mean-centred but not standardised. This approach was chosen to improve model convergence while retaining the original scale of the variables, allowing the coefficients to remain directly interpretable in their natural units. Categorical exposures were relevelled to predefined reference categories where applicable to ensure consistent and interpretable effect estimates across models. This approach defines a meaningful baseline group for comparisons and standardises interpretation of regression coefficients. Multiple imputation datasets were analysed separately and combined using Rubin’s rules.
+
+Linear mixed models included fixed effects for the exposure of interest, time, selected covariates, and, when specified, their interaction. Participant-specific variability was accounted for using random intercepts, with optional random slopes for time to allow individual-specific trajectories. Model estimation was performed using restricted maximum likelihood (REML = FALSE).
+
+For multiply imputed data, models were fitted within each imputed dataset and pooled using Rubin’s rules via the mice package <!--# source -->. Fixed-effect estimates were extracted using standard mixed-model summary procedures and reported as regression coefficients with 95% confidence intervals.
+
+### **Cox proportional hazards model)**
+
+Cox proportional hazards regression was used to examine the association between dairy intake and time to first sarcopenia. Sarcopenia was defined using either the EWGSOP2 or FNIH criteria and treated as a binary event indicator. Participants were followed from baseline until the first occurrence of sarcopenia or censored at their last available follow-up.
+
+Two modelling strategies were applied. In the fixed covariate approach, each participant contributed a single observation, with time defined as age at event or age at last follow-up. Covariates were taken from the baseline OsteoLaus visit. In the time-dependent approach, participants contributed multiple records across follow-up visits, with age used as the time scale and covariates updated at each visit using a counting-process format.
+
+Dairy intake was modelled either as a continuous variable (grams per day) or as categorical intake based on predefined or derived tertiles. The primary models were adjusted for BMI (continuous), physical activity (tertiles), and total energy intake. Additional covariates and interaction terms were included where specified. Models were fitted using partial likelihood estimation with Efron’s method for tied event times.
+
+Model assumptions were evaluated for the adjusted models. Proportional hazards were assessed using Schoenfeld residuals and the global test. Functional form was examined using martingale residuals, and influential observations were identified using deviance-based residuals and standardised DFBeta statistics. Multicollinearity was assessed using variance inflation factors. Kaplan–Meier curves were generated for categorical exposure models to visualise survival differences across intake groups. For analyses with multiple imputation, results were combined across datasets using Rubin’s rules, while diagnostic checks were performed on a representative imputed dataset.
 
 ## Ethics
 
 CoLaus \textbar{} PsyCoLaus and the OsteoLaus studies were approved by the Institutional Ethics Committee of the University of Lausanne. All participants signed a written informed consent form after having received a detailed description of the goal and funding of the studies.
 
-This article follows the STROBE guidelines \[SOURCE\].
+## Data and Code Availability Statement
 
-## Data and code availability
+This observational cohort study is reported in accordance with the STROBE guidelines <!--# source -->.
 
-The used data is not openly accessible, but can be requested at XX.
+The data used in this study are not publicly available but may be requested from <!--# XX -->, subject to approval.
 
-All code used to analyse the data can be found on github XXX.
+All code used for data processing and statistical analyses is available on GitHub: <!--# link -->.
