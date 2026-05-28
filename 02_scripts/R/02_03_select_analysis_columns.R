@@ -31,6 +31,7 @@
     "dairy_lowfat_gday", "dairy_highfat_gday",
     "dairy_guidelines_port",
     "dairy_quartile_baseline", "dairy_quartile_overall",
+    "dairy_total_gday_cumavg",
     # Outcomes
     "HGS_MAX", "gait_speed",
     "ALM", "ALM_HT2", "ALM_BMI", "ALM_WT", "DXA_method",

@@ -1,4 +1,4 @@
-#TODO add dairy variables to alluvia graphs
+#TODO add dairy variables to alluvia graphs, use not merged file but individual osteo and colaus files for these graphs
 
 
 # ============================================================================

@@ -77,9 +77,6 @@
 # For assumption checks (PH, linearity) the first imputed dataset is used as
 # a representative sample. Model results are from pooled estimates.
 #
-# DEPENDENCIES
-# ------------
-#   survival, broom, mice, car, ggplot2, survminer, dplyr, purrr, cli, glue
 # =============================================================================
 
 
@@ -263,8 +260,9 @@ run_cox_sarcopenia <- function(
             dplyr::mutate(
                 event = dplyr::if_else(
                     !is.na(ewgsop2_sarcopenia_stage) &
-                        ewgsop2_sarcopenia_stage != "No sarcopenia",
-                    1L, 0L
+                        ewgsop2_sarcopenia_stage %in% c("Confirmed", "Severe"),
+                    1L,
+                    0L
                 )
             )
         
@@ -603,16 +601,19 @@ run_cox_sarcopenia <- function(
     }
     
     list(
-        fit_unadj      = fit_unadj,
-        fit_adj        = fit_adj,
-        results_unadj  = results_unadj,
-        results_adj    = results_adj,
-        ph_test        = assumptions$ph_test,
-        ph_plot        = assumptions$ph_plot,
-        vif            = assumptions$vif,
-        martingale_plot = assumptions$martingale_plot,
-        dfbeta_plot    = assumptions$dfbeta_plot,
-        km_plot        = km_plot
+        fit_unadj           = fit_unadj,
+        fit_adj             = fit_adj,
+        results_unadj       = results_unadj,
+        results_adj         = results_adj,
+        ph_test             = assumptions$ph_test,
+        ph_plot             = assumptions$ph_plot,
+        vif                 = assumptions$vif,
+        outlier_plot        = assumptions$outlier_plot,          # new
+        outlier_flagged     = assumptions$outlier_flagged_rows,  # new
+        dfbeta_plot         = assumptions$dfbeta_plot,
+        dfbeta_flagged      = assumptions$dfbeta_flagged,        # new
+        dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,    # new
+        km_plot             = km_plot
     )
 }
 
@@ -717,19 +718,19 @@ run_cox_sarcopenia <- function(
     }
     
     list(
-        surv_data      = surv_data_list[[1L]],  # representative dataset
-        fit_unadj      = mira_unadj,
-        fit_adj        = mira_adj,
-        pooled_unadj   = pooled_unadj,
-        pooled_adj     = pooled_adj,
-        results_unadj  = results_unadj,
-        results_adj    = results_adj,
-        ph_test        = assumptions$ph_test,
-        ph_plot        = assumptions$ph_plot,
-        vif            = assumptions$vif,
-        martingale_plot = assumptions$martingale_plot,
-        dfbeta_plot    = assumptions$dfbeta_plot,
-        km_plot        = km_plot
+        fit_unadj           = fit_unadj,
+        fit_adj             = fit_adj,
+        results_unadj       = results_unadj,
+        results_adj         = results_adj,
+        ph_test             = assumptions$ph_test,
+        ph_plot             = assumptions$ph_plot,
+        vif                 = assumptions$vif,
+        outlier_plot        = assumptions$outlier_plot,          
+        outlier_flagged     = assumptions$outlier_flagged_rows,  
+        dfbeta_plot         = assumptions$dfbeta_plot,
+        dfbeta_flagged      = assumptions$dfbeta_flagged,        
+        dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,    
+        km_plot             = km_plot
     )
 }
 
@@ -825,80 +826,142 @@ run_cox_sarcopenia <- function(
         results$ph_plot <<- NULL
     })
     
-    # ── 2. Linearity — Martingale residuals --------------------------------
-    cli::cli_h3("Linearity (martingale residuals)")
+    # ── 2. Outliers — Martingale AND deviance residuals (§7.19) ────────────────
+    cli::cli_h3("Outliers (martingale + deviance residuals)")
     tryCatch({
         mart_resid <- residuals(fit, type = "martingale")
+        dev_resid  <- residuals(fit, type = "deviance")
+        obs_idx    <- seq_along(mart_resid)
         
-        # Identify continuous predictors in the model
-        cont_preds <- names(surv_data)[sapply(surv_data, is.numeric)]
-        cont_preds <- intersect(cont_preds,
-                                attr(stats::terms(fit$formula), "term.labels"))
+        # Flag the most extreme negative martingale residuals (§7.19 rule of thumb)
+        mart_sorted   <- sort(mart_resid)
+        n_flag        <- min(5L, length(mart_sorted))
+        flagged_mart  <- names(mart_sorted)[seq_len(n_flag)]
         
-        if (length(cont_preds) == 0L) {
-            # Fall back: check dairy_exposure if continuous
-            if ("dairy_exposure" %in% names(surv_data) &&
-                is.numeric(surv_data$dairy_exposure)) {
-                cont_preds <- "dairy_exposure"
-            }
-        }
+        cli::cli_inform(c(
+            "i" = "Most negative martingale residuals:",
+            paste(capture.output(print(round(mart_sorted[seq_len(n_flag)], 4))),
+                  collapse = "\n")
+        ))
         
-        mart_plots <- purrr::map(cont_preds, function(v) {
-            df_plot <- data.frame(x = surv_data[[v]], y = mart_resid)
-            ggplot2::ggplot(df_plot, ggplot2::aes(x = x, y = y)) +
-                ggplot2::geom_point(alpha = 0.3) +
-                ggplot2::geom_smooth(method = "loess", se = TRUE, colour = "#e15759") +
-                ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
-                ggplot2::labs(
-                    title = glue::glue("Martingale residuals vs {v} [{label}]"),
-                    x = v, y = "Martingale residual"
-                ) +
-                ggplot2::theme_bw()
-        })
-        names(mart_plots) <- cont_preds
-        results$martingale_plot <- mart_plots
+        # Retrieve the flagged rows from surv_data so the analyst can inspect them
+        flagged_rows <- surv_data[flagged_mart, , drop = FALSE]
+        results$outlier_flagged_rows <- flagged_rows
+        
+        # ggplot version of base-R §7.19 two-panel plot
+        df_resid <- data.frame(
+            obs        = obs_idx,
+            martingale = mart_resid,
+            deviance   = dev_resid
+        )
+        
+        p_mart <- ggplot2::ggplot(df_resid, ggplot2::aes(x = obs, y = martingale)) +
+            ggplot2::geom_point(alpha = 0.4, size = 1.2) +
+            ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+            ggplot2::labs(title = glue::glue("Martingale residuals [{label}]"),
+                          x = "Observation", y = "Martingale residual") +
+            ggplot2::theme_bw()
+        
+        p_dev <- ggplot2::ggplot(df_resid, ggplot2::aes(x = obs, y = deviance)) +
+            ggplot2::geom_point(alpha = 0.4, size = 1.2) +
+            ggplot2::geom_hline(yintercept = 0, linetype = "dashed") +
+            ggplot2::labs(title = glue::glue("Deviance residuals [{label}]"),
+                          x = "Observation", y = "Deviance residual") +
+            ggplot2::theme_bw()
+        
+        results$outlier_plot <- list(martingale = p_mart, deviance = p_dev)
         
         if (!is.null(out_dir)) {
-            purrr::iwalk(mart_plots, function(p, nm) {
-                fname <- file.path(out_dir, glue::glue("{label}_martingale_{nm}.png"))
-                ggplot2::ggsave(fname, p, width = 7, height = 5, dpi = 150)
-            })
+            ggplot2::ggsave(file.path(out_dir, glue::glue("{label}_martingale.png")),
+                            p_mart, width = 7, height = 5, dpi = 150)
+            ggplot2::ggsave(file.path(out_dir, glue::glue("{label}_deviance.png")),
+                            p_dev,  width = 7, height = 5, dpi = 150)
+            readr::write_csv(flagged_rows,
+                             file.path(out_dir, glue::glue("{label}_outlier_flagged.csv")))
         }
     }, error = function(e) {
-        cli::cli_warn("Martingale plot failed: {conditionMessage(e)}")
-        results$martingale_plot <<- NULL
+        cli::cli_warn("Outlier plots failed: {conditionMessage(e)}")
+        results$outlier_plot         <<- NULL
+        results$outlier_flagged_rows <<- NULL
     })
     
-    # ── 3. Influential observations — dfbeta --------------------------------
-    cli::cli_h3("Influential observations (dfbeta)")
+    # ── 3. Influential observations — standardised DFBetas (§7.20) ─────────────
+    # Use type = "dfbetas" (standardised), not "dfbeta" (unstandardised).
+    # Harrell (2015) cutoff: |dfbeta_std| > 0.2
+    cli::cli_h3("Influential observations (standardised DFBetas, cutoff |x| > 0.2)")
     tryCatch({
-        dfb <- residuals(fit, type = "dfbeta")
-        n_pts <- nrow(dfb)
+        dfbetas_mat <- residuals(fit, type = "dfbetas")   # note the 's'
+        cutoff      <- 0.2
         
-        dfb_plots <- purrr::map(seq_len(ncol(dfb)), function(j) {
-            coef_name <- colnames(dfb)[j]
-            df_plot   <- data.frame(id = seq_len(n_pts), dfbeta = dfb[, j])
-            ggplot2::ggplot(df_plot, ggplot2::aes(x = id, y = dfbeta)) +
-                ggplot2::geom_bar(stat = "identity", fill = "#4e79a7") +
+        # One ggplot per coefficient, with reference lines at ±0.2
+        dfb_plots <- purrr::map(seq_len(ncol(dfbetas_mat)), function(j) {
+            coef_name <- colnames(dfbetas_mat)[j]
+            df_plot   <- data.frame(obs = seq_len(nrow(dfbetas_mat)),
+                                    dfbeta_std = dfbetas_mat[, j])
+            n_influential <- sum(abs(df_plot$dfbeta_std) > cutoff)
+            
+            ggplot2::ggplot(df_plot, ggplot2::aes(x = obs, y = dfbeta_std)) +
+                ggplot2::geom_bar(stat = "identity", fill = "#4e79a7", width = 0.6) +
+                ggplot2::geom_hline(yintercept =  cutoff, linetype = "dashed",
+                                    colour = "red", linewidth = 0.7) +
+                ggplot2::geom_hline(yintercept = -cutoff, linetype = "dashed",
+                                    colour = "red", linewidth = 0.7) +
+                ggplot2::annotate("text", x = Inf, y = cutoff,
+                                  label = paste0("n > cutoff: ", n_influential),
+                                  hjust = 1.1, vjust = -0.4, size = 3) +
                 ggplot2::labs(
-                    title = glue::glue("dfbeta for {coef_name} [{label}]"),
-                    x = "Observation index", y = "Change in coefficient"
+                    title = glue::glue("Std. DFBeta: {coef_name} [{label}]"),
+                    x = "Observation", y = "Standardised DFBeta"
                 ) +
                 ggplot2::theme_bw()
         })
-        names(dfb_plots) <- colnames(dfb)
+        names(dfb_plots) <- colnames(dfbetas_mat)
         results$dfbeta_plot <- dfb_plots
+        
+        # Tabulate which observations exceed the cutoff and for which coefficients
+        exceed_any <- apply(abs(dfbetas_mat) > cutoff, 1, any)
+        flagged_dfb <- data.frame(
+            obs       = which(exceed_any),
+            surv_data[which(exceed_any), , drop = FALSE]
+        )
+        
+        # Per-coefficient breakdown (mirrors §7.20 table() approach)
+        dfb_flag_detail <- purrr::map_dfr(
+            seq_len(ncol(dfbetas_mat)),
+            function(j) {
+                coef_name <- colnames(dfbetas_mat)[j]
+                flagged   <- abs(dfbetas_mat[, j]) > cutoff
+                if (!any(flagged)) return(NULL)
+                surv_data[flagged, , drop = FALSE] |>
+                    dplyr::mutate(coefficient = coef_name,
+                                  dfbeta_std  = dfbetas_mat[flagged, j])
+            }
+        )
+        
+        results$dfbeta_flagged      <- flagged_dfb
+        results$dfbeta_flag_detail  <- dfb_flag_detail
+        
+        cli::cli_inform(c(
+            "i" = "{sum(exceed_any)} observations exceed |DFBeta_std| > {cutoff} for at least one coefficient."
+        ))
         
         if (!is.null(out_dir)) {
             purrr::iwalk(dfb_plots, function(p, nm) {
                 safe_nm <- gsub("[^A-Za-z0-9_]", "_", nm)
-                fname   <- file.path(out_dir, glue::glue("{label}_dfbeta_{safe_nm}.png"))
-                ggplot2::ggsave(fname, p, width = 7, height = 5, dpi = 150)
+                ggplot2::ggsave(
+                    file.path(out_dir, glue::glue("{label}_dfbetas_{safe_nm}.png")),
+                    p, width = 7, height = 5, dpi = 150
+                )
             })
+            if (nrow(dfb_flag_detail) > 0L)
+                readr::write_csv(dfb_flag_detail,
+                                 file.path(out_dir, glue::glue("{label}_dfbetas_flagged.csv")))
         }
     }, error = function(e) {
-        cli::cli_warn("dfbeta plot failed: {conditionMessage(e)}")
-        results$dfbeta_plot <<- NULL
+        cli::cli_warn("DFBeta plot failed: {conditionMessage(e)}")
+        results$dfbeta_plot        <<- NULL
+        results$dfbeta_flagged     <<- NULL
+        results$dfbeta_flag_detail <<- NULL
     })
     
     # ── 4. Collinearity — VIF ----------------------------------------------

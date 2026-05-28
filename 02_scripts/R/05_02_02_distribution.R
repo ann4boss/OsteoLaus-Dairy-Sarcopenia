@@ -15,7 +15,7 @@ qc_histograms <- function(df, out_dir,
     plot_type <- match.arg(plot_type)
     
     # Create output directory
-    hist_dir <- file.path(out_dir, "histograms")
+    hist_dir <- file.path(out_dir)
     dir.create(hist_dir, showWarnings = FALSE, recursive = TRUE)
     
     # Collect data

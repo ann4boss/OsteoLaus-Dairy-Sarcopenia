@@ -12,16 +12,18 @@ library(tarchetypes)
 
 tar_option_set(
     packages = c(
-        "tidyverse","readr", "dplyr", "dtplyr", "data.table", "tidyr", "stringr",
+        "dplyr", "tidyverse","readr", "dtplyr", "data.table", "tidyr", "stringr","magrittr",
         "lubridate", "forcats", "purrr", "glue", "tibble", "cli",
-        "mice",
+        "mice", "here",
         "gtsummary", "ggplot2", "patchwork", "scales", "ggridges", "ggalluvial", "RColorBrewer", "patchwork", 
         "lme4", "lmerTest", "broom.mixed", "broom","rms","splines",
         "survival", "survminer", "gt", "survey",
         "mgcv", "car",
-        "sessioninfo"
+        "sessioninfo",
+        "WeightIt", "cobalt", "survey", "geepack"
     )
 )
+
 
 
 
@@ -211,25 +213,66 @@ cc_exclusion_targets <- list(
 # ------------------------------------------------------------------------------
 # Table 1
 # ------------------------------------------------------------------------------
-cc_table_one <- list(
+
+table_one <- list(
     tar_target(
-        cc_table_one_outputs,
+        table1_overall_cc,
         save_table_one_outputs(
-            analysis_long = cc_analysis_general$data,
-            output_root = "03_outputs/TableOne",
-            by = "dairy_quartile_baseline"
+            cc_analysis_general$data,
+            id    = "pt",
+            visit = ".visit_osteo"
         )
     ),
+   
+    
     tar_target(
-        cc_table_one_files,
-        unlist(cc_table_one_outputs$files),
-        format = "file"
+        table1_overall_mice,
+        save_table_one_outputs(
+            mice_analysis_general$data,
+            id      = "pt",
+            visit   = ".visit_osteo",
+            imp_col = ".imp"
+        )
     )
 )
+
+
 
 # ------------------------------------------------------------------------------
 # Descriptives
 # ------------------------------------------------------------------------------
+
+
+histograms <- list(
+    tar_target(histograms_colaus, qc_histograms(core$colaus_long, "03_outputs/descriptive/histograms/colaus", plot_type = "facet")),
+    tar_target(histograms_osteo, qc_histograms(core$osteo_long, "03_outputs/descriptive/histograms/osteo", plot_type = "facet"))
+)
+
+variable_quality_control <- list(
+    tar_target(qc_variable_colaus, qc_variables(core$colaus_long, cohort = "colaus", "03_outputs/descriptives/histograms/colaus")),
+    tar_target(qc_variable_osteo, qc_variables(core$osteo_long, cohort, "osteo", "03_outputs/descriptives/histograms/osteo"))
+)
+
+
+plot_scatter_all <- list(tar_target(scatter_plots, 
+                                    plot_scatter(cc_analysis_general$data, 
+                                                 x= c("dairy_total_gday",
+                                                      "dairy_quartile_baseline",
+                                                      "dairy_fermented_gday",
+                                                      "dairy_highfat_gday",
+                                                      "dairy_guidelines_port"), 
+                                                 y = c(
+                                                     "HGS_MAX",
+                                                     "ALM_HT2_harmonised",
+                                                     "gait_speed",
+                                                     "ewgsop2_low_perf",
+                                                     "ewgsop2_sarcopenia_stage"),
+                                                 by_visit      = TRUE,
+                                                 add_smooth = TRUE,
+                                                 smooth_method = "lm"
+                                    )
+)
+)
 
 
 purrr::walk(
@@ -251,13 +294,13 @@ cc_descriptives <-list(
     ),
     
     # Config
-     tar_target(
+    tar_target(
         config,
         descriptive_config
     ),
     
     # Prepare data
-     tar_target(
+    tar_target(
         descriptive_data,
         prepare_descriptive_data(
             descriptive_input,
@@ -541,7 +584,7 @@ cc_descriptives <-list(
         format = "file"
     ),
     
-     # Table 1 summaries
+    # Table 1 summaries
     tar_target(
         pooled_continuous_table1,
         purrr::map_dfr(
@@ -1042,17 +1085,30 @@ GAMM_targets_HGS <- list(
 # =============================================================================
 
 cox_targets <- list(
-    # # ── Example 1: CC, EWGSOP2, fixed covariates, continuous dairy ----------
-    # tar_target(cc_ewgsop2_fixed_cont, run_cox_sarcopenia(
-    #     data           = cc_analysis_sarcopenia$data,
-    #     sarcopenia_def = "ewgsop2",
-    #     covariate_type = "fixed",
-    #     dairy_type     = "continuous",
-    #     dairy_col        = "dairy_total_gday",
-    #     analysis_route = "cc"
-    # )
-    # ),
-    # 
+    
+    tar_target(
+        cc_ewgsop2_fixed_cont,
+        run_cox_sarcopenia(
+            data           = cc_analysis_sarcopenia$data,
+            sarcopenia_def = "ewgsop2",
+            covariate_type = "fixed",
+            dairy_type     = "continuous",
+            dairy_col      = "dairy_total_gday",
+            analysis_route = "cc"
+        )
+    ),
+    
+    # Outlier summary table — flagged martingale observations
+    tar_target(
+        cox_outliers_cc,
+        cc_ewgsop2_fixed_cont$outlier_flagged
+    ),
+    
+    # DFBeta detail table — one row per flagged obs × coefficient
+    tar_target(
+        cox_influential_cc,
+        cc_ewgsop2_fixed_cont$dfbeta_flag_detail
+    )
     # # ── Example 2: CC, EWGSOP2, fixed covariates, categorical dairy ----------
     # tar_target(cc_ewgsop2_fixed_cat, run_cox_sarcopenia(
     #     data             = cc_analysis_sarcopenia$data,
@@ -1063,7 +1119,6 @@ cox_targets <- list(
     #     analysis_route = "cc"
     # )
     # ),
-    
     # # ── Example 3: CC, EWGSOP2, time_dependent covariates, categorical dairy ----------
     # tar_target(cc_ewgsop2_timedep_cat, run_cox_sarcopenia(
     #     data             = cc_analysis_sarcopenia$data,
@@ -1094,18 +1149,19 @@ cox_targets <- list(
     #     analysis_route = "mice"
     # )
     # ),
-    # ── Example 5: MICE, EWGSOP2, fixed covariates, categorical dairy with interaction ----------
-    tar_target(mice_ewgsop2_fixed_cat_int, run_cox_sarcopenia(
-        data             = mice_analysis_sarcopenia$data,
-        sarcopenia_def = "ewgsop2",
-        covariate_type   = "fixed",
-        dairy_type       = "categorical",
-        dairy_cat_col    = "dairy_quartile_baseline",
-        analysis_route = "mice",
-        interaction_var = "pa_levels_tertile_f1"
-    )
-    )
+    # # ── Example 6: MICE, EWGSOP2, fixed covariates, categorical dairy with interaction ----------
+    # tar_target(mice_ewgsop2_fixed_cat_int, run_cox_sarcopenia(
+    #     data             = mice_analysis_sarcopenia$data,
+    #     sarcopenia_def = "ewgsop2",
+    #     covariate_type   = "fixed",
+    #     dairy_type       = "categorical",
+    #     dairy_cat_col    = "dairy_quartile_baseline",
+    #     analysis_route = "mice",
+    #     interaction_var = "pa_levels_tertile_f1"
+    # )
+    # )
 )
+
 
 
 # =============================================================================
@@ -1119,18 +1175,21 @@ c(
     # ── Complete-case route ───────────────────────────────────────────────────
     cc_analysis_prep,
     cc_exclusion_targets,
+    # variable_quality_control,
+    # histograms
+    # plot_scatter_all
     # cc_descriptives,
-    #cc_table_one,
+    table_one,
     # ── MICE route ────────────────────────────────────────────────────────────
     mice_analysis_prep,
     mice_exclusion_targets,
-    #mice_table_one,
-    
-    # ── Model ──────────────────────────────
-    LLM_targets_HGS,
-    LLM_targets_ALM,
-    LLM_targets_ALM_Lunar
+    # # mice_table_one,
+    # 
+    # # ── Model ──────────────────────────────
+    # LLM_targets_HGS,
+    # LLM_targets_ALM
+    # LLM_targets_ALM_Lunar
     # GAMM_targets_HGS
-    # cox_targets
+    cox_targets
 
 )

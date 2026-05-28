@@ -153,7 +153,7 @@ apply_exclusions <- function(data,
     
     if ("HGS_MAX" %in% outcome) {
       hgs_excluded_rows <- filtered |>
-        dplyr::filter(.data[["HGS_MAX"]] <= 0) |>
+        dplyr::filter(.data[["HGS_MAX"]] < 0.1) |>
         dplyr::mutate(
           exclusion_stage = "row",
           exclusion_reason = "HGS_MAX_not_positive",
@@ -161,7 +161,21 @@ apply_exclusions <- function(data,
         )
       range_excluded_rows <- dplyr::bind_rows(range_excluded_rows, hgs_excluded_rows)
       filtered <- filtered |>
-        dplyr::filter(.data[["HGS_MAX"]] > 0)
+        dplyr::filter(.data[["HGS_MAX"]] > 0.1)
+    }
+    
+    # outliers for dairy consumption
+    if ("dairy_total_gday" %in% exposure) {
+      dairy_excluded_rows <- filtered |>
+        dplyr::filter(!dplyr::between(.data[["sumtot1"]], 0, 1000)) |>
+        dplyr::mutate(
+          exclusion_stage = "row",
+          exclusion_reason = "dairy_out_of_range",
+          exclusion_detail = "valid range: 0-1000"
+        )
+      range_excluded_rows <- dplyr::bind_rows(range_excluded_rows, dairy_excluded_rows)
+      filtered <- filtered |>
+        dplyr::filter(dplyr::between(.data[["dairy_total_gday"]], 0, 1000))
     }
     
     # -------------------------------------------------------------------------
@@ -174,7 +188,10 @@ apply_exclusions <- function(data,
         dplyr::filter(.data[[visit_col]] == 1) |>
         dplyr::filter(
           is.na(.data[["ewgsop2_sarcopenia_stage"]]) |
-            .data[["ewgsop2_sarcopenia_stage"]] != "No sarcopenia"
+            .data[["ewgsop2_sarcopenia_stage"]] %in% c(
+              "Confirmed",
+              "Severe"
+            )
         ) |>
         dplyr::pull(.data[[pt_col]]) |>
         unique()
@@ -277,40 +294,78 @@ apply_exclusions <- function(data,
     ) |>
       dplyr::arrange(.data[[pt_col]], .data[["exclusion_stage"]])
     
+    
+    # define participant sets at each stage
+    pt_initial  <- unique(data_one[[pt_col]])
+    pt_qc       <- unique(after_qc[[pt_col]])
+    pt_missing  <- unique(after_missing_vars[[pt_col]])
+    pt_range    <- unique(filtered[[pt_col]])
+    pt_final    <- unique(final_data[[pt_col]])
+    
+    # exclusion counts (participant-level differences)
+    n_qc_excl     <- length(setdiff(pt_initial, pt_qc))
+    n_missing_excl <- length(setdiff(pt_qc, pt_missing))
+    n_range_excl   <- length(setdiff(pt_missing, pt_range))
+    n_visit_excl   <- length(setdiff(pt_range, pt_final))
+    
     consort_counts <- dplyr::bind_rows(
+      
       dplyr::tibble(
-        exclusion_stage = "start",
-        exclusion_reason = "participants_in_input",
-        n_participants = dplyr::n_distinct(data_one[[pt_col]]),
+        stage = "Initial sample",
+        n_participants = length(pt_initial),
         n_rows = nrow(data_one)
       ),
+      
       dplyr::tibble(
-        exclusion_stage = "participant_qc",
-        exclusion_reason = "failed_qc",
-        n_participants = dplyr::n_distinct(qc_failed_pt),
-        n_rows = sum(data_one[[pt_col]] %in% qc_failed_pt)
+        stage = "Excluded for QC",
+        n_participants = n_qc_excl,
+        n_rows = sum(data_one[[pt_col]] %in% setdiff(pt_initial, pt_qc))
       ),
-      excluded_rows |>
-        dplyr::group_by(.data[["exclusion_stage"]], .data[["exclusion_reason"]]) |>
-        dplyr::summarise(
-          n_participants = dplyr::n_distinct(.data[[pt_col]]),
-          n_rows = dplyr::n(),
-          .groups = "drop"
-        ),
-      visit_excluded_participants |>
-        dplyr::group_by(.data[["exclusion_stage"]], .data[["exclusion_reason"]]) |>
-        dplyr::summarise(
-          n_participants = dplyr::n_distinct(.data[[pt_col]]),
-          n_rows = NA_integer_,
-          .groups = "drop"
-        ),
+      
       dplyr::tibble(
-        exclusion_stage = "final",
-        exclusion_reason = "included_in_analysis",
-        n_participants = dplyr::n_distinct(final_data[[pt_col]]),
+        stage = "Remaining after QC",
+        n_participants = length(pt_qc),
+        n_rows = nrow(after_qc)
+      ),
+      
+      dplyr::tibble(
+        stage = "Excluded for missing covariates",
+        n_participants = n_missing_excl,
+        n_rows = nrow(missing_var_rows)
+      ),
+      
+      dplyr::tibble(
+        stage = "Remaining after missing exclusions",
+        n_participants = length(pt_missing),
+        n_rows = nrow(after_missing_vars)
+      ),
+      
+      dplyr::tibble(
+        stage = "Excluded for implausible values",
+        n_participants = n_range_excl,
+        n_rows = nrow(range_excluded_rows)
+      ),
+      
+      dplyr::tibble(
+        stage = "Remaining after range exclusions",
+        n_participants = length(pt_range),
+        n_rows = nrow(filtered)
+      ),
+      
+      dplyr::tibble(
+        stage = "Excluded for insufficient visits",
+        n_participants = n_visit_excl,
+        n_rows = NA_integer_
+      ),
+      
+      dplyr::tibble(
+        stage = "Final analytic sample",
+        n_participants = length(pt_final),
         n_rows = nrow(final_data)
       )
     )
+    
+    
     
     list(
       data = add_imp_column(final_data, imp_value),
