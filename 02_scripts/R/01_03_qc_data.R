@@ -12,11 +12,10 @@
 #   - Duplicate `pt` values within a visit
 #   - Presence in OsteoLaus cohort and cross-cohort overlap with CoLaus
 #   - Stability of sex across visits (CoLaus only)
-#   - Monotonic increase of Age within cohort
-#   - Cross-cohort age consistency
+#   - datbirth present at Baseline (both CoLaus and OsteoLaus)
 #
 # Each QC check produces a TRUE/FALSE flag per participant row. Additionally, a
-# troubleshooting table can include key columns (pt, cohort, visit, visit_num, Age, sex)
+# troubleshooting table can include key columns (pt, cohort,exam_date_iso,datbirth, visit, sex)
 # along with the QC flags to inspect why a participant failed any check.
 #
 # =============================================================================
@@ -25,12 +24,12 @@
 #'
 #' @param harmonised_list A named list of data frames, one per visit/cohort,
 #'   containing harmonised participant data including `pt`, `cohort`, `visit`,
-#'   `visit_num`, `Age`, `sex`, and `exam_date_iso`.
+#'    `sex`, `exam_date_iso`, and `datbirth`.
 #'
 #' @return A data frame (qc_tbl) with one row per participant per visit, containing:
-#'   - Key identifiers: `pt`, `cohort`, `visit`, `visit_num`, `Age`, `sex`, `exam_date_iso`
-#'   - QC flags: `qc_pt_present`, `qc_exam_date`, `qc_in_osteolaus`, 
-#'     `qc_age_increasing`, `qc_sex_stable`, etc.
+#'   - Key identifiers: `pt`, `cohort`, `visit`,`sex`, `exam_date_iso`
+#'   - QC flags: `qc_pt_present`, `qc_exam_date`, `qc_in_osteolaus`,
+#'     `qc_datbirth_baseline`, `qc_sex_stable`, etc.
 #'   - Flags indicate TRUE for passing the QC check, FALSE if the check failed.
 #'
 #' This table can be used to summarize QC failures, inspect problematic participants,
@@ -44,7 +43,8 @@ qc <- function(harmonised_list) {
         lapply(function(df) {
             df |>
                 dplyr::select(
-                    dplyr::any_of(c("pt", ".cohort",  ".visit", "Age", "sex", "exam_date_iso"))
+                    dplyr::any_of(c("pt", ".cohort", ".visit", "sex",
+                                    "exam_date_iso", "datbirth"))
                 )
         }) |>
         dplyr::bind_rows() |>
@@ -74,23 +74,12 @@ qc <- function(harmonised_list) {
             .groups = "drop"
         )
     
-    # ── Age trajectory  -----------------------------------------
-    age_checks <- df_all |>
-        dplyr::filter(!is.na(Age), !is.na(exam_date_iso)) |>
-        dplyr::arrange(pt, exam_date_iso) |>
-        dplyr::group_by(pt) |>
-        dplyr::mutate(
-            # 1. Capture baseline values
-            base_age       = dplyr::first(Age),
-            base_date      = dplyr::first(exam_date_iso),
-            # 2. Calculate expected age: baseline + years elapsed since baseline
-            expected_age   = base_age + as.numeric(difftime(exam_date_iso, base_date, units = "days")) / 365.25,
-            # 3. Check if recorded Age is within a reasonable tolerance (e.g., 1 year) 
-            # of the expected age based on the calendar dates
-            age_diff_check = abs(Age - expected_age) < 1.0
-        ) |>
+    # ── datbirth present at Baseline (both cohorts)  -------------------------
+    datbirth_check <- df_all |>
+        dplyr::filter(.visit == "Baseline") |>
+        dplyr::group_by(pt, .cohort) |>
         dplyr::summarise(
-            qc_age_increasing = all(age_diff_check, na.rm = TRUE),
+            qc_datbirth_baseline = any(!is.na(datbirth)),
             .groups = "drop"
         )
     
@@ -106,12 +95,15 @@ qc <- function(harmonised_list) {
     colaus_pts <- df_all |> dplyr::filter(.cohort == "CoLaus") |> dplyr::distinct(pt)
     
     qc_tbl <- qc_tbl |>
-        dplyr::left_join(sex_check, by = "pt") |>
-        dplyr::left_join(age_checks, by = "pt") |>
-        dplyr::left_join(dup_check, by = c("pt", ".cohort")) |>
+        dplyr::left_join(sex_check,      by = "pt") |>
+        dplyr::left_join(datbirth_check, by = c("pt", ".cohort")) |>
+        dplyr::left_join(dup_check,      by = c("pt", ".cohort")) |>
         dplyr::left_join(colaus_pts |> dplyr::mutate(in_colaus = TRUE), by = "pt") |>
         dplyr::mutate(
-            qc_osteo_in_colaus = dplyr::if_else(.cohort == "OsteoLaus", !is.na(in_colaus), TRUE)
+            # Participants that never appear at Baseline get NA from the left-join;
+            # treat NA conservatively as FALSE (missing datbirth).
+            qc_datbirth_baseline = dplyr::coalesce(qc_datbirth_baseline, FALSE),
+            qc_osteo_in_colaus   = dplyr::if_else(.cohort == "OsteoLaus", !is.na(in_colaus), TRUE)
         ) |>
         dplyr::select(-in_colaus)
     
@@ -120,17 +112,17 @@ qc <- function(harmonised_list) {
     
     qc_summary <- res_tbl |>
         dplyr::summarise(
-            n_total_pt             = dplyr::n_distinct(pt),
-            n_total_pt_in_osteo    = dplyr::n_distinct(pt[qc_in_osteolaus == TRUE]),
-            n_fail_pt_present      = dplyr::n_distinct(pt[qc_pt_present == FALSE]),
-            n_fail_exam_date       = dplyr::n_distinct(pt[qc_exam_date == FALSE]),
-            n_fail_exam_date_osteo = dplyr::n_distinct(pt[qc_exam_date == FALSE & qc_in_osteolaus == TRUE]), 
-            n_fail_age_inc         = dplyr::n_distinct(pt[qc_age_increasing == FALSE]),
-            n_fail_age_inc_osteo   = dplyr::n_distinct(pt[qc_age_increasing == FALSE & qc_in_osteolaus == TRUE]),
-            n_fail_sex_stable      = dplyr::n_distinct(pt[qc_sex_stable == FALSE]),
-            n_fail_sex_stable_osteo = dplyr::n_distinct(pt[qc_sex_stable == FALSE & qc_in_osteolaus == TRUE]),
-            n_qc_pt_unique         = dplyr::n_distinct(pt[qc_pt_unique == FALSE]),
-            n_fail_osteo_in_colaus = dplyr::n_distinct(pt[qc_osteo_in_colaus == FALSE])
+            n_total_pt                    = dplyr::n_distinct(pt),
+            n_total_pt_in_osteo           = dplyr::n_distinct(pt[qc_in_osteolaus == TRUE]),
+            n_fail_pt_present             = dplyr::n_distinct(pt[qc_pt_present == FALSE]),
+            n_fail_exam_date              = dplyr::n_distinct(pt[qc_exam_date == FALSE]),
+            n_fail_exam_date_osteo        = dplyr::n_distinct(pt[qc_exam_date == FALSE & qc_in_osteolaus == TRUE]),
+            n_fail_datbirth_colaus        = dplyr::n_distinct(pt[qc_datbirth_baseline == FALSE & .cohort == "CoLaus"]),
+            n_fail_datbirth_osteo         = dplyr::n_distinct(pt[qc_datbirth_baseline == FALSE & .cohort == "OsteoLaus"]),
+            n_fail_sex_stable             = dplyr::n_distinct(pt[qc_sex_stable == FALSE]),
+            n_fail_sex_stable_osteo       = dplyr::n_distinct(pt[qc_sex_stable == FALSE & qc_in_osteolaus == TRUE]),
+            n_qc_pt_unique                = dplyr::n_distinct(pt[qc_pt_unique == FALSE]),
+            n_fail_osteo_in_colaus        = dplyr::n_distinct(pt[qc_osteo_in_colaus == FALSE])
         )
     
     cli::cli_inform(c(
@@ -138,9 +130,9 @@ qc <- function(harmonised_list) {
         "i" = "Participants in OsteoLaus: {qc_summary$n_total_pt_in_osteo}",
         "x" = "Missing 'pt': {qc_summary$n_fail_pt_present}",
         "x" = "Missing 'exam_date_iso': {qc_summary$n_fail_exam_date}",
-        "!" = "Missing 'exam_date_iso' (OsteoLaus): {qc_summary$n_fail_exam_date_osteo}", 
-        "!" = "Non-monotonic age: {qc_summary$n_fail_age_inc}",
-        "!" = "Non-monotonic age (OsteoLaus): {qc_summary$n_fail_age_inc_osteo}",
+        "!" = "Missing 'exam_date_iso' (OsteoLaus): {qc_summary$n_fail_exam_date_osteo}",
+        "x" = "Missing 'datbirth' at Baseline (CoLaus): {qc_summary$n_fail_datbirth_colaus}",
+        "x" = "Missing 'datbirth' at Baseline (OsteoLaus): {qc_summary$n_fail_datbirth_osteo}",
         "x" = "Inconsistent sex (CoLaus): {qc_summary$n_fail_sex_stable}",
         "!" = "Inconsistent sex (OsteoLaus): {qc_summary$n_fail_sex_stable_osteo}",
         "x" = "Duplicate entries in visit: {qc_summary$n_qc_pt_unique}",

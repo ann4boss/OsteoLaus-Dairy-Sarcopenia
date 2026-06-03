@@ -1,3 +1,5 @@
+#TODO check if Na values are not recoreded as 0
+
 derive_food_groups <- function(df) {
     
     # ── ANIMAL PROTEIN ──────────────────────────────────────────────────────

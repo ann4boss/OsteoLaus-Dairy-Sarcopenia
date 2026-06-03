@@ -6,7 +6,7 @@
 # Column names enter prefixed (e.g. "F1age") and leave in base format ("age")
 # after strip_visit_prefix() runs at the top of harmonise_colaus().
 # =============================================================================
-
+# TODO add etsem, income2, datquest
 # -----------------------------------------------------------------------------
 # Column lists
 # -----------------------------------------------------------------------------
@@ -28,8 +28,9 @@
   "pct_lipi1", "pct_lipi3", "pct_alco1",
   # Dairy compliance score and FFQ amounts
   "Dairy", "Diet_compl", "mnwlk",
-  paste0("FFQ",     c(1:8, 52, 53, 63, 68, 71, 82:86), "amount"),
-  paste0("freqFFQ", c(1:8, 52, 53, 63, 68, 71, 82:86)),
+  paste0("FFQ", 1:100, "amount"),
+  paste0("freqFFQ", 1:100),
+  
   # Physical activity
   "PAFQ_SE",  "PAFQ_SE_pct",
   "PAFQ_LPA", "PAFQ_LPA_pct",

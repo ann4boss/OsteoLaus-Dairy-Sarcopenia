@@ -30,7 +30,7 @@ apply_exclusions <- function(data,
     "qc_pt_present",
     "qc_exam_date",
     "qc_sex_stable",
-    "qc_age_increasing",
+    "qc_datbirth_baseline",
     "qc_pt_unique"
   )
   
@@ -167,7 +167,7 @@ apply_exclusions <- function(data,
     # outliers for dairy consumption
     if ("dairy_total_gday" %in% exposure) {
       dairy_excluded_rows <- filtered |>
-        dplyr::filter(!dplyr::between(.data[["sumtot1"]], 0, 1000)) |>
+        dplyr::filter(!dplyr::between(.data[["dairy_total_gday"]], 0, 1000)) |>
         dplyr::mutate(
           exclusion_stage = "row",
           exclusion_reason = "dairy_out_of_range",
@@ -379,7 +379,7 @@ apply_exclusions <- function(data,
     return(run_one_dataset(data, qc_table))
   }
   
-  imp_values <- sort(unique(data[[imp_col]]))
+  imp_values <- sort(setdiff(unique(data[[imp_col]]), 0L))
   results <- lapply(imp_values, function(imp_value) {
     data_one <- data |>
       dplyr::filter(.data[[imp_col]] == imp_value)

@@ -1,6 +1,6 @@
 ---
 bibliography: references.bib
-format: docx
+#format: docx
 #csl: csl/nlm-citation-sequence-brackets.csl
 ---
 
@@ -18,7 +18,7 @@ Measurements were collected approximately every 2.5 years across five visits: ba
 
 Further details on recruitment and methodology for CoLaus and OsteoLaus are described by Firmann et al. [@firmann2008] and Shevroja et al. [@shevroja2019], respectively. Additional study information is available at the CoLaus\|PsyCoLaus [website](https://www.colaus-psycolaus.ch/). @fig-timeline shows the study population, visit timeline, and the variables collected at each visit.
 
-![Overview of visit timeline](images/Study Overview-02.png){#fig-timeline fig-align="left"}
+![Overview of visit timeline](images/Study%20Overview-02.png){#fig-timeline fig-align="left"}
 
 ## Dataset matching {#sec-matching}
 
@@ -26,7 +26,7 @@ CoLaus and OsteoLaus data were linked at the visit level using participant-speci
 
 Visits with missing examination dates were excluded prior to matching. To prevent variable name conflicts, overlapping variables between cohorts were renamed using cohort-specific suffixes. The temporal distance between matched visits was quantified as the absolute difference in days between examination dates. CoLaus visits that did not match to any OsteoLaus visit were retained and included as unmatched observations to preserve all available data.
 
-For variables available in both cohorts, predefined rules were applied to select the preferred source. Handgrip strength (HGS) was primarily taken from CoLaus, except for OsteoLaus visit V5, where OsteoLaus measurements were used. For age, height, weight, BMI, and BMI category, OsteoLaus values were prioritised and missing values were supplemented using CoLaus data.
+For variables available in both cohorts, predefined rules were applied to select the preferred source. Handgrip strength (HGS) was primarily taken from CoLaus, except for OsteoLaus visit V5, where OsteoLaus measurements were used. For age, height, weight, BMI, and BMI category, OsteoLaus values were prioritised, and missing values were supplemented using CoLaus data.
 
 ## Exposure
 
@@ -161,13 +161,13 @@ Sociodemographic factors are associated with dietary patterns and lifestyle. The
 
 - Educational level was defined as the highest level of education completed. This value was only assessed at CoLaus baseline. It was grouped into three categories based on the International Standard Classification of Education (ISCED): low (ISCED 0-2), medium (ISCED 3), and high (ISCED 4-8) [@ISCED].
 
-- Martial status was recorded during the CoLaus visits and included the category living alone and living in couple.
+- Marital status was recorded during the CoLaus visits and included the category living alone and living in couple.
 
-Following sociodemographic variables were not included as confounding factor. Sex and geographical location were not used since the entire cohort were females living in Lausanne, Switzerland. Ethnicity was not included due to the fact that over 98% of all participants were white. Income and occupation were not included because the data were not available.
+Following sociodemographic variables were not included as confounding factor. Sex and geographical location were not used since the entire cohort were females living in Lausanne, Switzerland. Ethnicity was not included since over 98% of all participants were white. Income and occupation were not included because the data were not available.
 
 ### Anthropometric factors
 
-Higher BMI is often linked to higher energy intake and also to lower muscle function <!--# SOURCE -->. Thus, BMI was considered as covariate.
+Higher BMI is often linked to higher energy intake and to lower muscle function. <!--# SOURCE --> Thus, BMI was considered as covariate.
 
 Height and weight were measured using standardised protocols with a portable stadiometer (Seca 216) and electronic scale (Seca Clara 803), respectively. Measurements were taken with participants barefoot and in light clothing, with precision of 0.1 cm and 0.1 kg.
 
@@ -187,7 +187,7 @@ Alcohol consumption is not consistently linked to lower grip strength or appendi
 
 Alcohol consumption was assessed using two self-reported questionnaires. The first method asked participants how many alcoholic drinks they had consumed in the previous 7 days measured in units/week and was used for the main analysis. The second method asked about the number of glasses of wine, bottles of beer, or shots of spirits consumed in the past month measured in gram ethanol/day and was used for sensitivity analyses.
 
-Based on these responses, the amount of units consumed per week was calculated. According to Swiss national guidelines, one standard drink was defined as one glass of wine, one bottle of beer, or one shot of spirits, each containing about 10 g to 12 g of pure ethanol [@standardglas]. The alcohol intake in grams per day was converted into units per week using 10 g of ethanol per unit. Participants were then grouped into four categories based on their total weekly alcohol intake:
+Based on these responses, the number of units consumed per week was calculated. According to Swiss national guidelines, one standard drink was defined as one glass of wine, one bottle of beer, or one shot of spirits, each containing about 10 g to 12 g of pure ethanol [@standardglas]. The alcohol intake in grams per day was converted into units per week using 10 g of ethanol per unit. Participants were then grouped into four categories based on their total weekly alcohol intake:
 
 - Non-drinkers: 0 units/week (0 g/day), which includes both lifetime and current abstainers.
 - Light drinkers: $\geq$ 1 to 3 units/week (\> 0–6 g/day), representing occasional consumption.
@@ -208,13 +208,13 @@ The tertiles were defined using the combined amount of moderate and vigorous phy
 
 Total energy intake was assessed as a covariate to account for overall dietary quantity, since individuals with higher energy intake tend to consume more of all food groups, including dairy. Adjusting for total energy intake helps separate the association of dairy intake from overall food consumption and reduces confounding due to differences in dietary energy intake between participants. Total energy intake was calculated as the sum of all FFQ items (all 97 food items), using energy values derived from the French CIQUAL food composition table [@ciqual].
 
-Dietary food groups were derived from the FFQ for use in marginal structural models to account for overall dietary patterns and potential time-varying confounding. Individual FFQ items were aggregated into predefined food groups based on nutritional similarity. Food groups included animal protein (meat, fish, seafood, and eggs), plant protein (tofu), vegetables, fruits, grains, fats and oils, processed foods, and alcohol. For each participant, daily intake (g/day) was calculated by summing the intake of all FFQ items within each group. If any contributing item was missing, the corresponding food group was set to missing to avoid partial aggregation bias.
+<!--#  Dietary food groups were derived from the FFQ for use in marginal structural models to account for overall dietary patterns and potential time-varying confounding. Individual FFQ items were aggregated into predefined food groups based on nutritional similarity. Food groups included animal protein (meat, fish, seafood, and eggs), plant protein (tofu), vegetables, fruits, grains, fats and oils, processed foods, and alcohol. For each participant, daily intake (g/day) was calculated by summing the intake of all FFQ items within each group. If any contributing item was missing, the corresponding food group was set to missing to avoid partial aggregation bias.-->
 
 ### Clinical
 
 Type 2 diabetes was assessed as a covariate because previous studies have shown a bidirectional relationship between diabetes and sarcopenia. Diabetes may contribute to reduced muscle mass and function through insulin resistance, chronic inflammation, oxidative stress, and altered protein metabolism, while low muscle mass may also worsen glucose metabolism and increase diabetes risk [@chen2023].
 
-Diabetes status was assessed using three sources all recorded during CoLaus visits: self-report, fasting plasma glucose (FPG), and glycated hemoglobin (HbA1c). Self-report was based on the question “Have you ever been told that you had diabetes?”. Among the objective measures, HbA1c was considered the primary indicator due to its higher reliability and was used whenever available. If HbA1c was missing, FPG was used. If neither biomarkers were available, diabetes status was based on self-report. Description of the sample collection procedure can be found elsewhere [@ducraux2021].
+Diabetes status was assessed using three sources all recorded during CoLaus visits: self-report, fasting plasma glucose (FPG), and glycated haemoglobin (HbA1c). Self-report was based on the question “Have you ever been told that you had diabetes?”. Among the objective measures, HbA1c was considered the primary indicator due to its higher reliability and was used whenever available. If HbA1c was missing, FPG was used. If neither biomarker was available, diabetes status was based on self-report. Description of the sample collection procedure can be found elsewhere [@ducraux2021].
 
 Hormonal replacement therapy (HRT) status was assessed for a potential covariate because previous research shows mixed but biologically plausible effects on muscle outcomes in postmenopausal women [@xu2020]. Given the variability in HRT use among participants, controlling for this factor helps ensure observed associations are not influenced by hormonal differences.
 
@@ -222,11 +222,11 @@ HRT use was assessed using self-reported questionnaire data. Participants were a
 
 Hypertension was considered as covariant because of the established association between hypertension and reduced muscle mass [@han2020]. Hypertension status was derived using a hierarchical approach based on three sources of information: measured hypertension, documented antihypertensive treatment, and self-reported antihypertensive medication use. Measured hypertension was defined as systolic blood pressure $\geq$ 140 mmHg and/or diastolic blood pressure $\geq$ 90 mmHg and was considered the primary source. Participants were classified as having hypertension if measured hypertension was present. If measured hypertension data were missing, documented antihypertensive treatment was used. If both measured hypertension and documented treatment data were unavailable, self-reported antihypertensive medication use was considered. Participants were classified as not having hypertension when at least one data source was available and none indicated hypertension. Hypertension status was set to missing when all three sources were unavailable.
 
-CVD is associated with reduced muscle mass and function through multiple mechanisms, including reduced physical activity due to symptoms such as fatigue and dyspnoea, impaired muscle perfusion and oxygen delivery, systemic inflammation, and shared metabolic risk factors such as insulin resistance and age-related pathways <!--# SOURCE. -->.
+Cardiovascular disease (CVD) is associated with reduced muscle mass and function through multiple mechanisms, including reduced physical activity due to symptoms such as fatigue and dyspnoea, impaired muscle perfusion and oxygen delivery, systemic inflammation, and shared metabolic risk factors such as insulin resistance and age-related pathways. <!--# SOURCE. -->
 
-Cardiovascular disease (CVD) event status was derived as a composite binary variable (any CVD event: yes/no) based on 13 self-reported and clinically reported cardiovascular conditions, including myocardial infarction, stroke, heart failure, coronary artery disease, angina, cardiomyopathy, cardiac surgery, heart valve surgery, treated arrhythmia, peripheral vascular surgery, cardiac catheterisation, coronary artery bypass graft, and percutaneous coronary intervention.
+CVD event status was derived as a composite binary variable (any CVD event: yes/no) based on 13 self-reported and clinically reported cardiovascular conditions, including myocardial infarction, stroke, heart failure, coronary artery disease, angina, cardiomyopathy, cardiac surgery, heart valve surgery, treated arrhythmia, peripheral vascular surgery, cardiac catheterisation, coronary artery bypass graft, and percutaneous coronary intervention.
 
-Participants were classified as having a CVD event if at least one of the component conditions was reported as “Yes”. Participants were classified as having no CVD event if at least one component was available and all reported conditions were “No”. Participants were classified as missing if no information was available across all component variables. CVD status was available only at baseline.
+Participants were classified as having a CVD event if at least one of the component conditions was reported as “Yes”. Participants were classified as having no CVD event if at least one component was available, and all reported conditions were “No”. Participants were classified as missing if no information was available across all component variables. CVD status was available only at baseline.
 
 ### Medication and supplement use
 
@@ -236,9 +236,9 @@ Lipid-lowering medications have been linked to muscle-related adverse effects in
 
 Evidence indicates systemic corticosteroid use \[SOURCE\] and benzodiazepines \[SOURCE\] negatively impact muscle strength, mass, and functional outcomes in older adults. Thus, ATC codes starting with H02 were included for systemic corticosteroid use and N05B for benzodiazepines use.
 
-The evidence for muscle protective effects of bisphosphonate use in humans is limited, but it was suggested that bone-to-muscle paracrine signaling may mediate benefits [@klein2018]. Therefore, all participants reproting ACT codes with M05BA were considered to take bisphosphonate.
+The evidence for muscle protective effects of bisphosphonate use in humans is limited, but it was suggested that bone-to-muscle paracrine signalling may mediate benefits [@klein2018]. Therefore, all participants reporting ACT codes with M05BA were considered to take bisphosphonate.
 
-Vitamin D supplementation (ACT code A11) and calcium supplementation (ACT code A12A) are positively associated with muscle outcomes [@gao2026]. These variables are included as covariants in the analysis.
+Vitamin D supplementation (ACT code A11) and calcium supplementation (ACT code A12A) are positively associated with muscle outcomes [@gao2026]. These variables are included as covariates in the analysis.
 
 ```{r}
 #| label: fig-DAG
@@ -326,7 +326,7 @@ Smoking -> PA
 Smoking -> GS
 Smoking -> Sarcopenia
 Smoking -> BMI
-Smoking -> CDV
+Smoking -> CVD
 
 Alcohol -> HGS
 Alcohol -> GS
@@ -360,14 +360,14 @@ Diabetes -> Sarcopenia
 Diabetes -> Smoking
 Diabetes -> OtherFoodGroups
 Diabetes -> Dairy
-Diabetes -> CDV
+Diabetes -> CVD
 Diabetes -> PA
 
 Hypertension -> GS
 Hypertension -> Sarcopenia
 Hypertension -> Dairy
 Hypertension -> PA
-Hypertension -> CDV
+Hypertension -> CVD
 
 Hypolipid -> HGS
 Hypolipid -> GS
@@ -564,7 +564,10 @@ dag_figure <- ggplot(
 # show plot
 dag_figure
 
-
+asd<- ggdag_adjustment_set(tidy_dag,
+                     exposure = "Dairy",
+                     outcome = "HGS")
+asd
 # Show adjustment sets ---------------------------------------------------
 
 # adjustmentSets(
@@ -612,12 +615,11 @@ In sensitivity analyses, sarcopenia was additionally defined using the Foundatio
 
 ## Statistical Methods
 
-All analyses were performed in R version 4.5.1 [@Rprogram].
-For descriptive analyses, participants were grouped into quartiles based on baseline daily total dairy intake (g/day). Categorical variables are presented as counts and percentages, and continuous variables as mean ± standard deviation (SD) or median with interquartile range (IQR), as appropriate.
+All analyses were performed in R version 4.5.1 [@Rprogram]. Data prepration and manipulation was done with dplyr (version 1.2.0) [@wickham2026]. Results were visualised using ggplot2 (version 4.0.2) [@wickham2016a] For descriptive analyses, participants were grouped into quartiles based on baseline daily total dairy intake (g/day). Categorical variables are presented as counts and percentages, and continuous variables as mean ± standard deviation (SD) or median with interquartile range (IQR), as appropriate.
 
 ### Missing data
 
-Missing data were handled using multiple imputation by chained equations (MICE) implemented in the R package mice (v3.19.0) [@buuren2011]. Imputation was performed under a fully conditional specification framework and with the assumption that data were missing at random. <!--# true? -->
+Missing data were handled using multiple imputation by chained equations (MICE) implemented in the R package mice (version 3.19.0) [@buuren2011]. Imputation was performed under a fully conditional specification framework and with the assumption that data were missing at random.
 
 Longitudinal data were reshaped into wide format (one row per participant with separate columns for each visit), allowing within-person correlations across time to be incorporated in the imputation model. A total of 20 imputed datasets were generated (m = 20), with 20 iterations per dataset.
 
@@ -635,12 +637,11 @@ Predictor matrices were manually specified to preserve temporal structure. Measu
 
 Data cleaning was performed sequentially using predefined quality control criteria. First, participants were excluded if they failed study-level quality checks. These included inconsistent participant identifiers, missing or invalid examination dates, sex inconsistencies across visits, and implausible age trajectories over time. Second, visit-level observations were excluded if required exposure, outcome, or covariate data were missing after imputation and harmonisation steps.
 
-Visit dates and temporal alignmentCoLaus visits consisted of two separate assessments: a physical examination and a questionnaire assessment. These assessments were not always performed on the same day, although they usually took place within a few days of each other. Age was originally calculated using the participant’s birth date and the questionnaire examination date. However, these dates were not available for the present study.Therefore, the physical examination date was used as the temporal reference for linking CoLaus and OsteoLaus visits, as described in @sec-matching. In some cases, participants completed the questionnaire assessment but did not attend the physical examination, resulting in a missing physical examination date. For these visits, an estimated physical examination date was derived using the available examination date from another visit together with the difference in calculated age between visits. This approach assumed that the questionnaire and physical examination were conducted within a short time interval.
+Visit dates and temporal alignment CoLaus visits consisted of two separate assessments: a physical examination and a questionnaire assessment. These assessments were not always performed on the same day, although they usually took place within a few days of each other. Age was originally calculated using the participant’s birth date and the questionnaire examination date. However, these dates were not available for the present study. Therefore, the physical examination date was used as the temporal reference for linking CoLaus and OsteoLaus visits, as described in @sec-matching. In some cases, participants completed the questionnaire assessment but did not attend the physical examination, resulting in a missing physical examination date. For these visits, an estimated physical examination date was derived using the available examination date from another visit together with the difference in calculated age between visits. This approach assumed that the questionnaire and physical examination were conducted within a short time interval.
 
 Data cleaning of outcome, exposure, and covariate variables is described above in the corresponding sections above.
 
-Range-based plausibility checks were then applied. Total energy intake was restricted to 500–4200 kcal/day <!--# SOURCE -->. HGS values were required to be \>0 kg, and total dairy intake was restricted to 0–1000 g/day. <!--# justification -->
-For analyses with sarcopenia as the outcome, participants with prevalent sarcopenia at baseline were excluded to ensure incident case analyses. Under the EWGSOP2 definition, participants were excluded if baseline sarcopenia status was missing or if they were classified as having sarcopenia (“confirmed” or “severe”). Under the FNIH definition, participants were excluded if baseline sarcopenia status was missing or if sarcopenia was present at baseline. Finally, participants were required to contribute at least two <!--# is it 2? -->valid study visits to be included in longitudinal analyses.
+Range-based plausibility checks were then applied. Total energy intake was restricted to 500–4200 kcal/day. <!--# SOURCE --> HGS values were required to be \>0 kg, and total dairy intake was restricted to 0–1000 g/day. <!--# justification --> For analyses with sarcopenia as the outcome, participants with prevalent sarcopenia at baseline were excluded to ensure incident case analyses. Under the EWGSOP2 definition, participants were excluded if baseline sarcopenia status was missing or if they were classified as having sarcopenia (“confirmed” or “severe”). Under the FNIH definition, participants were excluded if baseline sarcopenia status was missing or if sarcopenia was present at baseline. Finally, participants were required to contribute at least two <!--# is it 2? -->valid study visits to be included in longitudinal analyses.
 
 ### Covariate selection
 
@@ -658,7 +659,7 @@ Variables were excluded from final models if they were identified as mediators, 
 
 ### Linear mixed-effects models
 
-Linear mixed-effects models were fitted using the lmerTest package (v3.2-1) in R [@kuznetsova2017]. These models were used to analyse repeated measurements over time while accounting for within-participant correlation, and to assess how changes in exposure were associated with changes in outcomes over time.
+Linear mixed-effects models were fitted using the lmerTest package (version 3.2-1) in R [@kuznetsova2017]. These models were used to analyse repeated measurements over time while accounting for within-participant correlation, and to assess how changes in exposure were associated with changes in outcomes over time.
 
 Age was modelled using two separate variables: age at baseline and time since baseline. Age at baseline was included to account for differences in participant age at study entry, while time since baseline represented within-person change over follow-up. Chronological age was not included directly because it is mathematically dependent on baseline age and follow-up time, which would lead to collinearity in the model. This approach allowed separation of cross-sectional age differences from longitudinal changes over time.
 
@@ -666,23 +667,21 @@ All continuous covariates were mean-centred prior to model fitting. This improve
 
 The main models included fixed effects for the exposure, time (visit), and selected covariates. Where specified, exposure-by-time interaction terms were included to allow associations to vary over time. To account for within-individual correlation across repeated measurements, random intercepts for participants were included in all models. Models were extended with random slopes for time when this improved model fit and allowed for individual-specific trajectories over time.
 
-For multiply imputed data, models were fitted within each imputed dataset and pooled using Rubin’s rules via the mice package <!--# source -->. Fixed-effect estimates were extracted using standard mixed-model summary procedures and reported as regression coefficients with 95% confidence intervals.
+For multiply imputed data, models were fitted within each imputed dataset and pooled using Rubin’s rules via the mice package. <!--# source --> Fixed-effect estimates were extracted using standard mixed-model summary procedures and reported as regression coefficients with 95% confidence intervals.
 
 ### **Cox proportional hazards model**
 
-Cox proportional hazards regression models were used to examine the association between dairy intake and incident sarcopenia. The package xyz version XX was used. <!--# complete -->Sarcopenia was defined according to either the EWGSOP2 or FNIH criteria and analysed as a binary outcome. Participants were followed from baseline until the first occurrence of sarcopenia or until their last available follow-up visit, whichever occurred first.
+Cox proportional hazards regression models were used to examine the association between dairy intake and incident sarcopenia. The package survival version 3.8.3 was used [@therneau2026]. Sarcopenia was defined according to either the EWGSOP2 or FNIH criteria and analysed as a binary outcome. Participants were followed from baseline until the first occurrence of sarcopenia or until their last available follow-up visit, whichever occurred first.
 
-Two modelling approaches were applied. In the baseline model, each participant contributed a single observation and covariates were taken from the baseline visit only. In the time-dependent model, participants contributed repeated observations across follow-up visits, allowing exposure and covariate values to be updated over time. Age was used as the underlying time scale in all models.
+Two modelling approaches were applied. In the baseline model, each participant contributed a single observation, and covariates were taken from the baseline visit only. In the time-dependent model, participants contributed repeated observations across follow-up visits, allowing exposure and covariate values to be updated over time. Age was used as the underlying time scale in all models.
 
 Dairy intake was modelled a continuous variable (grams per day). To reduce the risk of model overfitting, alcohol intake, BMI, physical activity, and total energy intake were modelled as continuous variables where appropriate rather than categorical variables. Categorising continuous variables increases the number of model parameters and therefore the degrees of freedom required for estimation. Because the number of incident sarcopenia cases was limited (89 events among 1317 participants) <!--# adjust to exact numbers -->, restricting the number of parameters was important to maintain model stability and reduce the risk of overfitting. Previous methodological work has shown that regression models with a low number of events per parameter can produce unstable and overly optimistic estimates that may not replicate in other samples [@babyak2004]. Modelling variables continuously preserves statistical power, retains the full information contained in the data, and reduces unnecessary parameter estimation.
 
 Hazard ratios (HRs) and 95% confidence intervals (CIs) were estimated using partial likelihood estimation with Efron’s method to account for tied event times. For analyses based on multiply imputed datasets, models were fitted separately within each imputed dataset and pooled using Rubin’s rules. <!--# source -->
 
-Model assumptions were assessed for the fully adjusted models. The proportional hazards assumption was evaluated using Schoenfeld residuals and global proportional hazards tests. Functional form was assessed using martingale residuals, while influential observations were examined using deviance residuals and standardised DFBETA statistics. Multicollinearity among covariates was assessed using variance inflation factors. Kaplan-Meier curves were generated for categorical dairy intake models to visualise differences in sarcopenia-free survival across exposure groups.
+Model assumptions were assessed for the fully adjusted models. The proportional hazards assumption was evaluated using Schoenfeld residuals and global proportional hazards tests. Functional form was assessed using martingale residuals, while influential observations were examined using deviance residuals and standardised DFBETA statistics. Multicollinearity among covariates was assessed using variance inflation factors. <!--# add package car if reported --> Kaplan-Meier curves were generated for categorical dairy intake models to visualise differences in sarcopenia-free survival across exposure groups. <!--# add all necessariy packages used for this -->
 
-### Marginal structural model additive effect
-
-xxx
+<!--# Marginal structural model additive effect -->
 
 <!--# Marginal structural models (MSMs) were implemented to estimate the average total causal effect (ATE) of dairy intake on muscle related outcomes. Analyses were conducted in R using the packages WeightIt, cobalt, survey, geepack. <!--# add versions -->
 
@@ -704,9 +703,7 @@ xxx
 
 <!--# Model outputs included regression coefficients, standard errors, Wald statistics, p-values, and 95% confidence intervals. Results, covariate balance tables, Love plots, and diagnostic figures were automatically exported for each model specification. -->
 
-### Marginal structural model substitution effect
-
-xxx
+<!--# Marginal structural model substitution effect ... -->
 
 ## Ethics
 

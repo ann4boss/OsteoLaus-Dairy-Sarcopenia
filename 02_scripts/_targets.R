@@ -63,8 +63,21 @@ path_targets <- list(
                format = "file"),
     tar_target(f_osteo_v5,
                "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_OstV5.csv",
+               format = "file"),
+    
+    tar_target(f_colaus_baseline_add_food, "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Baseline_additionalFood.csv",
+               format = "file"),
+    tar_target(f_colaus_f1_add_food, "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/FU1_additionalFood.csv",
+               format = "file"),
+    tar_target(f_colaus_f2_add_food, "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/FU2_additionalFood.csv",
+               format = "file"),
+    tar_target(f_colaus_f3_add_food, "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/FU3_additionalFood.csv",
+               format = "file"),
+    
+    tar_target(f_colaus_death, "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Deaths.csv",
                format = "file")
 )
+
 
 
 # =============================================================================
@@ -75,7 +88,8 @@ prep_core <- tar_target(
     core,
     prepare_core(
         f_colaus_baseline, f_colaus_f1, f_colaus_f2, f_colaus_f3,
-        f_osteo_baseline,  f_osteo_v2,  f_osteo_v3,  f_osteo_v4,  f_osteo_v5
+        f_osteo_baseline,  f_osteo_v2,  f_osteo_v3,  f_osteo_v4,  f_osteo_v5,
+        f_colaus_baseline_add_food, f_colaus_f1_add_food, f_colaus_f2_add_food, f_colaus_f3_add_food, f_colaus_death
     )
 )
 
@@ -217,22 +231,41 @@ cc_exclusion_targets <- list(
 table_one <- list(
     tar_target(
         table1_overall_cc,
-        save_table_one_outputs(
+        make_table_one(
             cc_analysis_general$data,
             id    = "pt",
             visit = ".visit_osteo"
         )
     ),
-   
+    
+    tar_target(
+        table1_overall_cc_files,
+        save_table_one_outputs_targets(
+            overall = table1_overall_cc,
+            by_exposure = NULL,
+            method = "cc"
+        ),
+        format = "file"
+    ),
     
     tar_target(
         table1_overall_mice,
-        save_table_one_outputs(
+        make_table_one(
             mice_analysis_general$data,
             id      = "pt",
             visit   = ".visit_osteo",
             imp_col = ".imp"
         )
+    ),
+    
+    tar_target(
+        table1_overall_mice_files,
+        save_table_one_outputs_targets(
+            overall = table1_overall_mice,
+            by_exposure = NULL,
+            method = "mice"
+        ),
+        format = "file"
     )
 )
 
@@ -648,61 +681,59 @@ cc_descriptives <-list(
 # =============================================================================
 
 mice_analysis_prep <- tar_target(mice_route, build_analysis_dataset(core$colaus_long, core$osteo_long,
-                                                               imputed = TRUE, m = 5L, maxit = 20L, seed = 2024L))
+                                                               imputed = TRUE, m = 10L, maxit = 20L, seed = 2024L))
+
+
+only_mice <- tar_target(mice_df, impute_mice_colaus(core$colaus_long,
+                               m       = 5L,
+                               maxit   = 20L,
+                               seed    = 2024L,
+                               out_dir = "03_outputs/mice_diagnostics/colaus")
+)
 
 # ------------------------------------------------------------------------------
-# Exclusion
+# Exclusion 
 # ------------------------------------------------------------------------------
 mice_exclusion_targets <- list(
     tar_target(
         mice_analysis_general, apply_exclusions(data = mice_route$merged_derived,
                                               qc_table = core$qc_tbl,
-                                              covariant_list = c("Age", "Height", "Weight", "BMI", "BMI_category",
-                                                                 "mrtsts2", "education_level", "smoking_status",
-                                                                 "pa_levels_tertile_f1", "alcohol_category_conso",
-                                                                 "diabetes_status", "hrt_status", "htn_status",
-                                                                 "hypolip_drug_status", "corticoids_status", "vitD_status",
-                                                                 "calcium_status", "benzo_status", "bisphosphonate_status",
-                                                                 "sumtot1" 
+                                              covariant_list = c("Age"
                                               ),
                                               exposure = "dairy_total_gday",
                                               outcome = NULL,
                                               visit_min = 2L,
                                               pt_col = "pt",
                                               visit_col = ".visit_osteo",
-                                              impute = FALSE,
+                                              impute = TRUE,
                                               imp_col = ".imp",
                                               return_tracking = TRUE)
     ),
     tar_target(
         mice_analysis_HGS, apply_exclusions(data = mice_route$merged_derived,
                                           qc_table = core$qc_tbl,
-                                          covariant_list = c("Age", "Height", "Weight", "BMI", "BMI_category",
-                                                             "mrtsts2", "education_level", "smoking_status",
-                                                             "pa_levels_tertile_f1", "alcohol_category_conso",
-                                                             "diabetes_status", "hrt_status", "htn_status",
-                                                             "hypolip_drug_status", "corticoids_status", "vitD_status",
-                                                             "calcium_status", "benzo_status", "bisphosphonate_status",
-                                                             "sumtot1" 
+                                          covariant_list = c("Age", "BMI", "BMI_category",
+                                                             "education_level", "smoking_status",
+                                                             "pa_levels_tertile_f1",
+                                                             "diabetes_status", "vitD_status",
+                                                             "sumtot1"
                                           ),
                                           exposure = "dairy_total_gday",
                                           outcome = "HGS_MAX",
                                           visit_min = 3L,
                                           pt_col = "pt",
                                           visit_col = ".visit_osteo",
-                                          impute = FALSE,
+                                          impute = TRUE,
                                           imp_col = ".imp",
                                           return_tracking = TRUE)
     ),
     tar_target(
         mice_analysis_ALM, apply_exclusions(data = mice_route$merged_derived,
                                                  qc_table = core$qc_tbl,
-                                                 covariant_list = c("Age", "Height", "Weight", "BMI", "BMI_category",
-                                                                    "mrtsts2", "education_level", "smoking_status",
-                                                                    "pa_levels_tertile_f1", "alcohol_category_conso",
-                                                                    "diabetes_status", "hrt_status", "htn_status",
-                                                                    "hypolip_drug_status", "corticoids_status", "vitD_status",
-                                                                    "calcium_status", "benzo_status", "bisphosphonate_status",
+                                                 covariant_list = c("Age",
+                                                                    "pa_levels_tertile_f1",
+                                                                    "diabetes_status",
+                                                                    "calcium_status",
                                                                     "sumtot1" 
                                                  ),
                                                  exposure = "dairy_total_gday",
@@ -710,19 +741,17 @@ mice_exclusion_targets <- list(
                                                  visit_min = 2L,
                                                  pt_col = "pt",
                                                  visit_col = ".visit_osteo",
-                                                 impute = FALSE,
+                                                 impute = TRUE,
                                                  imp_col = ".imp",
                                                  return_tracking = TRUE)
     ),
     tar_target(
         mice_analysis_ALM_Lunar, apply_exclusions(data = mice_route$merged_derived,
                                             qc_table = core$qc_tbl,
-                                            covariant_list = c("Age", "Height", "Weight", "BMI", "BMI_category",
-                                                               "mrtsts2", "education_level", "smoking_status",
-                                                               "pa_levels_tertile_f1", "alcohol_category_conso",
-                                                               "diabetes_status", "hrt_status", "htn_status",
-                                                               "hypolip_drug_status", "corticoids_status", "vitD_status",
-                                                               "calcium_status", "benzo_status", "bisphosphonate_status",
+                                            covariant_list = c("Age",
+                                                               "pa_levels_tertile_f1",
+                                                               "diabetes_status",
+                                                               "calcium_status",
                                                                "sumtot1" 
                                             ),
                                             exposure = "dairy_total_gday",
@@ -730,19 +759,18 @@ mice_exclusion_targets <- list(
                                             visit_min = 2L,
                                             pt_col = "pt",
                                             visit_col = ".visit_osteo",
-                                            impute = FALSE,
+                                            impute = TRUE,
                                             imp_col = ".imp",
                                             return_tracking = TRUE)
     ),
     tar_target(
         mice_analysis_gait, apply_exclusions(data = mice_route$merged_derived,
                                            qc_table = core$qc_tbl,
-                                           covariant_list = c("Age", "Height", "Weight", "BMI", "BMI_category",
-                                                              "mrtsts2", "education_level", "smoking_status",
-                                                              "pa_levels_tertile_f1", "alcohol_category_conso",
-                                                              "diabetes_status", "hrt_status", "htn_status",
-                                                              "hypolip_drug_status", "corticoids_status", "vitD_status",
-                                                              "calcium_status", "benzo_status", "bisphosphonate_status",
+                                           covariant_list = c("Age", "education_level", "smoking_status",
+                                                              "pa_levels_tertile_f1", 
+                                                              "diabetes_status","htn_status",
+                                                               "vitD_status",
+                                                             
                                                               "sumtot1" 
                                            ),
                                            exposure = "dairy_total_gday",
@@ -750,7 +778,7 @@ mice_exclusion_targets <- list(
                                            visit_min = 2L,
                                            pt_col = "pt",
                                            visit_col = ".visit_osteo",
-                                           impute = FALSE,
+                                           impute = TRUE,
                                            imp_col = ".imp",
                                            return_tracking = TRUE)
     ),
@@ -766,7 +794,7 @@ mice_exclusion_targets <- list(
                                                  visit_min = 2L,
                                                  pt_col = "pt",
                                                  visit_col = ".visit_osteo",
-                                                 impute = FALSE,
+                                                 impute = TRUE,
                                                  imp_col = ".imp",
                                                  return_tracking = TRUE)
     )
@@ -789,6 +817,71 @@ mice_table_one <- list(
     tar_target(
         mice_table_one_files,
         unlist(mice_table_one_outputs$files),
+        format = "file"
+    )
+)
+
+
+# ------------------------------------------------------------------------------
+# Manuscript result numbers and flow diagram
+# ------------------------------------------------------------------------------
+result_section_targets <- list(
+    tar_target(
+        mice_result_summary,
+        make_result_numbers(
+            general_analysis = mice_analysis_general,
+            outcome_analyses = list(
+                HGS = mice_analysis_HGS,
+                ALM = mice_analysis_ALM,
+                ALM_Lunar = mice_analysis_ALM_Lunar,
+                gait = mice_analysis_gait,
+                sarcopenia = mice_analysis_sarcopenia
+            )
+        )
+    ),
+    
+    tar_target(
+        mice_flow_diagram,
+        plot_analysis_flow(mice_result_summary)
+    ),
+    
+    tar_target(
+        mice_flow_diagram_file,
+        save_analysis_flow(mice_flow_diagram),
+        format = "file"
+    ),
+    
+    tar_target(
+        table1_cc_vs_mice,
+        make_table_one_cc_vs_mice(
+            cc_analysis_long = cc_analysis_general$data,
+            mice_analysis_long = mice_analysis_general$data
+        )
+    ),
+    
+    tar_target(
+        table1_included_vs_excluded_mice,
+        make_table_one_included_vs_excluded_mice(
+            full_analysis_long = mice_route$merged_derived,
+            included_analysis_long = mice_analysis_general$data
+        )
+    ),
+    
+    tar_target(
+        table1_supplement_files,
+        {
+            dir.create("03_outputs/TableOne/supplement", recursive = TRUE, showWarnings = FALSE)
+            c(
+                save_gtsummary_table(
+                    table1_cc_vs_mice,
+                    "03_outputs/TableOne/supplement/Table1_cc_vs_mice"
+                ),
+                save_gtsummary_table(
+                    table1_included_vs_excluded_mice,
+                    "03_outputs/TableOne/supplement/Table1_included_vs_excluded_mice"
+                )
+            )
+        },
         format = "file"
     )
 )
@@ -1173,23 +1266,25 @@ c(
     path_targets,
     prep_core,
     # ── Complete-case route ───────────────────────────────────────────────────
-    cc_analysis_prep,
-    cc_exclusion_targets,
+    #cc_analysis_prep,
+    #cc_exclusion_targets,
     # variable_quality_control,
     # histograms
     # plot_scatter_all
     # cc_descriptives,
-    table_one,
-    # ── MICE route ────────────────────────────────────────────────────────────
+    # table_one,
+    # # ── MICE route ────────────────────────────────────────────────────────────
+    #only_mice
     mice_analysis_prep,
-    mice_exclusion_targets,
-    # # mice_table_one,
-    # 
-    # # ── Model ──────────────────────────────
-    # LLM_targets_HGS,
-    # LLM_targets_ALM
-    # LLM_targets_ALM_Lunar
-    # GAMM_targets_HGS
-    cox_targets
+    mice_exclusion_targets
+    # result_section_targets,
+    # # # mice_table_one,
+    # # 
+    # # # ── Model ──────────────────────────────
+    # # LLM_targets_HGS,
+    # # LLM_targets_ALM
+    # # LLM_targets_ALM_Lunar
+    # # GAMM_targets_HGS
+    # cox_targets
 
 )

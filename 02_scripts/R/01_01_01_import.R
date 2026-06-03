@@ -72,12 +72,12 @@ COHORT_META <- list(
 #'               (OsteoLaus).
 #' @return Tibble; all original columns are character plus attach
 #'   metadata columns: .cohort, .visit.
-import_visit <- function(path, cohort, visit) {
+import_visit <- function(path, cohort, visit, sep = ";") {
   
   
   raw_dt <- data.table::fread(
     file   = path,
-    sep    = ";",
+    sep    = sep,
     colClasses = "character",
     na.strings = c("", "NA", "N/A", "."),
     strip.white = TRUE

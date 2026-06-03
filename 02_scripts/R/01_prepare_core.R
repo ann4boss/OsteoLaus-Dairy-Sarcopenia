@@ -24,11 +24,12 @@
 
 prepare_core <- function(
         f_colaus_baseline, f_colaus_f1, f_colaus_f2, f_colaus_f3,
-        f_osteo_baseline,  f_osteo_v2,  f_osteo_v3,  f_osteo_v4,  f_osteo_v5
+        f_osteo_baseline,  f_osteo_v2,  f_osteo_v3,  f_osteo_v4,  f_osteo_v5,
+        f_colaus_baseline_add_food, f_colaus_f1_add_food, f_colaus_f2_add_food, f_colaus_f3_add_food, f_colaus_death
 ) {
     
-    # ── 01. Import ──────────────────────────────────────────────────────────
-    cli::cli_h1("01  Import")
+    # ── 01a. Import ──────────────────────────────────────────────────────────
+    cli::cli_h1("01a  Import")
     
     colaus_bsl_raw <- import_visit(f_colaus_baseline, "CoLaus",    "Baseline")
     colaus_f1_raw  <- import_visit(f_colaus_f1,       "CoLaus",    "F1")
@@ -41,15 +42,33 @@ prepare_core <- function(
     osteo_v4_raw   <- import_visit(f_osteo_v4,        "OsteoLaus", "V4")
     osteo_v5_raw   <- import_visit(f_osteo_v5,        "OsteoLaus", "V5")
     
+    colaus_bsl_raw_add_food <- import_visit(f_colaus_baseline_add_food, "CoLaus", "Baseline", sep = ",")
+    colaus_f1_raw_add_food <- import_visit(f_colaus_f1_add_food, "CoLaus", "F1", sep = ",")
+    colaus_f2_raw_add_food <- import_visit(f_colaus_f2_add_food, "CoLaus", "F2", sep = ",")
+    colaus_f3_raw_add_food <- import_visit(f_colaus_f3_add_food, "CoLaus", "F3", sep = ",")
+    
+    death <- import_visit(f_colaus_death, "CoLaus", "Baseline", ",")
+
+    
+    # ── 01b. add additional columns ──────────────────────────────────────────────────────────
+    cli::cli_h1("01b  Concatenate")
+    colaus_f1_concatenated <- add_ffq_columns(colaus_f1_raw, colaus_f1_raw_add_food, "F1")
+    colaus_f2_concatenated <- add_ffq_columns(colaus_f2_raw, colaus_f2_raw_add_food, "F2")
+    colaus_f3_concatenated <- add_ffq_columns(colaus_f3_raw, colaus_f3_raw_add_food, "F3")
+    
+    colaus_bsl_concatenated <- add_birth_date(colaus_bsl_raw, colaus_bsl_raw_add_food)
+    colaus_bsl_concatenated <- add_death_date(colaus_bsl_concatenated, death)
+    osteo_bsl_concatenated <- add_birth_date(osteo_bsl_raw, colaus_bsl_raw_add_food)
+    
     # ── 02. Harmonise ───────────────────────────────────────────────────────
     cli::cli_h1("02  Harmonise")
     
-    colaus_bsl_harm <- harmonise_colaus(colaus_bsl_raw)
-    colaus_f1_harm  <- harmonise_colaus(colaus_f1_raw)
-    colaus_f2_harm  <- harmonise_colaus(colaus_f2_raw)
-    colaus_f3_harm  <- harmonise_colaus(colaus_f3_raw)
+    colaus_bsl_harm <- harmonise_colaus(colaus_bsl_concatenated)
+    colaus_f1_harm  <- harmonise_colaus(colaus_f1_concatenated)
+    colaus_f2_harm  <- harmonise_colaus(colaus_f2_concatenated)
+    colaus_f3_harm  <- harmonise_colaus(colaus_f3_concatenated)
     
-    osteo_bsl_harm  <- harmonise_osteo(osteo_bsl_raw)
+    osteo_bsl_harm  <- harmonise_osteo(osteo_bsl_concatenated)
     osteo_v2_harm   <- harmonise_osteo(osteo_v2_raw)
     osteo_v3_harm   <- harmonise_osteo(osteo_v3_raw)
     osteo_v4_harm   <- harmonise_osteo(osteo_v4_raw)

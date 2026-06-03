@@ -258,7 +258,7 @@ derive_alm_indices <- function(df) {
         ))
         
         if (n_differ > 0L)
-            cli::cli_warn("{n_differ} row(s) differ by \u2265 0.1 between derived and source.")
+            cli::cli_inform("{n_differ} row(s) differ by \u2265 0.1 between derived and source.")
         
         invisible(NULL)
     })
@@ -309,7 +309,8 @@ split_alm_by_method <- function(df) {
             
             ALM_WT_Hologic  = derive_method_col("ALM_WT", "Hologic"),
             ALM_WT_Lunar   = derive_method_col("ALM_WT", "Lunar")
-        )
+        ) |>
+        dplyr::as_tibble()
     
     cli::cli_h2("Split ALM by DXA method")
     cli::cli_inform(c(

@@ -60,6 +60,11 @@ build_analysis_dataset <- function(colaus_long,
             maxit = maxit,
             seed = seed
         )
+        
+        post_imputation_checks(colaus$mids, out_dir = "03_outputs/mice/colaus")
+        post_imputation_checks(osteo$mids,  out_dir = "03_outputs/mice/osteo")
+        
+        
     } else {
         cli::cli_h1("Route: Complete Case")
         colaus <- colaus_long

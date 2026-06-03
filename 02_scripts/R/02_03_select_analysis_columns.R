@@ -20,7 +20,7 @@
     # Lifestyle & clinical
     "smoking_status", "smoking_impute_source",
     "alcohol_category_conso", "alcohol_category_sumalco", 
-    "pa_levels_tertile_f1", "pa_levels_tertile_f2", "pa_levels_who_f1", "pa_levels_who_f2",
+    "pa_levels_tertile_f1", "pa_levels_who_f1",
     "diabetes_status",  "htn_status",
     # Medications
     "hrt_status", "hypolip_drug_status", "corticoids_status", "vitD_status",
@@ -30,8 +30,11 @@
     "dairy_total_gday", "dairy_fermented_gday", "dairy_non_fermented_gday",
     "dairy_lowfat_gday", "dairy_highfat_gday",
     "dairy_guidelines_port",
-    "dairy_quartile_baseline", "dairy_quartile_overall",
+    "dairy_quartile_baseline",
     "dairy_total_gday_cumavg",
+    "animal_protein_gday","plant_protein_gday" ,"veg_gday", "fru_gday", "grains_gday", "fats_gday",
+    "processed_gday",
+    
     # Outcomes
     "HGS_MAX", "gait_speed",
     "ALM", "ALM_HT2", "ALM_BMI", "ALM_WT", "DXA_method",

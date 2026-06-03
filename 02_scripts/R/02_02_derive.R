@@ -38,7 +38,10 @@
         derive_smoking()        |>
         derive_bmi()            |>
         derive_bmi_category()   |>
-        derive_htn()
+        derive_age()            |>
+        derive_food_groups()    |>
+        derive_htn()            
+        
 }
 
 .derive_chain_osteo <- function(df) {
@@ -46,7 +49,8 @@
         derive_bmi()          |>
         derive_bmi_category() |>
         derive_alm_indices()  |>
-        split_alm_by_method()
+        split_alm_by_method() |>
+        derive_age()
 }
 
 # Map cohort name to chain function.

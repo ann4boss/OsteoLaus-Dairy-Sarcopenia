@@ -1,5 +1,5 @@
 ---
-title: "Time-Varying Dairy Intake and Muscle Ageing in Older Women: A Prospective Analysis from the OsteoLaus Cohort"
+title: "Dairy intake and muscle ageing in older women: a prospective analysis from the OsteoLaus cohort"
 author:
   - name: Anna Boss
     affiliation: University of Fribourg
