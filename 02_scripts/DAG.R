@@ -43,97 +43,101 @@ HRT
 VitaminD
 Calcium
 
-Age -> Dairy
-Age -> HGS
 Age -> ALMI
-Age -> GS
-Age -> Sarcopenia
-Age -> Diabetes
+Age -> Alcohol
 Age -> BMI
+Age -> BP
+Age -> CVD
+Age -> Dairy
+Age -> Diabetes
+Age -> GS
+Age -> HGS
+Age -> HRT
+Age -> Hypertension
+Age -> Hypolipid
 Age -> OtherFoodGroups
 Age -> PA
+Age -> Sarcopenia
 Age -> Smoking
-Age -> Alcohol
-Age -> Hypertension
-Age -> CVD
-Age -> Hypolipid
-Age -> HRT
-Age -> BP
 
-Education -> Dairy
-Education -> Smoking
-Education -> Alcohol
-Education -> PA
-Education -> BMI
-Education -> Diabetes
-Education -> TotalEnergy
-Education -> OtherFoodGroups
-Education -> VitaminD
-Education -> Calcium
-
-Marital -> Dairy
-Marital -> PA
-
-Smoking -> HGS
-Smoking -> PA
-Smoking -> GS
-Smoking -> Sarcopenia
-Smoking -> CVD
-
-Alcohol -> HGS
-Alcohol -> GS
-Alcohol -> Sarcopenia
+Alcohol -> ALMI
 Alcohol -> Diabetes
+Alcohol -> GS
+Alcohol -> HGS
+Alcohol -> Sarcopenia
 
-PA -> HGS
-PA -> ALMI
-PA -> GS
-PA -> Sarcopenia
-
-TotalEnergy -> Dairy
-TotalEnergy -> OtherFoodGroups
-TotalEnergy -> BMI
-TotalEnergy -> ALMI
-TotalEnergy -> HGS
-
-OtherFoodGroups -> BMI
-
-BMI -> Diabetes
-BMI -> Hypertension
-BMI -> GS
-BMI -> Sarcopenia
 BMI -> CVD
+BMI -> Diabetes
+BMI -> GS
+BMI -> Hypertension
+BMI -> Sarcopenia
 
-Diabetes -> HGS
-Diabetes -> ALMI
-Diabetes -> GS
-Diabetes -> Sarcopenia
-Diabetes -> Dairy
-Diabetes -> CVD
-Diabetes -> PA
+BP -> ALMI
 
-Hypertension -> PA
-Hypertension -> CVD
 
-Hypolipid -> HGS
-Hypolipid -> GS
+VitaminD -> Calcium
+VitaminD -> GS
+VitaminD -> HGS
 
 Cortico -> Sarcopenia
-BP -> ALMI
+
+Dairy -> ALMI
+Dairy -> Calcium
+Dairy -> GS
+Dairy -> HGS
+Dairy -> VitaminD
+
+Diabetes -> ALMI
+Diabetes -> CVD
+Diabetes -> Dairy
+Diabetes -> GS
+Diabetes -> HGS
+Diabetes -> PA
+Diabetes -> Sarcopenia
+
+Education -> Alcohol
+Education -> BMI
+Education -> Calcium
+Education -> Dairy
+Education -> Diabetes
+Education -> OtherFoodGroups
+Education -> PA
+Education -> Smoking
+Education -> TotalEnergy
+Education -> VitaminD
 
 HRT -> ALMI
 HRT -> HGS
 
-VitaminD -> HGS
-VitaminD -> GS
-VitaminD -> Dairy
+Hypertension -> CVD
+Hypertension -> PA
+Hypolipid -> GS
+Hypolipid -> HGS
 
-Calcium -> ALMI
-Calcium -> Dairy
+Marital -> Dairy
+Marital -> OtherFoodGroups
+Marital -> PA
+Marital -> TotalEnergy
 
-Dairy -> ALMI
-Dairy -> HGS
-Dairy -> GS
+OtherFoodGroups -> BMI
+
+PA -> ALMI
+PA -> GS
+PA -> HGS
+PA -> Sarcopenia
+
+Smoking -> ALMI
+Smoking -> CVD
+Smoking -> GS
+Smoking -> HGS
+Smoking -> PA
+Smoking -> Sarcopenia
+
+TotalEnergy -> ALMI
+TotalEnergy -> BMI
+TotalEnergy -> Dairy
+TotalEnergy -> HGS
+TotalEnergy -> OtherFoodGroups
 
 }
 

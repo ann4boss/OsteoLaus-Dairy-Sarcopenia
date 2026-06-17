@@ -52,9 +52,14 @@ prepare_core <- function(
     
     # ── 01b. add additional columns ──────────────────────────────────────────────────────────
     cli::cli_h1("01b  Concatenate")
+    colaus_f1_concatenated <- add_extra_cols(colaus_f1_raw, colaus_f1_raw_add_food, "F1")
+    colaus_f2_concatenated <- add_extra_cols(colaus_f2_raw, colaus_f2_raw_add_food, "F2")
+    colaus_f3_concatenated <- add_extra_cols(colaus_f3_raw, colaus_f3_raw_add_food, "F3")
+    
     colaus_f1_concatenated <- add_ffq_columns(colaus_f1_raw, colaus_f1_raw_add_food, "F1")
     colaus_f2_concatenated <- add_ffq_columns(colaus_f2_raw, colaus_f2_raw_add_food, "F2")
     colaus_f3_concatenated <- add_ffq_columns(colaus_f3_raw, colaus_f3_raw_add_food, "F3")
+    
     
     colaus_bsl_concatenated <- add_birth_date(colaus_bsl_raw, colaus_bsl_raw_add_food)
     colaus_bsl_concatenated <- add_death_date(colaus_bsl_concatenated, death)

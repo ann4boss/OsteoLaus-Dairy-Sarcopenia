@@ -82,9 +82,10 @@
 
 # ── Default covariate set (update as needed) ----------------------------------
 .DEFAULT_COVARIATES <- c(
-    "BMI",
-    "pa_levels_tertile_f1",
-    "sumtot1"
+    "Age", "BMI"
+    #, "education_level", "smoking_status",
+    #"pa_levels_tertile_f1", 
+    #  "diabetes_status"
 )
 
 
@@ -204,7 +205,7 @@ run_cox_sarcopenia <- function(
             interaction_var = interaction_var,
             out_dir         = out_dir
         )
-        # TODO it shouldn't be combined all
+    
         surv_data <- result$surv_data  # representative (first imp) dataset
     }
     
@@ -252,19 +253,22 @@ run_cox_sarcopenia <- function(
 .derive_event_indicator <- function(data, sarcopenia_def) {
     
     if (sarcopenia_def == "ewgsop2") {
-        required_col <- "ewgsop2_sarcopenia_stage"
-        if (!required_col %in% names(data))
-            cli::cli_abort("Column {.col {required_col}} not found.")
-        
-        data <- data |>
-            dplyr::mutate(
-                event = dplyr::if_else(
-                    !is.na(ewgsop2_sarcopenia_stage) &
-                        ewgsop2_sarcopenia_stage %in% c("Confirmed", "Severe"),
-                    1L,
-                    0L
-                )
-            )
+      required_col <- "ewgsop2_sarcopenia_stage"
+      if (!required_col %in% names(data))
+        cli::cli_abort("Column {.col {required_col}} not found.")
+      
+      data <- data |>
+        dplyr::mutate(
+          ewgsop2_sarcopenia_stage = factor(
+            as.character(ewgsop2_sarcopenia_stage),  # drop ordered
+            ordered = FALSE
+          ),
+          event = dplyr::if_else(
+            !is.na(ewgsop2_sarcopenia_stage) &
+              ewgsop2_sarcopenia_stage %in% c("Confirmed", "Severe"),
+            1L, 0L
+        )
+      )
         
     } else {  # fnih
         required_col <- "fnih_sarcopenia"
@@ -299,13 +303,13 @@ run_cox_sarcopenia <- function(
 ) {
     cli::cli_h2("Fixed covariates dataset (one row per pt)")
     
-    # ── Require Age and .visit_osteo columns --------------------------------
-    required <- c("pt", "Age", ".visit_osteo", "event")
+    # ── Require columns --------------------------------
+    required <- c("pt", "Age", "time_point", "event")
     .check_cols(data, required)
     
     # ── Baseline covariates (first OsteoLaus visit available per pt) --------
     baseline_covs <- data |>
-        dplyr::arrange(pt, .visit_osteo) |>
+        dplyr::arrange(pt, time_point) |>
         dplyr::group_by(pt) |>
         dplyr::slice(1L) |>
         dplyr::ungroup() |>
@@ -368,7 +372,7 @@ run_cox_sarcopenia <- function(
 ) {
     cli::cli_h2("Time-dependent covariates dataset (one row per pt × visit)")
     
-    required <- c("pt", "Age", ".visit_osteo", "event")
+    required <- c("pt", "Age", "time_point", "event")
     .check_cols(data, required)
     
     # ── Sort by pt and Age -------------------------------------------------
@@ -464,31 +468,29 @@ run_cox_sarcopenia <- function(
 #' Prepare the dairy_exposure column (continuous or categorical).
 #' @keywords internal
 .prepare_dairy <- function(data, dairy_type, dairy_col, dairy_cat_col) {
+  if (dairy_type == "continuous") {
+    if (!dairy_col %in% names(data))
+      cli::cli_abort("Dairy column {.col {dairy_col}} not found.")
+    data$dairy_exposure <- data[[dairy_col]]
     
-    if (dairy_type == "continuous") {
-        
-        if (!dairy_col %in% names(data)) {
-            cli::cli_abort("Dairy column {.col {dairy_col}} not found.")
-        }
-        
-        data$dairy_exposure <- data[[dairy_col]]
-        
-    } else {  # categorical
-        
-        if (!dairy_cat_col %in% names(data)) {
-            cli::cli_abort(
-                "Categorical dairy column {.col {dairy_cat_col}} not found."
-            )
-        }
-        
-        data$dairy_exposure <- data[[dairy_cat_col]]
-        
-        cli::cli_inform(
-            "Using categorical dairy exposure: {.col {dairy_cat_col}}"
-        )
-    }
+  } else {
+    if (is.null(dairy_cat_col))
+      cli::cli_abort(
+        "dairy_type = 'categorical' but {.arg dairy_cat_col} is NULL."
+      )
+    if (!dairy_cat_col %in% names(data))
+      cli::cli_abort("Categorical dairy column {.col {dairy_cat_col}} not found.")
     
-    data
+    # Ensure it is an unordered factor
+    data$dairy_exposure <- factor(
+      as.character(data[[dairy_cat_col]]),
+      ordered = FALSE
+    )
+    cli::cli_inform(
+      "dairy_exposure levels: {.val {levels(data$dairy_exposure)}}"
+    )
+  }
+  data
 }
 
 
@@ -596,9 +598,16 @@ run_cox_sarcopenia <- function(
     
     # ── KM plot (categorical+fixed dairy only) ----------------------------------
     km_plot <- NULL
-    if (dairy_type == "categorical" &  covariate_type == "fixed") {
-        km_plot <- .km_plot_dairy(surv_data, covariate_type, out_dir, label = "cc")
+    if (dairy_type == "categorical") {
+      km_plot <- .km_plot_dairy(
+        surv_data      = surv_data,
+        covariate_type = covariate_type,
+        out_dir        = out_dir,
+        label          = "mice_imp1"
+      )
     }
+    # ── Save results -----------------------------------------------------------
+    .save_model_results(results_unadj, results_adj, out_dir, label = "cc")
     
     list(
         fit_unadj           = fit_unadj,
@@ -608,11 +617,11 @@ run_cox_sarcopenia <- function(
         ph_test             = assumptions$ph_test,
         ph_plot             = assumptions$ph_plot,
         vif                 = assumptions$vif,
-        outlier_plot        = assumptions$outlier_plot,          # new
-        outlier_flagged     = assumptions$outlier_flagged_rows,  # new
+        outlier_plot        = assumptions$outlier_plot,          
+        outlier_flagged     = assumptions$outlier_flagged_rows,  
         dfbeta_plot         = assumptions$dfbeta_plot,
-        dfbeta_flagged      = assumptions$dfbeta_flagged,        # new
-        dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,    # new
+        dfbeta_flagged      = assumptions$dfbeta_flagged,        
+        dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,    
         km_plot             = km_plot
     )
 }
@@ -629,6 +638,7 @@ run_cox_sarcopenia <- function(
         dairy_type, dairy_col, dairy_cat_col,
          covariates, interaction_var, out_dir
 ) {
+  
     cli::cli_h2("MICE route — pooling across imputed datasets")
     
     if (!".imp" %in% names(data))
@@ -710,16 +720,22 @@ run_cox_sarcopenia <- function(
         label     = "mice_imp1"
     )
     
-    # ── KM plot on first imputed dataset -----------------------------------
+    # ── KM plot on imputed datasets -----------------------------------
     km_plot <- NULL
     if (dairy_type == "categorical") {
-        km_plot <- .km_plot_dairy(surv_data_list[[1L]], covariate_type,
-                                  out_dir, label = "mice_imp1")
+      km_plot <- .km_plot_dairy(
+        surv_data       = surv_data_list[[1L]],
+        covariate_type  = covariate_type,
+        out_dir         = out_dir,
+        label           = "mice_pooled"
+      )
     }
+    .save_model_results(results_unadj, results_adj, out_dir, label = "mice")
     
     list(
-        fit_unadj           = fit_unadj,
-        fit_adj             = fit_adj,
+      surv_data           = surv_data_list[[1L]], 
+        fit_unadj           = mira_unadj,       
+        fit_adj             = mira_adj,       
         results_unadj       = results_unadj,
         results_adj         = results_adj,
         ph_test             = assumptions$ph_test,
@@ -1009,58 +1025,65 @@ run_cox_sarcopenia <- function(
 }
 
 
+
+
+# =============================================================================
+# Section 8 — Kaplan-Meier plot (pooled across imputations)
+# =============================================================================
+
+#' Kaplan-Meier survival curves stratified by dairy exposure category.
+#' Accepts either a single surv_data data.frame (CC) or a list of data.frames
+#' (MICE — one per imputation) and averages curves in the latter case.
+#'
+#' @param surv_data      data.frame (CC) or list of data.frames (MICE).
+#' @param covariate_type "fixed" or "time_dependent".
+#' @param out_dir        Output directory or NULL.
+#' @param label          String label for file names.
+#' @keywords internal
 # =============================================================================
 # SECTION 8 — Kaplan-Meier plot by dairy category
 # =============================================================================
 
 #' Kaplan-Meier survival curves stratified by dairy exposure category.
-#' Only meaningful when dairy_type = "categorical".
+#' Uses a single dataset (CC dataset or first imputed dataset for MICE).
 #' @keywords internal
 .km_plot_dairy <- function(surv_data, covariate_type, out_dir, label) {
-    
-    cli::cli_h3("Kaplan-Meier plot by dairy category")
-    
-    if (!is.data.frame(surv_data)) {
-        cli::cli_abort("surv_data is not a data.frame")
-    }
-    
-    if (!"dairy_exposure" %in% names(surv_data)) return(NULL)
-    
-    km_fit <- if (covariate_type == "fixed") {
-        
-        survival::survfit(
-            survival::Surv(time, event) ~ dairy_exposure,
-            data = surv_data
-        )
-        
-    } else {
-        
-        survival::survfit(
-            survival::Surv(age_start, age_stop, event) ~ dairy_exposure,
-            data = surv_data
-        )
-    }
-    
-    km_plot <- survminer::ggsurvplot(
-        km_fit,
-        data = surv_data,
-        pval = TRUE,
-        conf.int = TRUE,
-        risk.table = TRUE,
-        xlim = c(50, max(surv_data$time, na.rm = TRUE)),
-        xlab = "Age (years)",
-        ylab = "Sarcopenia-free probability",
-        legend.title = "Dairy intake",
-        palette = c("#4e79a7", "#f28e2b", "#e15759", "#76b7b2"),
-        ggtheme = ggplot2::theme_bw()
+  
+  cli::cli_h3("Kaplan-Meier plot by dairy category")
+  
+  if (!is.data.frame(surv_data) || !"dairy_exposure" %in% names(surv_data))
+    return(NULL)
+  
+  km_formula <- if (covariate_type == "fixed") {
+    survival::Surv(time, event) ~ dairy_exposure
+  } else {
+    survival::Surv(age_start, age_stop, event) ~ dairy_exposure
+  }
+  
+  km_fit <- survival::survfit(km_formula, data = surv_data)
+  
+  km_plot <- survminer::ggsurvplot(
+    fit          = km_fit,
+    data         = surv_data,
+    pval         = TRUE,
+    conf.int     = TRUE,
+    risk.table   = TRUE,
+    xlab         = "Age (years)",
+    ylab         = "Sarcopenia-free probability",
+    legend.title = "Dairy intake",
+    palette      = c("#4e79a7", "#f28e2b", "#e15759", "#76b7b2"),
+    ggtheme      = ggplot2::theme_bw()
+  )$plot
+  
+  if (!is.null(out_dir)) {
+    ggplot2::ggsave(
+      file.path(out_dir, glue::glue("{label}_km_dairy.png")),
+      km_plot, width = 10, height = 7, dpi = 150
     )
-    
-    if (!is.null(out_dir)) {
-        fname <- file.path(out_dir, glue::glue("{label}_km_dairy.png"))
-        ggplot2::ggsave(fname, km_plot$plot, width = 10, height = 7, dpi = 150)
-    }
-    
-    km_plot
+    cli::cli_inform("KM plot saved to {.path {out_dir}}")
+  }
+  
+  km_plot
 }
 
 # =============================================================================
@@ -1125,5 +1148,38 @@ cox_interaction_hr <- function(fit, interaction_var, moderator_levels = NULL) {
 #' Null coalescing operator (mirrors rlang::`%||%`).
 #' @keywords internal
 `%||%` <- function(a, b) if (!is.null(a)) a else b
+
+
+
+# =============================================================================
+# Helper — save model results to CSV
+# =============================================================================
+
+#' Write unadjusted and adjusted HR tables to out_dir.
+#' @keywords internal
+.save_model_results <- function(results_unadj, results_adj, out_dir, label) {
+  
+  if (is.null(out_dir)) return(invisible(NULL))
+  
+  # Combine into one file with a model column for convenience
+  combined <- dplyr::bind_rows(
+    dplyr::mutate(results_unadj, model = "unadjusted"),
+    dplyr::mutate(results_adj,   model = "adjusted")
+  ) |>
+    dplyr::select(model, term, HR, CI_low, CI_high, p.value) |>
+    dplyr::mutate(dplyr::across(where(is.numeric), \(x) round(x, 4)))
+  
+  # Also add a formatted HR (95% CI) string for quick reading
+  combined <- combined |>
+    dplyr::mutate(
+      HR_CI = glue::glue("{HR} ({CI_low}–{CI_high})")
+    )
+  
+  path <- file.path(out_dir, glue::glue("{label}_model_results.csv"))
+  readr::write_csv(combined, path)
+  cli::cli_inform("Model results saved to {.path {path}}")
+  
+  invisible(combined)
+}
 
 

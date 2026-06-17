@@ -6,7 +6,7 @@
 # Column names enter prefixed (e.g. "F1age") and leave in base format ("age")
 # after strip_visit_prefix() runs at the top of harmonise_colaus().
 # =============================================================================
-# TODO add etsem, income2, datquest
+# TODO add etsem, income2, datquest?
 # -----------------------------------------------------------------------------
 # Column lists
 # -----------------------------------------------------------------------------
@@ -50,7 +50,17 @@
   "hdc",  "hdv",  "artm", "vslg", "ccth", "cabg", "pcin"
 )
 
-
+.ZERO_TO_NA <- c(
+  "age", "ht", "wt", "handgrip",
+  "sumtot1",  "sumtot3",
+  "sumprot1", "sumprot3",
+  "sumpveg1", "sumpveg3",
+  "sumpani1", "sumpani3",
+  "sumgluc1", "sumgluc3",
+  "sumlipi1", "sumlipi3",
+  "sumvitd1", "sumvitd3",
+  "sumcalc3"
+)
 
 # -----------------------------------------------------------------------------
 # Main function
@@ -98,6 +108,14 @@ harmonise_colaus <- function(df) {
     # change numeric sentinels to NA after numeric coercion
     apply_sentinel_numeric() |>
     
+    # change impossible zeros (or very small values) to NA
+    dplyr::mutate(
+      dplyr::across(
+        dplyr::any_of(.ZERO_TO_NA),
+        ~ dplyr::if_else(abs(.x) < 1e-6, NA_real_, .x)
+      )
+    ) |>
+      
     
     # ── Factors (Binary & Multi-level) ----------------------------------------
     dplyr::mutate(
@@ -175,7 +193,7 @@ harmonise_colaus <- function(df) {
   # Baseline: 0 = No problem, 1 = Yes (problem noted) -> recode to 3 = Yes, unspecified problem.
   # F2:    0 = No problem, 1 = Pain/arthrosis 
   # F3:    0 = No problem, 1 = Pain/arthrosis, 2 = No time/home/rejected.
-  if ("handgrip_com" %in% df$vars) {
+  if ("handgrip_com" %in% names(df)) {
     df <- df |>
       dplyr::mutate(
         handgrip_com = factor(
@@ -198,7 +216,7 @@ harmonise_colaus <- function(df) {
   # Diabetes
   # F1         : 0 = No,     1 = Yes -> recoded to 2 = Diabetes
   # All others : 0 = Normal, 1 = IFG,   2 = Diabetes
-  if ("DIAB2" %in% df$vars) {
+  if ("DIAB2" %in% names(df)) {
     df <- df |>
       dplyr::mutate(
         DIAB2 = factor(
@@ -214,6 +232,8 @@ harmonise_colaus <- function(df) {
         )
       )
   }
+  
+
   
   # ── Finalize: Rename and Collect ---------------------------------------------
   out <- df |>

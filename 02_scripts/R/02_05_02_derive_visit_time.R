@@ -1,7 +1,7 @@
 #TODO description
 derive_visit_time <- function(df,
                               id_var = "pt",
-                              date_var = "final_exam_date",
+                              date_var = "exam_date",
                               age_var = "Age",
                               visit_var = "visit_num",
                               time_var = "time_since_baseline",
@@ -14,7 +14,7 @@ derive_visit_time <- function(df,
         dplyr::group_by(.data[[id_var]]) |>
         dplyr::arrange(.data[[date_var]], .by_group = TRUE) |>
         dplyr::mutate(
-            "{visit_var}" := dplyr::row_number() - 1,
+            "{visit_var}" := dplyr::row_number(),
             baseline_date = first(.data[[date_var]]),
             baseline_age = first(.data[[age_var]]),
             "{time_var}" := as.numeric(

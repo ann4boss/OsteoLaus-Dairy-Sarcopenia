@@ -1,114 +1,6 @@
 # =============================================================================
 # R/mice_impute.R
 # =============================================================================
-# Numeric variables: imputed with pmm 
-.CL_PMM_VARS <- c( "BMI", "Height", "Weight", "conso_hebdo", "sumalco", 
-                   "PAFQ_MPA","PAFQ_VPA", "sumtot1", "sumprot1", "sumgluc1", 
-                   "sumlipi1", "esthrpage", "HGS_MAX",
-                   paste0("FFQ", 1:100, "amount"),
-                   paste0("freqFFQ", c(1:8, 85, 86)),
-                   paste0("FFQp",    c(1:8, 85, 86))
-                   ) 
-# Binary factor variables: imputed with logreg 
-.CL_LOGREG_VARS <- c( "dbtld", "DIAB", "DIAB_Hb", "esthrp", "antiHTA", "crbpmed", 
-                      "HTA", "miac", "strk", "chf", "cad", "angn", "cmp", "hdc", 
-                      "hdv", "artm", "vslg", "ccth", "cabg", "pcin" ) 
-# Ordered factor variables: imputed with polr 
-.CL_POLR_VARS <- c( "sbsmk", # smoking (Never / Former / Current) 
-                    "edtyp4", # education (4-level ordered) 
-                    "mrtsts2"
-) 
-# Predictor-only: included in mice data, never imputed 
-.CL_AUX_VARS <- c(
-  "alcuse", "metab_synd",
-  "antiDIAB", "hctld", "hypolip",
-  "lateralite",
-  "PAFQ_SE_pct", "PAFQ_LPA_pct",
-  "PAFQ_MPA_pct", "PAFQ_VPA_pct",
-  "sumvitd1",
-  "bmpsc", "dbdrg"
-)
-
- 
-# =============================================================================
-# Internal helpers
-# =============================================================================
-
-#' Summarise missingness for a set of variables in a wide data frame.
-#'
-#' Returns a tibble with columns: variable, n_miss, pct_miss.
-#'
-#' @param df      Wide data frame.
-#' @param vars    Character vector of column names to check.
-#' @param label   Short label used in the cli header ("Pre" or "Post").
-.missingness_summary <- function(df, vars, label = "Pre") {
-  vars_present <- intersect(vars, names(df))
-  
-  tbl <- tibble::tibble(
-    variable = vars_present,
-    n_miss   = sapply(vars_present, function(v) sum(is.na(df[[v]]))),
-    n_total  = nrow(df),
-    pct_miss = round(n_miss / n_total * 100, 1)
-  )
-  
-  cli::cli_h3("{label}-imputation missingness ({nrow(tbl)} variables)")
-  
-  any_miss <- tbl[tbl$n_miss > 0, ]
-  
-  if (nrow(any_miss) == 0) {
-    cli::cli_inform(c("v" = "No missing values in imputation targets."))
-  } else {
-    cli::cli_inform(c(
-      "i" = "{nrow(any_miss)} variable(s) with missing values:"
-    ))
-    # Print top offenders (up to 20)
-    top <- any_miss[order(-any_miss$pct_miss), ][seq_len(min(20, nrow(any_miss))), ]
-    for (i in seq_len(nrow(top))) {
-      cli::cli_inform(
-        "  {top$variable[i]}: {top$n_miss[i]} / {top$n_total[i]} ({top$pct_miss[i]}%)"
-      )
-    }
-    if (nrow(any_miss) > 20) {
-      cli::cli_inform("  ... and {nrow(any_miss) - 20} more.")
-    }
-  }
-  
-  invisible(tbl)
-}
-
-
-#' Assert that all imputed variables are NA-free across all m datasets.
-#'
-#' Emits a cli warning for each variable that still has NAs; otherwise
-#' confirms success.
-#'
-#' @param long_df  Long-format tibble from mice::complete(..., action = "long").
-#' @param vars     Character vector of (wide) column names that were imputed.
-#'                 Variables are matched against long_df by exact name after
-#'                 stripping the visit suffix.
-.assert_no_na_after_imputation <- function(long_df, imputed_base_vars) {
-  cli::cli_h3("Post-imputation NA check")
-  
-  # In long format the columns are the base variable names (no visit suffix)
-  long_imputed <- intersect(imputed_base_vars, names(long_df))
-  
-  # Only check imputed datasets (.imp > 0)
-  check_df <- long_df[long_df$.imp > 0, long_imputed, drop = FALSE]
-  
-  n_miss <- sapply(long_imputed, function(v) sum(is.na(check_df[[v]])))
-  problems <- n_miss[n_miss > 0]
-  
-  if (length(problems) == 0) {
-    cli::cli_inform(c("v" = "All {length(long_imputed)} imputed variable(s) are NA-free across all {max(long_df$.imp)} dataset(s)."))
-  } else {
-    cli::cli_warn(c(
-      "!" = "{length(problems)} imputed variable(s) still contain NAs:",
-      setNames(paste0(names(problems), ": ", problems, " NA(s)"), rep("*", length(problems)))
-    ))
-  }
-  
-  invisible(n_miss)
-}
 
 
 #' Save convergence (trace) plot and per-variable density/strip plots to PDF.
@@ -211,6 +103,62 @@
 
 
 # =============================================================================
+# Donor pool investigation — non-NA counts for all imputed variables
+# =============================================================================
+
+.investigate_donor_pool <- function(df_mice, all_imputed, min_donors = 20L) {
+  
+  donor_counts <- all_imputed |>
+    purrr::map_dfr(function(var) {
+      if (!var %in% names(df_mice)) {
+        return(tibble::tibble(
+          variable  = var,
+          n_donors  = NA_integer_,
+          n_missing = NA_integer_,
+          n_total   = NA_integer_,
+          pct_obs   = NA_real_,
+          flag      = "NOT IN DATA"
+        ))
+      }
+      x <- df_mice[[var]]
+      tibble::tibble(
+        variable  = var,
+        n_donors  = sum(!is.na(x)),
+        n_missing = sum( is.na(x)),
+        n_total   = length(x),
+        pct_obs   = round(100 * mean(!is.na(x)), 1),
+        flag      = dplyr::case_when(
+          sum(!is.na(x)) == 0        ~ "NO DONORS — cannot impute",
+          sum(!is.na(x)) < 5L        ~ "CRITICAL   < 5  donors",
+          sum(!is.na(x)) < min_donors ~ paste0("WARNING    < ", min_donors, " donors"),
+          TRUE                        ~ "ok"
+        )
+      )
+    })
+  
+  # ── Console summary ──────────────────────────────────────────────────────
+  cli::cli_h1("Donor pool investigation")
+  cli::cli_inform("Total imputed variables: {nrow(donor_counts)}")
+  cli::cli_inform("Min donor threshold: {min_donors}")
+  
+  flagged <- dplyr::filter(donor_counts, flag != "ok")
+  
+  if (nrow(flagged) == 0L) {
+    cli::cli_alert_success("All variables have >= {min_donors} donors.")
+  } else {
+    cli::cli_alert_warning("{nrow(flagged)} variable(s) below threshold:")
+    print(flagged, n = Inf)
+  }
+  
+  # ── Full table sorted by n_donors ascending ──────────────────────────────
+  cli::cli_h2("Full donor pool table (sorted by n_donors)")
+  print(dplyr::arrange(donor_counts, n_donors), n = Inf)
+  
+  invisible(donor_counts)
+}
+
+
+# =============================================================================
 # CoLaus imputation
 # =============================================================================
 
@@ -234,7 +182,7 @@
 #' @param seed     Random seed. Default 2024L.
 #' @param out_dir  Directory for diagnostic PDFs. Default "output/mice_diagnostics/colaus".
 #' @param ...      Extra arguments forwarded to mice::mice().
-#' @return List: mids, long, m, seed, imputed_vars, miss_pre, miss_post, diag_paths.
+#' @return List: mids, long, m, seed, imputed_vars, diag_paths.
 impute_mice_colaus <- function(df,
                                m       = 20L,
                                maxit   = 20L,
@@ -243,11 +191,49 @@ impute_mice_colaus <- function(df,
   
   cli::cli_h1("MICE Imputation — CoLaus (FCS-1L-wide)")
   
+  # =============================================================================
+  # Variable group definitions — updated
+  # =============================================================================
+  
+  # Numeric variables: imputed with pmm
+  # NOTE: Age REMOVED from PMM — used as predictor only, never imputed
+  .CL_PMM_VARS <- c(
+    "Height", "Weight", "conso_hebdo", "sumalco",
+    "PAFQ_MPA", "PAFQ_VPA", "sumtot1", "sumprot1", "sumgluc1",
+    "sumlipi1",
+    "esthrpage",   
+    "HGS_MAX",
+    paste0("FFQ", c(1:8, 52, 53, 63, 68, 71, 82:86), "amount"),
+    paste0("freqFFQ", c(1:8, 52, 53, 63, 68, 71, 82:86)),
+    paste0("FFQp",    c(1:8, 52, 53, 63, 68, 71, 82:86))
+  )
+  
+  # Binary factor variables: imputed with logreg
+  .CL_LOGREG_VARS <- c(
+    "dbtld", "DIAB", "DIAB_Hb", "esthrp", "antiHTA",
+    "crbpmed",      
+    "vitD_status",  
+    "calcium_status",
+    "HTA", "miac", "strk", "chf", "cad", "angn", "cmp", "hdc",
+    "hdv", "artm", "vslg", "ccth", "cabg", "pcin"
+  )
+  
+  # Ordered factor variables: imputed with polr
+  .CL_POLR_VARS <- c(
+    "sbsmk",   # smoking (Never / Former / Current)
+    "edtyp4",  # education (4-level ordered)
+    "mrtsts2"
+  )
+  
+  
+  
   # ---------------------------------------------------------------------------
   # 1. Wide reshape
   # ---------------------------------------------------------------------------
   
   visit_levels <- levels(df$.visit)
+  observed_visits <- df |>
+    dplyr::distinct(pt, .visit)
   
   df <- df |>
     dplyr::mutate(
@@ -269,7 +255,6 @@ impute_mice_colaus <- function(df,
   # ---------------------------------------------------------------------------
   # 2. Variable groups (wide names)
   # ---------------------------------------------------------------------------
-  
   make_wide <- function(vars) {
     as.vector(outer(vars, visit_levels, paste, sep = "_"))
   }
@@ -277,155 +262,334 @@ impute_mice_colaus <- function(df,
   pmm_vars    <- intersect(make_wide(.CL_PMM_VARS),    names(df_mice))
   logreg_vars <- intersect(make_wide(.CL_LOGREG_VARS), names(df_mice))
   polr_vars   <- intersect(make_wide(.CL_POLR_VARS),   names(df_mice))
-  aux_vars    <- intersect(make_wide(.CL_AUX_VARS),    names(df_mice))
+  
+  # Age: in df_mice as predictor column but NOT in all_imputed
+  # → it will stay in df_mice, method = "", pred column = 1 where needed
+  age_vars  <- intersect(make_wide("Age"), names(df_mice))
   
   id_vars   <- "pt"
   time_vars <- intersect(paste0("exam_date_num_", visit_levels), names(df_mice))
   
   all_imputed <- c(pmm_vars, logreg_vars, polr_vars)
+  # Age kept in df_mice as predictor-only — include it in the kept columns
+  all_kept    <- unique(c(id_vars, time_vars, age_vars, all_imputed))
   
-  df_mice <- df_mice[, intersect(c(id_vars, time_vars, all_imputed, aux_vars), names(df_mice)), drop = FALSE]
+  df_mice <- df_mice[, intersect(all_kept, names(df_mice)), drop = FALSE]
+  
+ 
+  #donor_summary <- .investigate_donor_pool(df_mice, all_imputed, min_donors = 20L)
   
   # ---------------------------------------------------------------------------
-  # 3. Pre-imputation missingness
+  # 3. Where matrix
   # ---------------------------------------------------------------------------
-  
-  miss_pre <- .missingness_summary(df_mice, all_imputed, label = "Pre")
-  
-  # ---------------------------------------------------------------------------
-  # 4. Where matrix
-  # ---------------------------------------------------------------------------
-  
   where <- mice::make.where(df_mice, keyword = "missing")
-  where[, intersect(aux_vars, colnames(where))] <- FALSE
   
-  # ---------------------------------------------------------------------------
-  # 5. Method vector
-  # ---------------------------------------------------------------------------
+  # sumalco at Baseline is structurally missing (not measured),
+  # not random missingness → do NOT impute those cells
+  sumalco_baseline <- intersect("sumalco_Baseline", colnames(where))
+  if (length(sumalco_baseline))
+    where[, sumalco_baseline] <- FALSE
   
+  where[age_vars[age_vars %in% rownames(where)], ] <- FALSE
+  where[,"crbpmed_F2"] <- FALSE
+  # ---------------------------------------------------------------------------
+  # 4. Method vector
+  # ---------------------------------------------------------------------------
   meth <- mice::make.method(df_mice)
   meth[] <- ""
   meth[intersect(pmm_vars,    names(meth))] <- "pmm"
   meth[intersect(logreg_vars, names(meth))] <- "logreg"
   meth[intersect(polr_vars,   names(meth))] <- "polr"
+  # Age stays "" — predictor only, never imputed
+  meth[age_vars[age_vars %in% names(meth)]] <- ""
+  meth["crbpmed_F2"] <- ""
   
   # ---------------------------------------------------------------------------
-  # 6. Predictor matrix
+  # 5. Predictor matrix
   # ---------------------------------------------------------------------------
-  
-  # Design principles:
-  # 1. No full connectivity (avoids singular matrices)
-  # 2. Within-variable longitudinal structure only
-  # 3. Within-domain blocks for correlated predictors
-  # 4. Auxiliary variables used only as predictors (not imputed)
-  # 5. Strict separation of roles (no variable appears in multiple roles)
-  # 6. No forward-time leakage across visits
-  # ---------------------------------------------------------------------------
-  
   pred <- mice::make.predictorMatrix(df_mice)
-  
-  # Start from empty matrix (manual control of all dependencies)
   pred[,] <- 0L
+  
+  VISITS <- visit_levels
+  
+  wv <- function(vars, visits = VISITS) {
+    as.vector(outer(vars, visits, paste, sep = "_"))
+  }
+  
+  set_pred <- function(pred, targets, predictors) {
+    targets    <- intersect(targets,    rownames(pred))
+    predictors <- intersect(predictors, colnames(pred))
+    pred[targets, predictors] <- 1L
+    pred
+  }
+  
+  
+  # =============================================================================
+  # 1. HEIGHT
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("Height"),
+                   predictors = wv(c(
+                     "Age",               
+                     "Weight"
+                   )))
+  
+  # =============================================================================
+  # 2. WEIGHT
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("Weight"),
+                   predictors = wv(c(
+                     "Age", 
+                     "Height",
+                     "sbsmk", "edtyp4",
+                     "DIAB", "HTA",
+                     "PAFQ_MPA", "conso_hebdo"
+                   )))
+  
+  # =============================================================================
+  # 3. ALCOHOL  —  conso_hebdo, sumalco
+  # sumalco_Baseline stays NA (structural), but sumalco F1/F2/F3 are imputed
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv(c("conso_hebdo", "sumalco")),
+                   predictors = wv(c(
+                     "conso_hebdo", "sumalco",
+                     "Age",
+                     "sbsmk", "edtyp4", "mrtsts2",
+                     "DIAB", "HTA"
+                   )))
+  
+  # =============================================================================
+  # 4. PHYSICAL ACTIVITY  —  PAFQ_MPA, PAFQ_VPA
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv(c("PAFQ_MPA", "PAFQ_VPA")),
+                   predictors = wv(c(
+                     "PAFQ_MPA", "PAFQ_VPA",
+                     "Age", "Weight",
+                     "sbsmk", "edtyp4",
+                     "HGS_MAX",
+                     "cad", "chf"
+                   )))
+  
+  # =============================================================================
+  # 5. DIET TOTALS  —  sumtot1, sumprot1, sumgluc1, sumlipi1
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv(c("sumtot1","sumprot1","sumgluc1","sumlipi1")),
+                   predictors = wv(c(
+                     "Age", "Weight", "edtyp4",
+                     "sbsmk",
+                     "DIAB", "conso_hebdo"
+                   )))
+  
+  # =============================================================================
+  # 6. HAND-GRIP STRENGTH  —  HGS_MAX
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("HGS_MAX"),
+                   predictors = wv(c(
+                     "HGS_MAX",
+                     "Height", "Weight",
+                     "PAFQ_MPA",
+                     "DIAB", "HTA",
+                     "sbsmk", "edtyp4"
+                   )))
+  
+  # =============================================================================
+  # 7. FFQ — per-item: amount, frequency, proportion
+  # =============================================================================
+  FFQ_ITEMS <- c(1:8, 52, 53, 63, 68, 71, 82:86)
+  
+  for (item in FFQ_ITEMS) {
+    amt_var  <- paste0("FFQ",     item, "amount")
+    freq_var <- paste0("freqFFQ", item)
+    prop_var <- paste0("FFQp",    item)
+    
+    item_pred <- c(
+      "sumtot1",
+      "Age", "Weight",
+      "sbsmk"
+    )
+    
+    pred <- set_pred(pred,
+                     targets    = wv(c(amt_var, freq_var, prop_var)),
+                     predictors = wv(item_pred))
+  }
+  
+  # =============================================================================
+  # 8. DIABETES CLUSTER  —  dbtld, DIAB, DIAB_Hb
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv(c("dbtld","DIAB","DIAB_Hb")),
+                   predictors = wv(c(
+                     "dbtld", "DIAB", "DIAB_Hb",
+                      "Weight",
+                     "HTA", "sbsmk",
+                     "sumgluc1", "conso_hebdo"
+                   )))
+  
+  # =============================================================================
+  # 9. HYPERTENSION  —  HTA, antiHTA
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv(c("HTA","antiHTA")),
+                   predictors = wv(c(
+                     "HTA", "antiHTA",
+                     "Age", "Weight",
+                     "DIAB", "sbsmk",
+                     "cad", "strk",
+                     "conso_hebdo"
+                   )))
+  
+  # =============================================================================
+  # 10. HRT  —  esthrp, esthrpage 
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("esthrp"),
+                   predictors = wv(c(
+                     "Age", "mrtsts2",
+                     "sbsmk", "edtyp4",
+                     "HTA", "DIAB",
+                     "cad"
+                   )))
+  
+  pred <- set_pred(pred,
+                   targets    = wv("esthrpage"),
+                   predictors = wv(c(
+                     "Age", "mrtsts2",
+                     "sbsmk",
+                     "HTA", "DIAB"
+                   )))
+  
+  # =============================================================================
+  # 11. crbpmed  —  (added, binary logreg)
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("crbpmed"),
+                   predictors = wv(c(
+                     "crbpmed",
+                     "Weight",
+                     "HTA", "DIAB",
+                     "antiHTA", "sbsmk",
+                     "cad", "strk"
+                   )))
+  
+  # =============================================================================
+  # 12. vitD_status  —  (added, binary logreg)
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("vitD_status"),
+                   predictors = wv(c(
+                     "vitD_status",
+                     "Age", "Weight",
+                     "sbsmk", "edtyp4",
+                     "calcium_status"
+                   )))
+  
+  # =============================================================================
+  # 13. calcium_status  —  (added, binary logreg)
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("calcium_status"),
+                   predictors = wv(c(
+                     "calcium_status",
+                     "Age",
+                     "sbsmk", "edtyp4",
+                     "vitD_status",           
+                     "sumtot1"             
+                   )))
+  
+  # =============================================================================
+  # 14. HARD CVD EVENTS  —  miac, strk, chf, cad, angn
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv(c("miac","strk","chf","cad","angn")),
+                   predictors = wv(c(
+                     "miac", "strk", "chf", "cad", "angn",
+                     "Age", "DIAB",
+                     "HTA", "sbsmk"
+                   )))
+  
+  # =============================================================================
+  # 15. PROCEDURES  —  cmp, hdc, hdv, artm, vslg, ccth, cabg, pcin
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv(c("cmp","hdc","hdv","artm","vslg","ccth","cabg","pcin")),
+                   predictors = wv(c(
+                     "cmp", "hdc", "cabg",
+                     "cad", "miac", "chf",
+                     "Age", "DIAB", "HTA"
+                   )))
+  
+  # =============================================================================
+  # 16. SMOKING  —  sbsmk (polr)
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("sbsmk"),
+                   predictors = wv(c(
+                     "sbsmk",
+                     "Age", "edtyp4", "mrtsts2",
+                     "conso_hebdo",
+                     "HTA", "cad",
+                     "PAFQ_MPA"
+                   )))
+  
+  # =============================================================================
+  # 17. EDUCATION  —  edtyp4 (polr, quasi time-invariant)
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("edtyp4"),
+                   predictors = wv(c(
+                     "edtyp4",
+                     "Age", "mrtsts2",
+                     "sbsmk",
+                     "HGS_MAX",
+                     "PAFQ_MPA", "conso_hebdo"
+                   )))
+  
+  # =============================================================================
+  # 18. MARITAL STATUS  —  mrtsts2 (polr)
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = wv("mrtsts2"),
+                   predictors = wv(c(
+                     "mrtsts2",
+                     "Age", "edtyp4",
+                     "sbsmk",
+                     "HTA", "DIAB",
+                     "strk", "chf"
+                   )))
+  
+  # ---------------------------------------------------------------------------
+  # ENFORCE: Age rows never imputed → rows stay 0
+  # ENFORCE: diagonal = 0
+  # ---------------------------------------------------------------------------
+  pred[intersect(age_vars, rownames(pred)), ] <- 0L
   diag(pred) <- 0L
   
   
-  # ---------------------------------------------------------------------------
-  # Helper: create symmetric within-block prediction
-  # ---------------------------------------------------------------------------
-  add_block <- function(vars) {
-    vars <- intersect(vars, colnames(pred))
-    if (length(vars) > 1) {
-      pred[vars, vars] <<- 1L
-      diag(pred[vars, vars]) <<- 0L
-    }
-  }
-  
-  
-  # ---------------------------------------------------------------------------
-  # Longitudinal structure (same variable across visits)
-  # ---------------------------------------------------------------------------
-  base_vars <- c(.CL_PMM_VARS, .CL_LOGREG_VARS, .CL_POLR_VARS)
-  
-  add_longitudinal <- function(base) {
-    vars <- intersect(paste0(base, "_", visit_levels), colnames(pred))
-    add_block(vars)
-  }
-  
-  lapply(base_vars, add_longitudinal)
-  
-  
-  # ---------------------------------------------------------------------------
-  # Domain-based predictor blocks (cross-sectional structure)
-  # ---------------------------------------------------------------------------
-  
-  # Anthropometrics (keep tightly linked)
-  add_block(c("BMI", "Weight", "Height"))
-  
-  # Physical activity block
-  add_block(c("PAFQ_MPA", "PAFQ_VPA", "PAFQ_SE", "mnwlk", "phyact"))
-  
-  # Clinical binary disease block
-  add_block(.CL_LOGREG_VARS)
-  
-  # Ordinal variables
-  add_block(.CL_POLR_VARS)
-  
-  # Dietary FFQ block (high-dimensional, but internally consistent)
-  ffq_vars <- c(
-    paste0("FFQ", 1:100, "amount"),
-    paste0("freqFFQ", c(1:8, 85, 86)),
-    paste0("FFQp", c(1:8, 85, 86))
-  )
-  
-  add_block(ffq_vars)
-  
-  
-  # ---------------------------------------------------------------------------
-  # Auxiliary variables (predictors only, NOT imputed)
-  # ---------------------------------------------------------------------------
-  aux_cols <- intersect(.CL_AUX_VARS, colnames(pred))
-  
-  # Allow aux variables to predict everything
-  pred[, aux_cols] <- 1L
-  
-  # Prevent imputation of auxiliary variables themselves
-  pred[aux_cols, ] <- 0L
-  
-  
-  # ---------------------------------------------------------------------------
-  # ID and time variables (structural predictors only)
-  # ---------------------------------------------------------------------------
-  # These help stabilize models but are never imputed
-  pred[, id_vars] <- 1L
-  pred[, time_vars] <- 1L
-  
-  
-  # ---------------------------------------------------------------------------
-  # Prevent forward-time leakage within longitudinal variables
-  # ---------------------------------------------------------------------------
-  restrict_time <- function(base) {
-    vars <- intersect(paste0(base, "_", visit_levels), colnames(pred))
-    if (length(vars) < 2) return(NULL)
-    
-    idx <- match(vars, colnames(pred))
-    
-    for (k in seq_along(idx)) {
-      later <- idx[(k + 1):length(idx)]
-      later <- later[!is.na(later)]
-      
-      if (length(later)) {
-        pred[idx[k], later] <<- 0L
-      }
-    }
-  }
-  
-  lapply(base_vars, restrict_time)
-  
+
+  cat("\nPredictor matrix created successfully!\n")
+  cat("Dimensions:", nrow(pred), "x", ncol(pred), "\n")
+  cat("Density:", sum(pred) / (nrow(pred)^2 - nrow(pred)), "\n")
   # ---------------------------------------------------------------------------
   # 7. Visit sequence
   # ---------------------------------------------------------------------------
   
   visit_seq <- mice::make.visitSequence(data = df_mice)
+  
+  post <- mice::make.post(df_mice)
+  
+  sumtot1_wide_cols <- intersect(
+    paste0("sumtot1_", visit_levels),
+    names(df_mice)
+  )
+  
+  for (col in sumtot1_wide_cols) {
+    post[col] <- "imp[[j]][,i] <- squeeze(imp[[j]][,i], c(500, 4200))"
+  }
   
   # ---------------------------------------------------------------------------
   # 8. Run MICE
@@ -442,7 +606,11 @@ impute_mice_colaus <- function(df,
     predictorMatrix = pred,
     where           = where,
     visitSequence   = visit_seq,
-    printFlag       = FALSE
+    post            = post,
+    ridge           = 1e-5, 
+    eps             = 1e-4,
+    printFlag       = FALSE,
+    donors = 10L
   )
   
   # ---------------------------------------------------------------------------
@@ -457,6 +625,13 @@ impute_mice_colaus <- function(df,
                    exam_date_iso = as.Date(exam_date_num, origin = "1970-01-01") ) |>
     dplyr::select(-dplyr::starts_with("exam_date_num")) 
   
+  # delete visit rows that were introduced and did not occur in real life
+  long_df <- long_df |>
+    dplyr::inner_join(
+      observed_visits,
+      by = c("pt", ".visit")
+    )
+
   
   key_cols <- c("pt", ".visit") 
   orig_key <- dplyr::select(df, pt, .visit, dplyr::everything()) 
@@ -470,6 +645,7 @@ impute_mice_colaus <- function(df,
       ) 
   }
   
+  
   # ---------------------------------------------------------------------------
   # 10. Post-imputation diagnostics
   # ---------------------------------------------------------------------------
@@ -477,12 +653,6 @@ impute_mice_colaus <- function(df,
   # Base variable names (strip visit suffix) for long-format NA check
   base_imputed <- unique(c(.CL_PMM_VARS, .CL_LOGREG_VARS, .CL_POLR_VARS))
   
-  # Missingness in completed dataset (imp == 1 as representative)
-  comp1     <- mice::complete(mids_obj, 1)
-  miss_post <- .missingness_summary(comp1, all_imputed, label = "Post")
-  
-  # Assert no NAs remain in imputed variables across all datasets
-  .assert_no_na_after_imputation(long_df, base_imputed)
   
   # Convergence + density + strip plots saved to disk
   diag_paths <- .save_diagnostics(mids_obj, out_dir, label = "colaus")
@@ -492,13 +662,12 @@ impute_mice_colaus <- function(df,
   # ---------------------------------------------------------------------------
   
   list(
+    df_wide      = df_mice,
     mids         = mids_obj,
     long         = long_df,
     m            = m,
     seed         = seed,
     imputed_vars = all_imputed,
-    miss_pre     = miss_pre,
-    miss_post    = miss_post,
     diag_paths   = diag_paths
   )
 }
@@ -524,7 +693,7 @@ impute_mice_colaus <- function(df,
 #' @param seed     Random seed. Default 2024L.
 #' @param out_dir  Directory for diagnostic PDFs. Default "output/mice_diagnostics/osteo".
 #' @param ...      Extra arguments forwarded to mice::mice().
-#' @return List: mids, long, m, seed, imputed_vars, miss_pre, miss_post, diag_paths.
+#' @return List: mids, long, m, seed, imputed_vars, diag_paths.
 impute_mice_osteo <- function(df,
                               m       = 20L,
                               maxit   = 20L,
@@ -537,6 +706,8 @@ impute_mice_osteo <- function(df,
   # 1. Wide reshape
   # ---------------------------------------------------------------------------
   
+  observed_visits <- df |>
+    dplyr::distinct(pt, .visit)
   visit_levels <- levels(df$.visit)
   
   wide <- df |>
@@ -578,11 +749,7 @@ impute_mice_osteo <- function(df,
   
   df_mice <- df_mice[, intersect(c(id_vars, time_vars, all_imputed), names(df_mice)), drop = FALSE]
   
-  # ---------------------------------------------------------------------------
-  # 3. Pre-imputation missingness
-  # ---------------------------------------------------------------------------
-  
-  miss_pre <- .missingness_summary(df_mice, all_imputed, label = "Pre")
+  #donor_summary <- .investigate_donor_pool(df_mice, all_imputed, min_donors = 20L)
   
   # ---------------------------------------------------------------------------
   # 4. Where matrix
@@ -618,8 +785,6 @@ impute_mice_osteo <- function(df,
     }
   }
   
-  add_longitudinal(weight_vars)
-  add_longitudinal(height_vars)
   add_longitudinal(larm12_vars); add_longitudinal(larm35_vars)
   add_longitudinal(rarm12_vars); add_longitudinal(rarm35_vars)
   add_longitudinal(lleg12_vars); add_longitudinal(lleg35_vars)
@@ -645,26 +810,20 @@ impute_mice_osteo <- function(df,
     if (length(r) && length(c)) pred[r, c] <- 1L
   }
   
-  restrict_time <- function(vars) {
-    vars <- intersect(vars, colnames(pred))
-    for (i in seq_along(vars)) {
-      for (j in seq_along(vars)) {
-        if (j > i) {
-          r <- vars[i]; cc <- vars[j]
-          if (r %in% rownames(pred) && cc %in% colnames(pred))
-            pred[r, cc] <<- 0L
-        }
-      }
-    }
-  }
+  height_rows <- intersect(height_vars, rownames(pred))
+  height_pred  <- intersect(
+    c(weight_vars, alm35_vars, gs_vars, hgs_vars),
+    colnames(pred)
+  )
+  if (length(height_rows) && length(height_pred))
+    pred[height_rows, height_pred] <- 1L
   
-  restrict_time(weight_vars); restrict_time(height_vars)
-  restrict_time(larm12_vars); restrict_time(larm35_vars)
-  restrict_time(rarm12_vars); restrict_time(rarm35_vars)
-  restrict_time(lleg12_vars); restrict_time(lleg35_vars)
-  restrict_time(rleg12_vars); restrict_time(rleg35_vars)
-  
+ 
   pred[intersect(c(id_vars, time_vars), rownames(pred)), ] <- 0L
+  
+  cat("\nPredictor matrix created successfully!\n")
+  cat("Dimensions:", nrow(pred), "x", ncol(pred), "\n")
+  cat("Density:", sum(pred) / (nrow(pred)^2 - nrow(pred)), "\n")
   
   # ---------------------------------------------------------------------------
   # 7. Visit sequence
@@ -687,7 +846,10 @@ impute_mice_osteo <- function(df,
     predictorMatrix = pred,
     where           = where,
     visitSequence   = visit_seq,
-    printFlag       = FALSE
+    ridge           = 1e-4, 
+    eps             = 1e-4,
+    printFlag       = FALSE,
+    donors = 10L
   )
   
   # ---------------------------------------------------------------------------
@@ -713,6 +875,14 @@ impute_mice_osteo <- function(df,
   # 9b. Reattach non-imputed variables
   # ---------------------------------------------------------------------------
   
+  # delete visit rows that were introduced and did not occure in real life
+  long_df <- long_df |>
+    dplyr::inner_join(
+      observed_visits,
+      by = c("pt", ".visit")
+    )
+  
+  
   key_cols      <- c("pt", ".visit")
   orig_key      <- dplyr::select(df, pt, .visit, dplyr::everything())
   existing_cols <- names(long_df)
@@ -736,11 +906,6 @@ impute_mice_osteo <- function(df,
                     "LLEG_LEAN_MASS", "RLEG_LEAN_MASS",
                     "gait_speed", "HGS_MAX")
   
-  comp1     <- mice::complete(mids_obj, 1)
-  miss_post <- .missingness_summary(comp1, all_imputed, label = "Post")
-  
-  .assert_no_na_after_imputation(long_df, base_imputed)
-  
   diag_paths <- .save_diagnostics(mids_obj, out_dir, label = "osteo")
   
   # ---------------------------------------------------------------------------
@@ -748,13 +913,12 @@ impute_mice_osteo <- function(df,
   # ---------------------------------------------------------------------------
   
   list(
+    df_wide      = df_mice,
     mids         = mids_obj,
     long         = long_df,
     m            = m,
     seed         = seed,
     imputed_vars = all_imputed,
-    miss_pre     = miss_pre,
-    miss_post    = miss_post,
     diag_paths   = diag_paths
   )
 }

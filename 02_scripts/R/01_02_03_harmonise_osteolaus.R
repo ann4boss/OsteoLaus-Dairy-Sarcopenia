@@ -36,6 +36,18 @@
 
 .DROP_COLS <- c("SCAN_date", "id_pat", "PATIENT_KEY")
 
+.ZERO_TO_NA <- c(
+    "Age", "Height", "Weight",
+    "HGS_MAX",
+    "HEAD_LEAN_MASS",
+    "LARM_LEAN_MASS",  "RARM_LEAN_MASS",  "ARMS_LEAN_MASS",
+    "LLEG_LEAN_MASS",  "RLEG_LEAN_MASS",  "LEGS_LEAN_MASS",
+    "TRUNK_LEAN_MASS", "LTRUNK_LEAN_MASS", "RTRUNK_LEAN_MASS",
+    "SUBTOT_LEAN_MASS", "WBTOT_LEAN_MASS",
+    "LTOTAL_LEAN_MASS", "RTOTAL_LEAN_MASS",
+    "ANDROID_LEAN_MASS", "GYNOID_LEAN_MASS", "AND_plus_GYN_LEAN_MASS",
+    "6MGS"
+)
 
 # -----------------------------------------------------------------------------
 # Main function
@@ -86,6 +98,14 @@ harmonise_osteo <- function(df) {
             dplyr::across(
                 dplyr::any_of(.OSTEO_NUMERIC_COLS),
                 ~ safe_numeric(.x, dplyr::cur_column())
+            )
+        ) |>
+        
+        # change impossible zeros (or very small values) to NA
+        dplyr::mutate(
+            dplyr::across(
+                dplyr::any_of(.ZERO_TO_NA),
+                ~ dplyr::if_else(abs(.x) < 1e-6, NA_real_, .x)
             )
         ) |>
         

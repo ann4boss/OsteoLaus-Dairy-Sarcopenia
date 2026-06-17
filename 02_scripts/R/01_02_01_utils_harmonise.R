@@ -145,7 +145,7 @@ yn_factor <- function(x, sentinel = c("8", "9"))
 
 #' Apply SENTINEL_NUMERIC to all matching columns in a data frame.
 #'
-#' Iterates over SENTINEL_NUMERIC (defined in 00_constants.R). For each entry
+#' Iterates over SENTINEL_NUMERIC. For each entry
 #' whose column is present in df (after prefix-stripping), replaces the
 #' sentinel integer value(s) with NA_real_. This is called at the end of each
 #' harmonise_*() function so it operates on base column names.

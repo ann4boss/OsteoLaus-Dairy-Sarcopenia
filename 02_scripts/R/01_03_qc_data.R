@@ -48,7 +48,6 @@ qc <- function(harmonised_list) {
                 )
         }) |>
         dplyr::bind_rows() |>
-        dtplyr::lazy_dt() |>
         dplyr::arrange(pt, .cohort, .visit)
     
     # ── Initialize basic QC flags  -----------------------------------------

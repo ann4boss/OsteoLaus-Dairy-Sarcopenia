@@ -53,42 +53,39 @@ derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
         dplyr::mutate(
         
         ewgsop2_low_strength = dplyr::case_when(
-            is.na(.data$HGS_MAX) ~ NA,
-            .data$HGS_MAX < ewgsop2$hgs_kg ~ TRUE,
+            is.na(HGS_MAX) ~ NA,
+            HGS_MAX < ewgsop2$hgs_kg ~ TRUE,
             TRUE ~ FALSE
         ),
         
-        ewgsop2_low_mass = dplyr::case_when(
-            is.na(.data$ALM_HT2_harmonised) ~ NA,
-            .data$ALM_HT2 < ewgsop2$almi_kgm2 ~ TRUE,
-        ),
+        
         
         ewgsop2_low_mass = dplyr::case_when(
-            is.na(.data$ALM_HT2_harmonised) ~ NA,
-            .data$ALM_HT2_harmonised < ewgsop2$almi_kgm2 ~ TRUE,
+            is.na(ALM_HT2_harmonised) ~ NA,
+            ALM_HT2_harmonised < ewgsop2$almi_kgm2 ~ TRUE,
             TRUE ~ FALSE
         ),
         
         ewgsop2_low_perf = dplyr::case_when(
-            is.na(.data$gait_speed) ~ NA,
-            .data$gait_speed <= ewgsop2$gait_ms ~ TRUE,
+            is.na(gait_speed) ~ NA,
+            gait_speed <= ewgsop2$gait_ms ~ TRUE,
             TRUE ~ FALSE
         ),
         
         ewgsop2_sarcopenia_stage = dplyr::case_when(
             
-            is.na(.data$ewgsop2_low_strength) ~ NA_integer_,
+            is.na(ewgsop2_low_strength) ~ NA_integer_,
             
-            .data$ewgsop2_low_strength %in% TRUE &
-                .data$ewgsop2_low_mass %in% TRUE &
-                .data$ewgsop2_low_perf %in% TRUE ~ 3L,
+            ewgsop2_low_strength %in% TRUE &
+            ewgsop2_low_mass %in% TRUE &
+            ewgsop2_low_perf %in% TRUE ~ 3L,
             
-            .data$ewgsop2_low_strength %in% TRUE &
-                .data$ewgsop2_low_mass %in% TRUE ~ 2L,
+            ewgsop2_low_strength %in% TRUE &
+            ewgsop2_low_mass %in% TRUE ~ 2L,
             
-            .data$ewgsop2_low_strength %in% TRUE ~ 1L,
+            ewgsop2_low_strength %in% TRUE ~ 1L,
             
-            .data$ewgsop2_low_strength %in% FALSE ~ 0L,
+            ewgsop2_low_strength %in% FALSE ~ 0L,
             
             TRUE ~ NA_integer_
         ) |>
@@ -100,31 +97,31 @@ derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
                     "Confirmed",
                     "Severe"
                 ),
-                ordered = TRUE
+                ordered = FALSE
             ),
         
         fnih_low_strength = dplyr::case_when(
-            is.na(.data$HGS_MAX) ~ NA,
-            .data$HGS_MAX < fnih$hgs_kg ~ TRUE,
+            is.na(HGS_MAX) ~ NA,
+            HGS_MAX < fnih$hgs_kg ~ TRUE,
             TRUE ~ FALSE
         ),
         
         fnih_low_mass = dplyr::case_when(
-            is.na(.data$ALM_BMI) ~ NA,
-            .data$ALM_BMI < fnih$alm_bmi ~ TRUE,
+            is.na(ALM_BMI_harmonised) ~ NA,
+            ALM_BMI_harmonised < fnih$alm_bmi ~ TRUE,
             TRUE ~ FALSE
         ),
         
         fnih_sarcopenia = dplyr::case_when(
             
-            is.na(.data$fnih_low_strength) |
-                is.na(.data$fnih_low_mass) ~ NA_character_,
+            is.na(fnih_low_strength) |
+                is.na(fnih_low_mass) ~ NA_character_,
             
-            .data$fnih_low_strength %in% TRUE &
-                .data$fnih_low_mass %in% TRUE ~ "Sarcopenia",
+            fnih_low_strength %in% TRUE &
+            fnih_low_mass %in% TRUE ~ "Sarcopenia",
             
-            .data$fnih_low_strength %in% FALSE |
-                .data$fnih_low_mass %in% FALSE ~ "No sarcopenia",
+            fnih_low_strength %in% FALSE |
+            fnih_low_mass %in% FALSE ~ "No sarcopenia",
             
             TRUE ~ NA_character_
         ) |>
@@ -132,7 +129,8 @@ derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
                 levels = c(
                     "No sarcopenia",
                     "Sarcopenia"
-                )
+                ),
+                ordered = FALSE
             )
     )
     
@@ -142,11 +140,11 @@ derive_sarcopenia <- function(df, ewgsop2 = EWGSOP2, fnih = FNIH) {
             n_total = dplyr::n(),
             
             n_staged = sum(
-                !is.na(.data$ewgsop2_sarcopenia_stage)
+                !is.na(ewgsop2_sarcopenia_stage)
             ),
             
             n_sarcopenic = sum(
-                .data$ewgsop2_sarcopenia_stage %in%
+                ewgsop2_sarcopenia_stage %in%
                     c("Confirmed", "Severe"),
                 na.rm = TRUE
             ),

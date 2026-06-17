@@ -223,10 +223,7 @@ derive_dairy_cumavg <- function(df,
     } else if (!is.numeric(df[[visit_col]])) {
         
         cli::cli_warn(c(
-            "x" = paste0(
-                visit_col,
-                " must be numeric or factor."
-            )
+            "x" = paste0(visit_col, " must be numeric or factor.")
         ))
         
         return(df)
@@ -235,8 +232,7 @@ derive_dairy_cumavg <- function(df,
     # ── Helper ---------------------------------------------------------------
     cumulative_mean_na <- function(x) {
         
-        out <- numeric(length(x))
-        
+        out         <- numeric(length(x))
         running_sum <- 0
         running_n   <- 0
         
@@ -247,11 +243,7 @@ derive_dairy_cumavg <- function(df,
                 running_n   <- running_n + 1
             }
             
-            out[i] <- if (running_n == 0) {
-                NA_real_
-            } else {
-                running_sum / running_n
-            }
+            out[i] <- if (running_n == 0) NA_real_ else running_sum / running_n
         }
         
         out
@@ -264,16 +256,14 @@ derive_dairy_cumavg <- function(df,
             .data[[id_col]],
             .data[[visit_col]]
         ) |>
-        dplyr::group_by(.data[[id_col]])
-    
-    for (v in .DAIRY_VARS) {
-        
-        cumavg <- cumulative_mean_na(df[[v]])
-        
-        df[[paste0(v, "_cumavg")]] <- cumavg
-    }
-    
-    df <- df |>
+        dplyr::group_by(.data[[id_col]]) |>
+        dplyr::mutate(
+            dplyr::across(
+                dplyr::all_of(.DAIRY_VARS),
+                cumulative_mean_na,
+                .names = "{.col}_cumavg"
+            )
+        ) |>
         dplyr::ungroup() |>
         dplyr::arrange(.row_order) |>
         dplyr::select(-.row_order)
@@ -297,9 +287,7 @@ derive_dairy_cumavg <- function(df,
         )
     ))
     
-    cli::cli_dl(
-        setNames(as.list(valid_counts), new_cols)
-    )
+    cli::cli_dl(setNames(as.list(valid_counts), new_cols))
     
     return(df)
 }

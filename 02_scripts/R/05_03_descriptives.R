@@ -8,7 +8,7 @@
 descriptive_config <- list(
     
     id_var = "pt",
-    visit_var = ".visit_osteo",
+    visit_var = "time_point",
     
     continuous_vars = c(
         "Age", "Height", "Weight", "BMI",

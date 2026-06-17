@@ -613,7 +613,7 @@ make_table_one <- function(analysis_long,
 make_table_one_by_exposure <- function(analysis_long,
                                        by      = "baseline_dairy_quartile",
                                        id      = "pt",
-                                       visit   = ".visit_osteo",
+                                       visit   = "time_point",
                                        imp_col = ".imp") {
     if (is_imputed(analysis_long)) {
         long      <- .to_long(analysis_long, imp_col)

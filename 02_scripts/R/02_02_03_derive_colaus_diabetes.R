@@ -27,8 +27,7 @@
 #     - At least one source explicitly indicates "No"
 #
 # Missing:
-#   - All source variables are missing OR
-#   - Conflicting / insufficient evidence under the above rules
+#   - All source variables are missing
 #
 # VALIDATION OUTPUT
 #   The function reports:
@@ -82,16 +81,11 @@ derive_diabetes <- function(df) {
                 (!is.na(DIAB_Hb) & DIAB_Hb == "No"),
             
             # --- MAIN DERIVATION ---
-            diabetes_status_num = dplyr::case_when(
-                # YES (hierarchy)
-                is_yes_DIAB_Hb ~ 1L,
-                !is_avail_DIAB_Hb & is_yes_DIAB ~ 1L,
-                !is_avail_DIAB_Hb & !is_avail_DIAB & is_yes_dbtld ~ 1L,
-                
-                # NO (strict rule)
-                n_sources_available > 0 & !any_yes & any_no ~ 0L,
-                
-                TRUE ~ NA_integer_
+            diabetes_status_num = case_when(
+              !is.na(DIAB_Hb) ~ if_else(DIAB_Hb == "Yes", 1L, 0L),
+              !is.na(DIAB)    ~ if_else(DIAB == "Yes", 1L, 0L),
+              !is.na(dbtld)   ~ if_else(dbtld == "Yes", 1L, 0L),
+              TRUE ~ NA_integer_
             )
         ) |>
         dplyr::mutate(

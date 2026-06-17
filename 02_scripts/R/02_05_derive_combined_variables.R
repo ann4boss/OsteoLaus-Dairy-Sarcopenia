@@ -79,8 +79,8 @@ derive_combined <- function(data, imputed = NULL) {
     out <- purrr::map(imp_ids, function(i) {
         
         long_df |>
-            dplyr::filter(.data$.imp == i) |>
-            dplyr::select(-.data$.imp, -dplyr::any_of(".id")) |>
+            dplyr::filter(.imp == i) |>
+            dplyr::select(-.imp, -dplyr::any_of(".id")) |>
             .derive_chain_combined() |>
             dplyr::mutate(.imp = i, .before = 1L)
     }) |>
@@ -88,3 +88,4 @@ derive_combined <- function(data, imputed = NULL) {
     
     dplyr::as_tibble(out)
 }
+

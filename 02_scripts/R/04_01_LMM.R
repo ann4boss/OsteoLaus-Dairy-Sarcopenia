@@ -4,12 +4,23 @@
 exposure_definitions <- tibble::tribble(
     ~exposure,                  ~exposure_type, ~ref_level,
     
-    "dairy_total_gday",         "linear",       NA,
-    "dairy_total_gday",         "rcs",          NA,
+    "dairy_total_gday_cumavg",         "linear",       NA,
+    "dairy_total_gday_cumavg",         "rcs",          NA,
     
     "dairy_quartile_baseline",  "categorical",  "Q1",
     
     "dairy_guidelines_port",    "categorical",  "< 2 servings/day"
+)
+
+exposure_definitions_gait <- tibble::tribble(
+    ~exposure,                  ~exposure_type, ~ref_level,
+    
+    "dairy_total_gday_cumavg_lag",         "linear",       NA,
+    "dairy_total_gday_cumavg_lag",         "rcs",          NA,
+    
+    "dairy_quartile_baseline_lag",  "categorical",  "Q1",
+    
+    "dairy_guidelines_port_lag",    "categorical",  "< 2 servings/day"
 )
 
 
@@ -135,7 +146,7 @@ build_formula <- function(outcome, exposure, exposure_type, covariates,
         linear      = exposure,
         quartile    = exposure,
         categorical = paste0("factor(", exposure, ")"),
-        rcs         = paste0("rms::rcs(", exposure, ", 4)"),
+        rcs         = paste0("rms::rcs(", exposure, ", 3)"),
         ns          = paste0("splines::ns(", exposure, ", df = 3)"),
         stop("Unknown exposure_type: ", exposure_type)
     )

@@ -41,7 +41,7 @@
         derive_age()            |>
         derive_food_groups()    |>
         derive_htn()            
-        
+    
 }
 
 .derive_chain_osteo <- function(df) {
@@ -72,8 +72,8 @@
     }
     
     cohorts <- df |>
-        dplyr::distinct(.data$.cohort) |>
-        dplyr::pull(.data$.cohort)
+        dplyr::distinct(.cohort) |>
+        dplyr::pull(.cohort)
     
     stats::na.omit(cohorts)
 }
@@ -123,8 +123,8 @@
     out <- purrr::map(imp_ids, function(i) {
         cli::cli_inform("  [{i}/{mice_result$m}] deriving ...")
         long_df |>
-            dplyr::filter(.data$.imp == i) |>
-            dplyr::select(-.data$.imp)     |>
+            dplyr::filter(.imp == i) |>
+            dplyr::select(-.imp)     |>
             .derive_single()               |>
             dplyr::mutate(.imp = i, .before = 1L)
     }) |>
@@ -179,3 +179,5 @@ derive <- function(data, imputed = NULL) {
         dplyr::as_tibble(.derive_single(data))
     }
 }
+
+

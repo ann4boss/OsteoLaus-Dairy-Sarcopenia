@@ -26,20 +26,22 @@
     "hrt_status", "hypolip_drug_status", "corticoids_status", "vitD_status",
     "calcium_status", "benzo_status", "bisphosphonate_status",
     # Diet
-    "sumtot1", "sumprot1", "sumgluc1", "sumlipi1",
+    "sumtot1", 
+    #"sumprot1", "sumgluc1", "sumlipi1",
     "dairy_total_gday", "dairy_fermented_gday", "dairy_non_fermented_gday",
     "dairy_lowfat_gday", "dairy_highfat_gday",
     "dairy_guidelines_port",
     "dairy_quartile_baseline",
-    "dairy_total_gday_cumavg",
-    "animal_protein_gday","plant_protein_gday" ,"veg_gday", "fru_gday", "grains_gday", "fats_gday",
-    "processed_gday",
+    "dairy_total_gday_cumavg","dairy_fermented_gday_cumavg", "dairy_non_fermented_gday_cumavg",
+    "dairy_lowfat_gday_cumavg", "dairy_highfat_gday_cumavg",
+    #"animal_protein_gday","plant_protein_gday" ,"veg_gday", "fru_gday", "grains_gday", "fats_gday",
+    #"processed_gday",
     
     # Outcomes
-    "HGS_MAX", "gait_speed",
-    "ALM", "ALM_HT2", "ALM_BMI", "ALM_WT", "DXA_method",
-    "ALM_harmonised", "ALM_HT2_harmonised", "ALM_BMI_harmonised", "ALM_WT_harmonised",
-    "ALM_Lunar", "ALM_Hology", "ALM_HT2_Lunar", "ALM_HT2_Hology"
+    "HGS_MAX", "gait_speed", "ALM_HT2_harmonised", "ALM_BMI_harmonised"
+    #,"ALM_harmonised", "ALM_WT_harmonised",
+    #"ALM_Lunar", "ALM_Hologic", "ALM_HT2_Lunar", "ALM_HT2_Hologic",
+    #"ALM", "ALM_HT2", "ALM_BMI", "ALM_WT", "DXA_method"
 )
 
 
