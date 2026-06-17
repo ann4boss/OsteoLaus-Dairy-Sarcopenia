@@ -17,64 +17,89 @@
 #   else osteo_ fallback). OsteoLaus-only columns (e.g. ALM): kept as-is.
 #   .visit and .cohort are dropped from the final dataset.
 #
-# @param colaus    data.frame / data.table. Required: pt, exam_date_iso, .visit
-#                  (.visit values: "F1", "F2", "F3").
-# @param osteolaus data.frame / data.table. Required: pt, exam_date_iso, .visit
-#                  (.visit values: "Baseline", "V2", "V3", "V4", "V5").
-# @param imputed   TRUE  — MICE long format (requires .imp in both inputs).
-#                  FALSE / NULL — complete-case; .imp stripped if present.
+# @param colaus    mids object or plain data frame. Required cols: pt,
+#                  exam_date_iso, .visit (.visit values: "F1", "F2", "F3").
+# @param osteolaus mids object or plain data frame. Required cols: pt,
+#                  exam_date_iso, .visit (.visit values: "Baseline"–"V5").
 #
-# @return list(data = data.table, qc = list(...))
+# @return
+#   Complete-case: list(data = tibble, mids = NULL, qc = list(...))
+#   MICE:          list(mids = mids,   qc   = list(...))
 # =============================================================================
 
-merge_visit_pairs <- function(colaus, osteolaus, imputed = NULL) {
+merge_visit_pairs <- function(colaus, osteolaus) {
     
-    # ── Validate arguments ─────────────────────────────────────────────────
-    if (!is.null(imputed) && !isTRUE(imputed) && !isFALSE(imputed))
-        cli::cli_abort("{.arg imputed} must be TRUE, FALSE, or NULL.")
+    is_mice <- inherits(colaus, "mids") || inherits(osteolaus, "mids")
     
-    .check_required_cols(colaus,    c("pt", "exam_date_iso", ".visit"), "CoLaus")
-    .check_required_cols(osteolaus, c("pt", "exam_date_iso", ".visit"), "OsteoLaus")
-    
-    # ── Detect MICE mode ───────────────────────────────────────────────────
-    colaus_has_imp <- ".imp" %in% names(colaus)
-    osteo_has_imp  <- ".imp" %in% names(osteolaus)
-    is_mice        <- if (is.null(imputed)) colaus_has_imp || osteo_has_imp
-    else isTRUE(imputed)
-    
+    # ── Complete-case route ────────────────────────────────────────────────
     if (!is_mice) {
+        .check_required_cols(colaus,    c("pt", "exam_date_iso", ".visit"), "CoLaus")
+        .check_required_cols(osteolaus, c("pt", "exam_date_iso", ".visit"), "OsteoLaus")
         colaus    <- .drop_cols(colaus,    c(".imp", ".id"))
         osteolaus <- .drop_cols(osteolaus, c(".imp", ".id"))
-        return(.merge_pairs_slice(colaus, osteolaus))
+        cc_result <- .merge_pairs_slice(colaus, osteolaus)
+        return(list(
+            data = tibble::as_tibble(cc_result$data),
+            mids = NULL,
+            qc   = cc_result$qc
+        ))
     }
     
-    # ── MICE mode ──────────────────────────────────────────────────────────
-    if (!colaus_has_imp) cli::cli_abort("CoLaus must contain a {.col .imp} column.")
-    if (!osteo_has_imp)  cli::cli_abort("OsteoLaus must contain a {.col .imp} column.")
+    # ── MICE route ─────────────────────────────────────────────────────────
+    if (!inherits(colaus, "mids"))
+        cli::cli_abort("CoLaus must be a {.cls mids} object in the MICE route.")
+    if (!inherits(osteolaus, "mids"))
+        cli::cli_abort("OsteoLaus must be a {.cls mids} object in the MICE route.")
+    if (colaus$m != osteolaus$m)
+        cli::cli_abort(
+            "CoLaus and OsteoLaus mids have different m ({colaus$m} vs {osteolaus$m})."
+        )
     
-    imp_ids <- .validate_imp_ids(colaus$.imp, osteolaus$.imp)
-    m       <- length(imp_ids)
+    m <- colaus$m
     cli::cli_h1("MICE: Merge Visit Pairs ({m} imputed datasets)")
     
-    by_imp <- lapply(imp_ids, function(imp_id) {
-        cli::cli_h2("Processing .imp = {imp_id} / {m}")
+    # Convert both mids to long — include = TRUE keeps the .imp == 0 slice
+    # so the reconstructed mids has the correct observed-data slot.
+    col_long   <- mice::complete(colaus,    action = "long", include = TRUE) |>
+        tibble::as_tibble()
+    osteo_long <- mice::complete(osteolaus, action = "long", include = TRUE) |>
+        tibble::as_tibble()
+    
+    .check_required_cols(col_long,   c("pt", "exam_date_iso", ".visit"), "CoLaus")
+    .check_required_cols(osteo_long, c("pt", "exam_date_iso", ".visit"), "OsteoLaus")
+    
+    # All slices including 0
+    imp_ids <- sort(unique(col_long$.imp))
+    
+    # ── Merge .imp == 0 and each imputed slice ────────────────────────────
+    all_slices <- lapply(imp_ids, function(imp_id) {
+        label <- if (imp_id == 0L) "observed" else as.character(imp_id)
+        cli::cli_h2("Processing .imp = {label} / {m}")
         
-        col_slice   <- .drop_cols(colaus[colaus$.imp == imp_id, ],       c(".imp", ".id"))
-        osteo_slice <- .drop_cols(osteolaus[osteolaus$.imp == imp_id, ], c(".imp", ".id"))
+        col_slice   <- .drop_cols(col_long[col_long$.imp == imp_id, ],     c(".imp", ".id"))
+        osteo_slice <- .drop_cols(osteo_long[osteo_long$.imp == imp_id, ], c(".imp", ".id"))
         
         result <- .merge_pairs_slice(col_slice, osteo_slice)
         
         result$data[, .imp := imp_id]
         data.table::setcolorder(result$data, c(".imp", setdiff(names(result$data), ".imp")))
-        result$qc$.imp <- imp_id
         
-        cli::cli_inform(
-            "QC: OsteoLaus removed = {result$qc$n_osteo_removed}, CoLaus removed = {result$qc$n_col_removed}"
-        )
+        if (imp_id > 0L) {
+            result$qc$.imp <- imp_id
+            cli::cli_inform(
+                "QC: OsteoLaus removed = {result$qc$n_osteo_removed}, \
+                 CoLaus removed = {result$qc$n_col_removed}"
+            )
+        }
+        
         result
     })
     
-    .combine_mice_results(by_imp, m)
+    # First element is .imp == 0 (no QC entry); rest are imputed datasets
+    by_imp   <- all_slices[imp_ids > 0L]
+    obs_data <- all_slices[[1L]]$data   # .imp == 0 slice
+    
+    .combine_mice_results(by_imp, m, obs_slice = obs_data)
 }
 
 
@@ -370,19 +395,32 @@ merge_visit_pairs <- function(colaus, osteolaus, imputed = NULL) {
     col_ids
 }
 
-.combine_mice_results <- function(by_imp, m) {
+.combine_mice_results <- function(by_imp, m, obs_slice = NULL) {
     data    <- data.table::rbindlist(lapply(by_imp, `[[`, "data"), fill = TRUE)
     qc_list <- data.table::rbindlist(lapply(by_imp, `[[`, "qc"),  fill = TRUE)
     
+    # Prepend .imp == 0 (observed-data slice) so mice::as.mids() can
+    # populate $data with the original NAs rather than imputed values.
+    if (!is.null(obs_slice)) {
+        data <- data.table::rbindlist(list(obs_slice, data), fill = TRUE)
+    }
+    
     data.table::setorderv(data, intersect(c(".imp", "pt", "time_point"), names(data)))
     
+    long_tbl <- tibble::as_tibble(data[])
+    
+    n_imp_rows <- nrow(long_tbl[long_tbl$.imp > 0L, ])
     cli::cli_inform(c(
         "v" = "merge_visit_pairs() complete.",
-        "i" = "{nrow(data)} rows across {m} datasets ({nrow(data) / m} rows each)."
+        "i" = "{n_imp_rows} rows across {m} imputed datasets."
     ))
     
+    # Reconstruct mids. long_tbl now contains .imp == 0 so mice::as.mids()
+    # receives a proper observed-data slot.
+    merged_mids <- mice::as.mids(long_tbl)
+    
     list(
-        data = data[],
+        mids = merged_mids,
         qc   = list(
             by_imp             = qc_list[],
             n_osteo_removed    = sum(qc_list$n_osteo_removed),

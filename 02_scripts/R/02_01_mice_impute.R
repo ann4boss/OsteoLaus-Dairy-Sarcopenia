@@ -234,6 +234,8 @@ impute_mice_colaus <- function(df,
   visit_levels <- levels(df$.visit)
   observed_visits <- df |>
     dplyr::distinct(pt, .visit)
+  pt_constants <- df |>
+    dplyr::distinct(pt, .cohort)
   
   df <- df |>
     dplyr::mutate(
@@ -276,7 +278,10 @@ impute_mice_colaus <- function(df,
   
   df_mice <- df_mice[, intersect(all_kept, names(df_mice)), drop = FALSE]
   
- 
+  # Re-attach .cohort so it survives into the mids and is available after
+  # mice::complete() in downstream pipeline steps.
+  df_mice <- dplyr::left_join(df_mice, pt_constants, by = "pt")
+  
   #donor_summary <- .investigate_donor_pool(df_mice, all_imputed, min_donors = 20L)
   
   # ---------------------------------------------------------------------------
@@ -425,7 +430,7 @@ impute_mice_colaus <- function(df,
                    targets    = wv(c("dbtld","DIAB","DIAB_Hb")),
                    predictors = wv(c(
                      "dbtld", "DIAB", "DIAB_Hb",
-                      "Weight",
+                     "Weight",
                      "HTA", "sbsmk",
                      "sumgluc1", "conso_hebdo"
                    )))
@@ -570,7 +575,7 @@ impute_mice_colaus <- function(df,
   diag(pred) <- 0L
   
   
-
+  
   cat("\nPredictor matrix created successfully!\n")
   cat("Dimensions:", nrow(pred), "x", ncol(pred), "\n")
   cat("Density:", sum(pred) / (nrow(pred)^2 - nrow(pred)), "\n")
@@ -623,7 +628,15 @@ impute_mice_colaus <- function(df,
                          names_pattern = paste0("^(.+)_(", visit_pat, ")$") ) |>
     dplyr::mutate( .visit = factor(.visit, levels = visit_levels), 
                    exam_date_iso = as.Date(exam_date_num, origin = "1970-01-01") ) |>
-    dplyr::select(-dplyr::starts_with("exam_date_num")) 
+    dplyr::select(-dplyr::starts_with("exam_date_num")) |>
+    # After pivot_longer, .id is the original wide-row index and is no longer
+    # unique within each imputation (each pt now has n_visits rows with the
+    # same .id). Reassign to a unique sequential index per .imp so that
+    # mice::as.mids() can reconstruct the long-format mids without duplicate
+    # row name errors.
+    dplyr::group_by(.imp) |>
+    dplyr::mutate(.id = dplyr::row_number()) |>
+    dplyr::ungroup() 
   
   # delete visit rows that were introduced and did not occur in real life
   long_df <- long_df |>
@@ -631,7 +644,7 @@ impute_mice_colaus <- function(df,
       observed_visits,
       by = c("pt", ".visit")
     )
-
+  
   
   key_cols <- c("pt", ".visit") 
   orig_key <- dplyr::select(df, pt, .visit, dplyr::everything()) 
@@ -658,12 +671,23 @@ impute_mice_colaus <- function(df,
   diag_paths <- .save_diagnostics(mids_obj, out_dir, label = "colaus")
   
   # ---------------------------------------------------------------------------
+  # 10b. Rebuild mids in long format
+  # ---------------------------------------------------------------------------
+  # mids_obj is wide (one row per pt, columns like BMI_F1 / BMI_F2 / BMI_F3).
+  # Downstream pipeline steps call mice::complete() expecting long format
+  # (one row per pt x visit). Rebuild the mids from long_df so that every
+  # subsequent mice::complete() returns long data directly.
+  # The wide mids_obj is kept as mids_wide for diagnostics.
+  long_mids <- mice::as.mids(long_df)
+  
+  # ---------------------------------------------------------------------------
   # 11. Output
   # ---------------------------------------------------------------------------
   
   list(
     df_wide      = df_mice,
-    mids         = mids_obj,
+    mids         = long_mids,
+    mids_wide    = mids_obj,
     long         = long_df,
     m            = m,
     seed         = seed,
@@ -708,7 +732,12 @@ impute_mice_osteo <- function(df,
   
   observed_visits <- df |>
     dplyr::distinct(pt, .visit)
+  pt_constants <- df |>
+    dplyr::distinct(pt, .cohort)
   visit_levels <- levels(df$.visit)
+  
+  df <- df |>
+    dplyr::mutate(dplyr::across(where(is.list), ~ unlist(.x, use.names = FALSE)))
   
   wide <- df |>
     dplyr::select(pt, .visit, dplyr::everything()) |>
@@ -749,6 +778,9 @@ impute_mice_osteo <- function(df,
   
   df_mice <- df_mice[, intersect(c(id_vars, time_vars, all_imputed), names(df_mice)), drop = FALSE]
   
+  # Re-attach .cohort so it survives into the mids.
+  df_mice <- dplyr::left_join(df_mice, pt_constants, by = "pt")
+  
   #donor_summary <- .investigate_donor_pool(df_mice, all_imputed, min_donors = 20L)
   
   # ---------------------------------------------------------------------------
@@ -764,6 +796,8 @@ impute_mice_osteo <- function(df,
   meth                              <- mice::make.method(df_mice)
   meth[]                            <- ""
   meth[intersect(all_imputed, names(meth))] <- "pmm"
+  # Constants: never imputed
+  meth[intersect(c(".cohort"), names(meth))] <- ""
   
   # ---------------------------------------------------------------------------
   # 6. Predictor matrix
@@ -818,8 +852,15 @@ impute_mice_osteo <- function(df,
   if (length(height_rows) && length(height_pred))
     pred[height_rows, height_pred] <- 1L
   
- 
+  
   pred[intersect(c(id_vars, time_vars), rownames(pred)), ] <- 0L
+  
+  # Constants are neither imputed nor used as predictors
+  const_cols <- intersect(c(".cohort"), colnames(pred))
+  if (length(const_cols)) {
+    pred[, const_cols] <- 0L
+    pred[const_cols, ] <- 0L
+  }
   
   cat("\nPredictor matrix created successfully!\n")
   cat("Dimensions:", nrow(pred), "x", ncol(pred), "\n")
@@ -869,7 +910,11 @@ impute_mice_osteo <- function(df,
       .visit        = factor(.visit, levels = visit_levels),
       exam_date_iso = as.Date(exam_date_num, origin = "1970-01-01")
     ) |>
-    dplyr::select(-dplyr::starts_with("exam_date_num"))
+    dplyr::select(-dplyr::starts_with("exam_date_num")) |>
+    # Reassign .id to be unique within each .imp after pivot_longer.
+    dplyr::group_by(.imp) |>
+    dplyr::mutate(.id = dplyr::row_number()) |>
+    dplyr::ungroup()
   
   # ---------------------------------------------------------------------------
   # 9b. Reattach non-imputed variables
@@ -909,12 +954,18 @@ impute_mice_osteo <- function(df,
   diag_paths <- .save_diagnostics(mids_obj, out_dir, label = "osteo")
   
   # ---------------------------------------------------------------------------
+  # 10b. Rebuild mids in long format
+  # ---------------------------------------------------------------------------
+  long_mids <- mice::as.mids(long_df)
+  
+  # ---------------------------------------------------------------------------
   # 11. Output
   # ---------------------------------------------------------------------------
   
   list(
     df_wide      = df_mice,
-    mids         = mids_obj,
+    mids         = long_mids,
+    mids_wide    = mids_obj,
     long         = long_df,
     m            = m,
     seed         = seed,

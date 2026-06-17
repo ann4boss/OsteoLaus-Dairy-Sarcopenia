@@ -3,9 +3,9 @@
 # =============================================================================
 # Manuscript-facing result numbers
 # =============================================================================
-library(dplyr)
-library(tidyr)
-library(purrr)
+# library(dplyr)
+# library(tidyr)
+# library(purrr)
 
 
 # distribution of number of visit per outcome

@@ -6,8 +6,8 @@
 #
 # Public interface
 # ----------------
-#   derive(df)              -- plain data frame (colaus_long / osteo_long)
-#   derive(mice_result)     -- mice result list returned by impute_mice_*()
+#   derive(df)    -- plain data frame (colaus_long / osteo_long)
+#   derive(mids)  -- mids object returned by impute_mice_*()
 #
 # Cohort is detected automatically from the .cohort column; no argument needed.
 #
@@ -16,6 +16,15 @@
 #   CoLaus   : education, alcohol, diabetes, cvd, hrt, pa, dairy_servings,
 #              dairy, dairy_quartile, atc, smoking, bmi, bmi_category, htn
 #   OsteoLaus: bmi, bmi_category, alm_indices
+#
+# MICE route
+# ----------
+# When data is a mids object (output of impute_mice_*()), it is converted to
+# long format internally via mice::complete(..., include = TRUE). Derivations
+# are applied per imputed dataset (including .imp == 0 so the observed-data
+# slot is preserved). The long tibble is then converted back to a mids with
+# mice::as.mids(). The return value is list(long, mids, m) so downstream
+# callers can use either the long tibble or the mids directly.
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -40,8 +49,7 @@
         derive_bmi_category()   |>
         derive_age()            |>
         derive_food_groups()    |>
-        derive_htn()            
-    
+        derive_htn()
 }
 
 .derive_chain_osteo <- function(df) {
@@ -59,12 +67,8 @@
     OsteoLaus = .derive_chain_osteo
 )
 
-.is_mice_result <- function(data) {
-    is.list(data) &&
-        all(c("long", "m") %in% names(data)) &&
-        is.data.frame(data$long) &&
-        ".imp" %in% names(data$long)
-}
+# The MICE route accepts a raw mids object only.
+.is_mice_result <- function(data) inherits(data, "mids")
 
 .cohort_values <- function(df) {
     if (!".cohort" %in% names(df)) {
@@ -104,38 +108,56 @@
     .DERIVE_CHAINS[[cohorts]](df)
 }
 
-# MICE path: loops over imputed slices, applies derive to each.
-.derive_mice <- function(mice_result) {
-    long_df <- mice_result$long
-    cohorts <- .cohort_values(long_df)
+# MICE path: converts the mids object to long format, applies derivations to
+# every slice (including .imp == 0 so the observed-data slot is preserved),
+# then converts back to a mids with mice::as.mids().
+.derive_mice <- function(mids_obj) {
     
+    m <- mids_obj$m
+    
+    # Convert to long — include = TRUE retains the .imp == 0 observed slice.
+    long_df <- mice::complete(mids_obj, action = "long", include = TRUE) |>
+        tibble::as_tibble()
+    
+    cohorts <- .cohort_values(long_df)
     if (length(cohorts) != 1L) {
         cli::cli_abort(c(
-            "derive() received a MICE result with invalid cohort data.",
+            "derive(): mids object contains invalid cohort data.",
             "i" = "Expected exactly one cohort; found {.val {cohorts}}."
         ))
     }
     
-    imp_ids <- sort(setdiff(unique(long_df$.imp), 0L))
+    cli::cli_h1("Derive: {cohorts} x {m} imputed datasets")
     
-    cli::cli_h1("Derive: {cohorts} x {mice_result$m} imputed datasets")
+    # All slices including 0; .imp == 0 carries original NAs through.
+    imp_ids <- sort(unique(long_df$.imp))
     
-    out <- purrr::map(imp_ids, function(i) {
-        cli::cli_inform("  [{i}/{mice_result$m}] deriving ...")
+    derived_long <- purrr::map(imp_ids, function(i) {
+        label <- if (i == 0L) "observed" else as.character(i)
+        cli::cli_inform("  [{label}/{m}] deriving ...")
         long_df |>
             dplyr::filter(.imp == i) |>
             dplyr::select(-.imp)     |>
-            .derive_single()               |>
+            .derive_single()         |>
             dplyr::mutate(.imp = i, .before = 1L)
     }) |>
         dplyr::bind_rows()
     
+    n_imp_rows <- nrow(derived_long[derived_long$.imp > 0L, ])
     cli::cli_inform(c(
         "v" = "derive() complete.",
-        "i" = "{nrow(out)} rows across {mice_result$m} datasets ({nrow(out) / mice_result$m} rows each)."
+        "i" = "{n_imp_rows} rows across {m} imputed datasets."
     ))
     
-    out
+    # Convert back to mids. .imp == 0 is present so $data holds the original
+    # NAs, not imputed values.
+    derived_mids <- mice::as.mids(derived_long)
+    
+    list(
+        long = derived_long,
+        mids = derived_mids,
+        m    = m
+    )
 }
 
 # -----------------------------------------------------------------------------
@@ -147,31 +169,36 @@
 #' @param data Either:
 #'   * A plain tibble / data frame with a `.cohort` column
 #'     (output of `stack_visits()`), **or**
-#'   * A MICE result list with `$long` and `$m` elements
-#'     (output of `impute_mice_*()`).
-#' @param imputed Deprecated. MICE input is detected automatically.
+#'   * A `mids` object (output of `impute_mice_*()`).
+#' @param imputed Deprecated. Input type is detected automatically from
+#'   `inherits(data, "mids")`.
 #'
 #' @return
-#'   * Plain input  -> tibble with derived variables appended.
-#'   * MICE input   -> long-format tibble with `.imp` column preserved,
-#'                    derived variables appended to every imputed dataset.
+#'   * Plain input -> tibble with derived variables appended.
+#'   * `mids` input -> `list(long, mids, m)`:
+#'       - `$long`  long-format tibble (all imputations incl. `.imp == 0`)
+#'                  with derived variables appended.
+#'       - `$mids`  mids object reconstructed via `mice::as.mids($long)`.
+#'       - `$m`     number of imputed datasets.
 #'
 #' @examples
 #' # Plain
 #' colaus_derived <- derive(colaus_long)
 #' osteo_derived  <- derive(osteo_long)
 #'
-#' # MICE
-#' colaus_derived_imp <- derive(mice_colaus)
-#' osteo_derived_imp  <- derive(mice_osteo)
+#' # MICE — pass mids directly; returns list(long, mids, m)
+#' colaus_derived_imp <- derive(mice_colaus$mids)
+#' osteo_derived_imp  <- derive(mice_osteo$mids)
 derive <- function(data, imputed = NULL) {
-    is_imputed <- isTRUE(imputed) || .is_mice_result(data)
     
-    if (isTRUE(imputed) && !.is_mice_result(data)) {
-        cli::cli_abort("derive(imputed = TRUE) requires a MICE result list with {.field long} and {.field m}.")
+    if (!is.null(imputed)) {
+        cli::cli_warn(
+            "{.arg imputed} is deprecated in {.fn derive}. \
+             Input type is detected automatically from {.cls {class(data)}}."
+        )
     }
     
-    if (is_imputed) {
+    if (.is_mice_result(data)) {
         .derive_mice(data)
     } else {
         cohorts <- .cohort_values(data)
@@ -179,5 +206,3 @@ derive <- function(data, imputed = NULL) {
         dplyr::as_tibble(.derive_single(data))
     }
 }
-
-
