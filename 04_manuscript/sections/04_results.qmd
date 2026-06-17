@@ -6,131 +6,37 @@ bibliography: references.bib
 
 # Results
 
-```{r}
-#| label: setup-results
-#| include: false
-project_root <- normalizePath(getwd(), mustWork = TRUE)
-while (
-  !file.exists(file.path(project_root, "02_scripts", "_targets.R")) &&
-    dirname(project_root) != project_root
-) {
-  project_root <- dirname(project_root)
-}
-targets_store <- file.path(project_root, "_targets")
-source(file.path(project_root, "02_scripts", "R", "05_01_tableOne.R"))
-```
+## Study Population
 
-```{r}
-#| label: load-result-targets
-#| include: false
-mice_result_summary <- targets::tar_read(mice_result_summary, store = targets_store)
-table1_overall_mice <- targets::tar_read(table1_overall_mice, store = targets_store)
-mice_flow_diagram <- targets::tar_read(mice_flow_diagram, store = targets_store)
-```
+A total of $1\,475$ women participated in the OsteoLaus study between 2010 and 2022. After applying study-level exclusion criteria, 2 participants were excluded to not having any match between OsteoLaus and CoLaus as defined in @sec-matching, 48 participants were excluded because of missing examination dates, and 188 participants that had only one visit time point (@fig-consort).
 
-For the multiple imputed dataset, in total, `r mice_result_summary$n_general$text` participants were included in this study. The detailed number of participants included for each outcome analysis can be seen in the flow diagram Figure @fig-flow-mice. The number of participants included for all outcome analyses was `r mice_result_summary$n_all_outcomes$text`.
+For the HGS analysis, 29 participants were excluded because they had fewer than two study visits available after accounting for missing covariates and out-of-range values. The final analytical sample therefore included $1\,186$ participants. For the ALMI analysis, the 108 participants were excluded for the same reasons resulting in $1\,007$. For GS, 368 participants met the requirement of having at least two study visits and were included in the analysis. This resulted in 829 participants in the final dataset
 
-```{r}
-#| label: fig-flow-mice
-#| fig-cap: "Participant flow and outcome-specific analytic samples in the multiple imputed dataset."
-#| fig-width: 10
-#| fig-height: 7
-mice_flow_diagram
-```
+For the EWGSOP2 sarcopenia incidence analysis, 24 participants with sarcopenia at T1 were excluded. An additional 28 participants were excluded because they had fewer than two study visits, resulting in a final sample of $1\,163$ participants. For the alternative sarcopenia definition FNIH, 14 participants were sarcopenic at T1 and 107 participants had only one visiting time point thus were excluded.
 
-```{r}
-#| label: tbl-outcome-n-mice
-#| tbl-cap: "Number of participants included for each outcome analysis in the multiple imputed dataset."
-mice_result_summary$outcome_n |>
-  dplyr::select(Outcome = label, `Participants included` = n_text) |>
-  gt::gt()
-```
+![](images/consort_flow-01.png){#fig-consort}
 
-The baseline characteristics can be seen in Table @tbl-table-one-mice.
+Most participants included in the HGS analysis contributed data from at least 3 of the 3 possible time points (mean 76.9% of participants). For GS, all participants had exactly two visits, as gait speed was measured at only two time points and the inclusion criterion required data from both visits. For ALMI, most participants contributed data from XX of the 3 possible study visits.
 
-```{r}
-#| label: tbl-table-one-mice
-#| tbl-cap: "Baseline participant characteristics in the multiple imputed dataset."
-as_gt_table(table1_overall_mice)
-```
+## Dataset Matching
 
-The comparison between baseline characteristics of the complete case dataset and the multiple imputed dataset, and the comparison between excluded and included participants in the multiple imputed dataset, can be reported in supplementary tables once those comparison targets are finalized.
+@fig-timepoint_dist shows the distribution of examination date differences between matched CoLaus and OsteoLaus visits. For T1 and T2, CoLaus assessments generally occurred before the corresponding OsteoLaus visits, with median differences of 254 and 276 days, respectively. For T3, CoLaus assessments more frequently occurred after the matched OsteoLaus visit, with a median difference of 175 days.
 
----
+![](images/clipboard-2572005451.png){#fig-timepoint_dist fig-align="left"}
 
-For a cohort study following STROBE, the Results section is usually structured around:
+## Missing Data and Imputation
 
-1.  Participant flow
+Before imputation, the proportion of missing data ranged from X% for age to X% for gait speed (Supplementary Figure XX).
 
-2.  Baseline characteristics
-
-3.  Descriptive outcome/exposure data
-
-4.  Main analyses
-
-5.  Secondary/sensitivity analyses
-
-6.  Missing data and model diagnostics
-
-Given your methods, a structure like the following would work well.
-
-# Results
-
-## Participant Flow and Study Population
-
-### Cohort Assembly
-
-Describe the derivation of the analytical sample.
-
-Include:
-
-- Number of participants in CoLaus and OsteoLaus
-
-- Number successfully linked between datasets
-
-- Exclusions at each step:
-
-  - Missing dates
-
-  - Failed quality control
-
-  - Missing exposure/outcome
-
-  - Baseline sarcopenia exclusions
-
-  - Fewer than two visits
-
-- Final sample size
-
-Reference a flowchart:
-
-> Figure 1 shows the participant selection process.
-
-Example wording:
-
-> A total of *N* women participated in OsteoLaus between 2010 and 2022. After dataset linkage and application of predefined exclusion criteria, *N* participants contributing *N* study visits were included in the final analytical dataset.
-
-### Follow-up
-
-Report:
-
-- Total person-years
-
-- Median follow-up (IQR)
-
-- Mean follow-up (SD)
-
-- Number of visits per participant
-
-Example:
-
-> Participants contributed a median follow-up of X.X years (IQR X.X-X.X), corresponding to N person-years of observation.
-
-------------------------------------------------------------------------
+A total of XX multiply imputed datasets were generated. Diagnostic plots showed good convergence of the imputation models and similar distributions between observed and imputed values (Supplementary Figure XX). Comparisons of summary statistics between the original and imputed datasets showed no meaningful differences, and all statistical tests yielded p-values greater than 0.05.
 
 ## Characteristics of the Study Population
 
 ### Baseline Characteristics
+
+Participants in the highest quartile of dairy intake consumed a median of X g/day, compared with X g/day in the lowest quartile. This corresponded approximately to XX servings of milk per day in the highest quartile and XX servings per day in the lowest quartile.
+
+Women with higher dairy intake were generally \[older/younger\], had \[higher/lower\] total energy intake, and were more likely to \[characteristic\]. Overall, however, baseline characteristics were broadly similar across dairy intake quartiles, with only modest differences observed between groups.
 
 Table 1.
 
@@ -155,19 +61,11 @@ Include:
 | Gait speed        |     |     |     |     |
 | Sarcopenia        |     |     |     |     |
 
-Text:
+The fluctuation over time of BMI category, smoking status, activity levels, diabetes status, vitamin D and calcium intake was minimal over time (Supplement alluvial plots Figure XX)
 
-> Baseline characteristics across quartiles of total dairy intake are presented in Table 1.
+### Dairy Intake and Muscle Outcomes Over Time
 
-> Participants in the highest dairy intake quartile consumed a median of X g/day compared with X g/day in the lowest quartile. Women with higher dairy intake were generally \[older/younger\], had \[higher/lower\] total energy intake, and were more likely to \[characteristic\].
-
-Avoid describing every variable.
-
-------------------------------------------------------------------------
-
-## Dairy Intake and Muscle Outcomes Over Time
-
-### Dairy Consumption
+Mean total dairy intake at baseline was X g/day (SD X). Intake remained relatively stable over follow-up, ranging from X to X g/day.
 
 Provide descriptive exposure data.
 
@@ -180,10 +78,6 @@ Table 2.
 | Non-fermented dairy |          |             |             |             |
 | Full-fat dairy      |          |             |             |             |
 | Low-fat dairy       |          |             |             |             |
-
-Text:
-
-> Mean total dairy intake at baseline was X g/day (SD X). Intake remained relatively stable over follow-up, ranging from X to X g/day.
 
 ### Outcome Trajectories
 
@@ -209,10 +103,6 @@ Example:
 
 > Mean handgrip strength declined from X kg at baseline to X kg at the final visit, while mean ALMI decreased from X to X kg/m².
 
-------------------------------------------------------------------------
-
-# Main Analyses
-
 ## Association Between Dairy Intake and Handgrip Strength
 
 Table 3.
@@ -229,13 +119,9 @@ Linear mixed-effects models.
 
 Text:
 
-> In adjusted mixed-effects models, higher total dairy intake was associated with \[higher/lower/no difference in\] handgrip strength (β = X kg per 100 g/day, 95% CI X to X).
+In adjusted mixed-effects models, higher cummulative average dairy intake was associated with \[higher/lower/no difference in\] handgrip strength (β = X kg per 100 g/day, 95% CI X to X).
 
-If quartiles:
-
-> Compared with the lowest quartile, participants in the highest quartile had X kg higher handgrip strength (95% CI X to X).
-
-------------------------------------------------------------------------
+Compared with the lowest quartile, participants in the highest quartile had X kg higher handgrip strength (95% CI X to X).
 
 ## Association Between Dairy Intake and Appendicular Lean Mass Index
 
@@ -247,8 +133,6 @@ Text:
 
 > Higher total dairy intake was associated with ALMI (β = X kg/m² per 100 g/day, 95% CI X to X).
 
-------------------------------------------------------------------------
-
 ## Association Between Dairy Intake and Gait Speed
 
 Table 5.
@@ -259,13 +143,9 @@ Text:
 
 > No statistically significant association was observed between total dairy intake and gait speed.
 
-------------------------------------------------------------------------
-
 ## Association Between Dairy Intake and Incident Sarcopenia
 
 ### Incidence
-
-First report event numbers.
 
 Example:
 
@@ -298,23 +178,9 @@ Figure:
 
 - Kaplan-Meier curves by dairy quartile.
 
-------------------------------------------------------------------------
+## Sensitivity Analyses
 
-# Sensitivity Analyses
-
-## Alternative Exposure Definitions
-
-### Lagged Cumulative Average Dairy Intake
-
-Text:
-
-> Results were similar when dairy intake was modelled using lagged cumulative averages.
-
-Table S1.
-
-------------------------------------------------------------------------
-
-## Adherence to Swiss Dairy Recommendations
+### Adherence to Swiss Dairy Recommendations
 
 Text:
 
@@ -322,9 +188,7 @@ Text:
 
 Table S2.
 
-------------------------------------------------------------------------
-
-## Alternative Sarcopenia Definition (FNIH)
+### Alternative Sarcopenia Definition (FNIH)
 
 Text:
 
@@ -334,7 +198,7 @@ Table S3.
 
 ------------------------------------------------------------------------
 
-## Alternative Muscle Mass Metrics
+### Alternative Muscle Mass Metrics
 
 ### ALM/BMI
 
@@ -346,23 +210,7 @@ Text:
 
 Table S4-S5.
 
-------------------------------------------------------------------------
-
-# Missing Data and Imputation
-
-Report this separately because reviewers often look for it.
-
-Example:
-
-> Before imputation, missingness ranged from X% for age to X% for gait speed. Twenty multiply imputed datasets were generated. Distributional diagnostics indicated good convergence and similarity between observed and imputed values (Supplementary Figures S1-S3).
-
-Include:
-
-- Missingness table (Supplementary Table S1)
-
-------------------------------------------------------------------------
-
-# Model Diagnostics
+## Model Diagnostics
 
 ### Linear Mixed Models
 
@@ -389,8 +237,6 @@ Report:
 Example:
 
 > No substantial violations of the proportional hazards assumption were detected (global Schoenfeld test p = X). Variance inflation factors were below X for all covariates.
-
-------------------------------------------------------------------------
 
 # STROBE Tables/Figures Checklist
 
@@ -427,5 +273,3 @@ Example:
 - Alternative ALM metrics
 
 - Full regression outputs
-
-This structure aligns closely with the STROBE recommendations for cohort studies and is the format most epidemiology and nutrition journals would expect.

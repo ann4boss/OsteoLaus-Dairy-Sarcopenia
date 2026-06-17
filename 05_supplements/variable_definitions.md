@@ -36,18 +36,6 @@ OsteoLaus (Baseline–V5)
 ## CoLaus Dataset
 
 <table>
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 10%" />
-<col style="width: 22%" />
-</colgroup>
 <tbody>
 <tr>
 <td><p><strong>Original Name</strong></p></td>
@@ -60,6 +48,7 @@ OsteoLaus (Baseline–V5)
 <td><p><strong>Missing value handling</strong></p></td>
 <td><p><strong>Imputation Notes</strong></p></td>
 <td><p><strong>Export</strong></p></td>
+<td><p><strong>Range</strong></p></td>
 </tr>
 <tr>
 <td><p><strong>pt</strong></p></td>
@@ -72,6 +61,7 @@ OsteoLaus (Baseline–V5)
 <td><p>If not recorded unidentified row participant is excluded from analysis</p></td>
 <td><p>Not imputed, used as predictor</p></td>
 <td><p>Thursday March 5 08:11:43</p></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>sex</strong></p></td>
@@ -85,6 +75,7 @@ OsteoLaus (Baseline–V5)
 <td><p>NA</p></td>
 <td><p>Not imputed, used as predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>datexam</strong></p></td>
@@ -96,6 +87,7 @@ OsteoLaus (Baseline–V5)
 <td><p>In Day–abbreviated month–year DDMonYYYY format</p></td>
 <td><p>see <code>exam_date_iso</code></p></td>
 <td><p>Not imputed and not used as predictor</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -109,6 +101,7 @@ OsteoLaus (Baseline–V5)
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>Not imputed, used as predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>datquest</strong></p></td>
@@ -121,6 +114,7 @@ OsteoLaus (Baseline–V5)
 <td><p>NA</p></td>
 <td><p>NA</p></td>
 <td><p>Tuesday May 10 09:21:06 2022</p></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>datbirth</strong></p></td>
@@ -133,9 +127,10 @@ OsteoLaus (Baseline–V5)
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>Not imputed, used as predictor</p></td>
 <td><p>Tuesday May 10 09:20:56 2022</p></td>
+<td></td>
 </tr>
 <tr>
-<td><p><strong>age</strong> renamed to <code>Age</code> to fit naming of OsteoLaus</p></td>
+<td><p><strong>age</strong></p></td>
 <td><p>None</p></td>
 <td><p>Numeric float</p></td>
 <td><p>Excluded</p></td>
@@ -143,7 +138,8 @@ OsteoLaus (Baseline–V5)
 <td><p>NA</p></td>
 <td><p>Not sure how it is calculated</p></td>
 <td><p>NA</p></td>
-<td><p>Imputed and used as predictor, not necessarily normally distributed, more like a block</p></td>
+<td><p>NA</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -157,6 +153,7 @@ OsteoLaus (Baseline–V5)
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>Not imputed nor used as predictor since a derived variable</p></td>
 <td></td>
+<td><p>34.9 - 90.1</p></td>
 </tr>
 <tr>
 <td><p><strong>ethori_self</strong></p></td>
@@ -174,6 +171,7 @@ K=does not know</p></td>
 <td><p>Only used as descriptive value, not as covariant, thus participants are kept and values is kept missing</p></td>
 <td><p>Not imputed and not used as predictor since only available at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>edtyp4</strong></p></td>
@@ -189,6 +187,7 @@ K=does not know</p></td>
 <td><p>see <code>education_level</code></p></td>
 <td><p>Imputed only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>education_level</strong></p></td>
@@ -203,6 +202,7 @@ K=does not know</p></td>
 <td><p>Participants with missing values are excluded</p></td>
 <td><p>Not imputed nor used as predictor since a derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>mrtsts2</strong></p></td>
@@ -215,6 +215,7 @@ K=does not know</p></td>
 <td><p>Marital status</p></td>
 <td><p>Participants with missing values are excluded</p></td>
 <td><p>Imputed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -229,6 +230,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Not imputed, used as predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>alcool4</strong></p></td>
@@ -242,6 +244,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Not imputed and not used as predictor since it is a derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>conso_hebdo</strong></p></td>
@@ -254,6 +257,7 @@ K=does not know</p></td>
 <td><p>see <code>alcohol_category</code></p></td>
 <td><p>Imputed, not normally distributed many 0 and long tail</p></td>
 <td></td>
+<td><p>0 - 108</p></td>
 </tr>
 <tr>
 <td><p><strong>sumalco</strong></p></td>
@@ -265,6 +269,7 @@ K=does not know</p></td>
 <td><p>Missing by design for baseline. Alcohol consumption in g ethanol/day</p></td>
 <td><p>see <code>alcohol_category</code></p></td>
 <td><p>Imputed but not for baseline since missing by design</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -281,6 +286,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>Not imputed nor used as predictor since a derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>sbsmk</strong></p></td>
@@ -295,6 +301,7 @@ K=does not know</p></td>
 <td><p>see <code>smoking_status</code></p></td>
 <td><p>Imputed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>smoking_status</strong></p></td>
@@ -308,6 +315,7 @@ K=does not know</p></td>
 <td><p>Correction of values of participants that switch from never to former or current within trajectory or the other way round -&gt; former,</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>Not imputed nor used as predictor since a derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -333,6 +341,7 @@ K=does not know</p></td>
 <td><p>see <code>diabetes_status</code></p></td>
 <td><p>Imputed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>agediag_dbts</strong></p></td>
@@ -344,6 +353,7 @@ K=does not know</p></td>
 <td><p>Age at diagnosis of diabetes. Could be used to distinguish between Type 1 and Type 2.</p></td>
 <td><p>NA</p></td>
 <td><p>Not used at all due to high missingness</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -370,6 +380,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Imputed but has high missingness: Baseline: 31.4%, F1: 91.8%, F2: 89.9%, F3: 90.9%</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>orldrg</strong></p></td>
@@ -384,6 +395,7 @@ K=does not know</p></td>
 <td><p>Use of oral antidiabetic agents.</p></td>
 <td><p>NA</p></td>
 <td><p>Not used due to high missingness</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -400,6 +412,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Not used due to high missingness</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>antiDIAB</strong></p></td>
@@ -413,6 +426,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Used as predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>DIAB</strong></p></td>
@@ -422,9 +436,10 @@ K=does not know</p></td>
 <td><p>0..*</p></td>
 <td><p>0=No,<br />
 1=Yes</p></td>
-<td><p>FPG <span class="math inline">≥</span> 7.0 mmol/L. Primary clinical marker.</p></td>
+<td><p>FPG 7.0 mmol/L. Primary clinical marker.</p></td>
 <td><p>see <code>diabetes_status</code></p></td>
 <td><p>Imputed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -435,9 +450,10 @@ K=does not know</p></td>
 <td><p>0..*</p></td>
 <td><p>0=No,<br />
 1=Yes</p></td>
-<td><p>HbA1c <span class="math inline">≥</span> 48 mmol/mol. Missing by design, available from F2 onwards.</p></td>
+<td><p>HbA1c 48 mmol/mol. Missing by design, available from F2 onwards.</p></td>
 <td><p>see <code>diabetes_status</code></p></td>
 <td><p>Imputed, not for baseline and F1 since missing by design</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -458,6 +474,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Not used since same source as <code>DIAB</code></p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>metab_synd</strong></p></td>
@@ -470,6 +487,7 @@ K=does not know</p></td>
 <td><p>Metabolic Syndrome ATP-III. Redundant if using specific diabetes status.</p></td>
 <td><p>NA</p></td>
 <td><p>Used as predictor</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -490,6 +508,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>ATC1...21</strong></p></td>
@@ -501,6 +520,7 @@ K=does not know</p></td>
 <td><p>Raw ATC codes for all medications reported. Used to derive specific statuses.</p></td>
 <td><p>see <code>hypolip_status</code>, <code>corticoids_status</code>, <code>calcium_status</code>, <code>vitD_status</code>,<code>benzo_status</code></p></td>
 <td><p>only derived variables can be imputed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -514,6 +534,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>Diet_compl</strong></p></td>
@@ -526,6 +547,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>hypolip_drug_status</strong></p></td>
@@ -536,8 +558,9 @@ K=does not know</p></td>
 <td><p>0=No,<br />
 1=Yes</p></td>
 <td><p>If any ATC code starts with C10.</p>
-<p>Used to verify <code>hypolip</code> or <code>hctld</code>. </p></td>
+<p>Used to verify <code>hypolip</code> or <code>hctld</code>.</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
+<td></td>
 <td></td>
 <td></td>
 </tr>
@@ -553,6 +576,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>vitD_status</strong></p></td>
@@ -564,6 +588,7 @@ K=does not know</p></td>
 1=Yes</p></td>
 <td><p>If any ATC starts with A11</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
+<td></td>
 <td></td>
 <td></td>
 </tr>
@@ -579,6 +604,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>benzo_status</strong></p></td>
@@ -590,6 +616,7 @@ K=does not know</p></td>
 1=Yes</p></td>
 <td><p>If any ATC starts with N05B</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
+<td></td>
 <td></td>
 <td></td>
 </tr>
@@ -606,6 +633,7 @@ K=does not know</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>strk</strong></p></td>
@@ -619,6 +647,7 @@ K=does not know</p></td>
 <td><p>Stroke history.</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -634,6 +663,7 @@ K=does not know</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>cad</strong></p></td>
@@ -647,6 +677,7 @@ K=does not know</p></td>
 <td><p>Coronary Artery Disease history.</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -662,6 +693,7 @@ K=does not know</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>cmp</strong></p></td>
@@ -675,6 +707,7 @@ K=does not know</p></td>
 <td><p>Cardiomyopathy history.</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -690,6 +723,7 @@ K=does not know</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>hdv</strong></p></td>
@@ -703,6 +737,7 @@ K=does not know</p></td>
 <td><p>Heart valve disease.</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -718,6 +753,7 @@ K=does not know</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>vslg</strong></p></td>
@@ -731,6 +767,7 @@ K=does not know</p></td>
 <td><p>Vascular surgery history.</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -746,6 +783,7 @@ K=does not know</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>cabg</strong></p></td>
@@ -759,6 +797,7 @@ K=does not know</p></td>
 <td><p>Bypass surgery CABG history.</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -774,6 +813,7 @@ K=does not know</p></td>
 <td><p>see <code>cdv_event</code></p></td>
 <td><p>imputed only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>agediag...</strong></p></td>
@@ -785,6 +825,7 @@ K=does not know</p></td>
 <td><p>Ages for all CV diagnoses listed above.</p></td>
 <td><p>NA</p></td>
 <td><p>Not imputed and not used as predictor</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -798,6 +839,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>Not used due to high missingness</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>cdv_event</strong></p></td>
@@ -810,6 +852,7 @@ K=does not know</p></td>
 <td><p>Available only at baseline for available data. Final Composite: Yes if any CV flag is positive.</p></td>
 <td><p>NA</p></td>
 <td><p>Not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -826,6 +869,7 @@ K=does not know</p></td>
 <td><p>see <code>htn_status</code></p></td>
 <td><p>imputed, F1-F3 a bit high missingness</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>antiHTA</strong></p></td>
@@ -839,6 +883,7 @@ K=does not know</p></td>
 <td><p>see <code>htn_status</code></p></td>
 <td><p>imputed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>HTA</strong></p></td>
@@ -848,9 +893,10 @@ K=does not know</p></td>
 <td><p>0..*</p></td>
 <td><p>0=No,<br />
 1=Yes</p></td>
-<td><p><strong>Hypertension:</strong> Yes if BP <span class="math inline">≥</span> 140/90 mmHg OR on treatment <code>antiHTA</code>.</p></td>
+<td><p><strong>Hypertension:</strong> Yes if BP 140/90 mmHg OR on treatment <code>antiHTA</code>.</p></td>
 <td><p>see <code>htn_status</code></p></td>
 <td><p>imputed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -870,6 +916,7 @@ K=does not know</p></td>
 </ul></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not imputed since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -895,6 +942,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>used as predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>hypolip</strong></p></td>
@@ -907,6 +955,7 @@ K=does not know</p></td>
 <td><p>Missing at baseline by design. Hypolipidemic treatment flag F1 onwards.</p></td>
 <td><p>NA</p></td>
 <td><p>used as predictor not available for baseline and high missingness for F2/F3</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -922,6 +971,7 @@ K=does not know</p></td>
 <td><p>see <code>hrt_status</code></p></td>
 <td><p>imputed, high missingness 47%+</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>esthrpage</strong></p></td>
@@ -933,6 +983,7 @@ K=does not know</p></td>
 <td><p>Start age for HRT. Use to verify if HRT was active at Baseline.</p></td>
 <td><p>see <code>hrt_status</code></p></td>
 <td><p>imputed, high missingness 82%+</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -954,9 +1005,10 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
-<td><p><strong>handgrip </strong>renamed to HGS_MAX to match OsteoLaus naming</p></td>
+<td><p><strong>handgrip</strong> renamed to HGS_MAX to match OsteoLaus naming</p></td>
 <td><p><code>HGS_MAX_imp</code>, <code>ewgsop2_sarcopenia_stage</code></p></td>
 <td><p>Numeric float</p></td>
 <td><p>Primary Outcome</p></td>
@@ -966,6 +1018,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>imputed</p></td>
 <td></td>
+<td><p>2.28 - 88.45</p></td>
 </tr>
 <tr>
 <td><p><strong>lateralite</strong></p></td>
@@ -979,6 +1032,7 @@ K=does not know</p></td>
 <td><p>hand preference</p></td>
 <td><p>NA</p></td>
 <td><p>used as predictor</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1002,10 +1056,10 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
-<td><p><strong>ht</strong> renamed to <code>Height</code> to match naming in OsteoLaus</p>
-<p></p></td>
+<td><p><strong>ht</strong> renamed to <code>Height</code> to match naming in OsteoLaus</p></td>
 <td><p><code>BMI</code></p></td>
 <td><p>Numeric float</p></td>
 <td><p>Excluded</p></td>
@@ -1015,6 +1069,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>impute</p></td>
 <td></td>
+<td><p>130.0 - 199.0</p></td>
 </tr>
 <tr>
 <td><p><strong>wt</strong> renamed to <code>Weight</code> to match naming in OsteoLaus</p></td>
@@ -1027,6 +1082,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>impute</p></td>
 <td></td>
+<td><p>34.2 - 175.4</p></td>
 </tr>
 <tr>
 <td><p><strong>BMI</strong></p></td>
@@ -1038,6 +1094,7 @@ K=does not know</p></td>
 <td><p>Calculated as weight/height<sup>2</sup> .</p></td>
 <td><p>see <code>BMI_category</code></p></td>
 <td><p>Not imputed and not used as predictor since it is a derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1058,6 +1115,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>Not imputed and not used as predictor since it is a derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>WHR</strong></p></td>
@@ -1069,6 +1127,7 @@ K=does not know</p></td>
 <td><p>Waist-to-Hip ratio; marker of central adiposity.</p></td>
 <td><p>NA</p></td>
 <td><p>used as predictor</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1082,6 +1141,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>imputed and used as predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>PAFQ_SE</strong></p></td>
@@ -1093,6 +1153,7 @@ K=does not know</p></td>
 <td><p>Sedentary time min/day.</p></td>
 <td><p>see <code>met_min_week</code></p></td>
 <td><p>predictor and imputed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1106,6 +1167,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>PAFQ_LPA</strong></p></td>
@@ -1117,6 +1179,7 @@ K=does not know</p></td>
 <td><p>Light PA min/day.</p></td>
 <td><p>see <code>met_min_week</code></p></td>
 <td><p>predictor and imputed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1130,6 +1193,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>PAFQ_MPA</strong></p></td>
@@ -1141,6 +1205,7 @@ K=does not know</p></td>
 <td><p>Moderate PA min/day.</p></td>
 <td><p>see <code>met_min_week</code></p></td>
 <td><p>imputed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1154,6 +1219,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>PAFQ_VPA</strong></p></td>
@@ -1165,6 +1231,7 @@ K=does not know</p></td>
 <td><p>Vigorous PA min/day</p></td>
 <td><p>see <code>met_min_week</code></p></td>
 <td><p>imputed, not normally distributed long tail and many low numbers</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1178,6 +1245,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>met_min_week</strong></p></td>
@@ -1190,23 +1258,23 @@ K=does not know</p></td>
 <td><p>see <code>pa_levels</code></p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>pa_levels_tertiles</strong></p></td>
 <td><p><code>pa_levels_quartiles_imp</code></p></td>
 <td><p>Factorial</p></td>
-<td><p>Fixed Varying Covariate</p>
-<p></p></td>
+<td><p>Fixed Varying Covariate</p></td>
 <td><p>0..*</p></td>
-<td><p></p></td>
+<td></td>
 <td><p>Categories of physical activity defined by tertiles based on cohort distributions of <code>met_min_week</code></p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variables</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
-<td><p>pa_levels_who</p>
-<p></p></td>
+<td><p><strong>pa_levels_who</strong></p></td>
 <td></td>
 <td></td>
 <td></td>
@@ -1217,6 +1285,7 @@ K=does not know</p></td>
 <td></td>
 <td></td>
 <td><p>not used since derived variables</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1229,6 +1298,7 @@ K=does not know</p></td>
 <td><p>Walking time minutes/day, only for Baseline available</p></td>
 <td><p>NA</p></td>
 <td><p>predictor only at baseline</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1245,6 +1315,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>predictor only at baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>FFQ1amount</strong></p></td>
@@ -1257,6 +1328,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td><p>0 - 675</p></td>
 </tr>
 <tr>
 <td><p><strong>FFQ2amount</strong></p></td>
@@ -1269,6 +1341,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td><p>0 - 675</p></td>
 </tr>
 <tr>
 <td><p><strong>FFQ3amount</strong></p></td>
@@ -1281,6 +1354,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td><p>0 - 675</p></td>
 </tr>
 <tr>
 <td><p><strong>FFQ4amount</strong></p></td>
@@ -1293,6 +1367,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td><p>0 - 500</p></td>
 </tr>
 <tr>
 <td><p><strong>FFQ5amount</strong></p></td>
@@ -1305,6 +1380,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td><p>0 - 375</p></td>
 </tr>
 <tr>
 <td><p><strong>FFQ6amount</strong></p></td>
@@ -1317,6 +1393,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td><p>0 - 225</p></td>
 </tr>
 <tr>
 <td><p><strong>FFQ7amount</strong></p></td>
@@ -1329,6 +1406,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td><p>0 - 300</p></td>
 </tr>
 <tr>
 <td><p><strong>FFQ8amount</strong></p></td>
@@ -1341,6 +1419,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td><p>0 - 1312.5</p></td>
 </tr>
 <tr>
 <td><p><strong>FFQ52amount</strong></p></td>
@@ -1352,6 +1431,7 @@ K=does not know</p></td>
 <td><p>Butter g/day.</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1365,6 +1445,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>FFQ63amount</strong></p></td>
@@ -1376,6 +1457,7 @@ K=does not know</p></td>
 <td><p>Cream tart/cake g/day.</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1389,6 +1471,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>FFQ71amount</strong></p></td>
@@ -1400,6 +1483,7 @@ K=does not know</p></td>
 <td><p>Butter for cooking g/day.</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1413,6 +1497,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>FFQ83amount</strong></p></td>
@@ -1424,6 +1509,7 @@ K=does not know</p></td>
 <td><p>Milk in coffee non-0% mL/day.</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1437,6 +1523,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>FFQ85amount</strong></p></td>
@@ -1448,6 +1535,7 @@ K=does not know</p></td>
 <td><p>Milk drink 0% mL/day.</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1461,6 +1549,7 @@ K=does not know</p></td>
 <td><p>see derived variables</p></td>
 <td><p>imputed, not normally distributed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>dairy_total</strong></p></td>
@@ -1472,6 +1561,7 @@ K=does not know</p></td>
 <td><p>Sum of amount of all dairy products</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1485,6 +1575,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>dairy_fermented</strong></p></td>
@@ -1493,9 +1584,10 @@ K=does not know</p></td>
 <td><p>Exposure</p></td>
 <td><p>0..*</p></td>
 <td><p>NA</p></td>
-<td><p>Sum of yogurt and cheese amount variables, FFQ: 1, 2, 3, 4, 5, 6, 7, 8 </p></td>
+<td><p>Sum of yogurt and cheese amount variables, FFQ: 1, 2, 3, 4, 5, 6, 7, 8</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1509,6 +1601,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>dairy_non_fermented</strong></p></td>
@@ -1520,6 +1613,7 @@ K=does not know</p></td>
 <td><p>Sum of all non fermented dairy products, FFQ: 82, 83, 85, 86</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1533,6 +1627,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>dairy_lowfat</strong></p></td>
@@ -1544,6 +1639,7 @@ K=does not know</p></td>
 <td><p>Sum of all 0% / Low-fat yogurt and milk products, FFQ: 2, 4, 82, 85</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1557,6 +1653,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>dairy_highfat</strong></p></td>
@@ -1568,6 +1665,7 @@ K=does not know</p></td>
 <td><p>Sum of all whole-milk, cheese, and cream products, FFQ: 1, 3, 5, 6, 7, 8, 83, 86</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1581,6 +1679,7 @@ K=does not know</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>Dairy</strong></p></td>
@@ -1592,6 +1691,7 @@ K=does not know</p></td>
 <td><p>Total freq excl. butter/cream.</p></td>
 <td><p>NA</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1610,9 +1710,10 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used since derived variable</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
-<td><p>dairy_portion_total</p></td>
+<td><p><strong>dairy_portion_total</strong></p></td>
 <td><p>dairy_guidelines_port</p></td>
 <td><p>Numeric</p></td>
 <td><p>Source</p></td>
@@ -1626,6 +1727,7 @@ K=does not know</p></td>
 </ul></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1643,6 +1745,7 @@ K=does not know</p></td>
 </ul></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1662,6 +1765,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>impute, none are normally distributed, not for baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>FFQp1...p86</strong></p></td>
@@ -1676,6 +1780,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>impute, none are normally distributed, not for baseline</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>freqFFQ1...86</strong></p></td>
@@ -1687,6 +1792,7 @@ K=does not know</p></td>
 <td><p>Calculated daily frequency. Redundant since <code>amount</code> is already calculated.</p></td>
 <td><p>NA</p></td>
 <td><p>impute, none are normally distributed, not for baseline</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1701,6 +1807,7 @@ K=does not know</p></td>
 <p>Invalid values: below 500 or above 4200</p></td>
 <td><p>impute</p></td>
 <td></td>
+<td><p>0 - 9744.6</p></td>
 </tr>
 <tr>
 <td><p><strong>sumtot3</strong></p></td>
@@ -1712,6 +1819,7 @@ K=does not know</p></td>
 <td><p>Total Energy excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1725,6 +1833,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>imputed</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>sumprot3</strong></p></td>
@@ -1736,6 +1845,7 @@ K=does not know</p></td>
 <td><p>Total protein excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1749,6 +1859,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>sumpveg3</strong></p></td>
@@ -1760,6 +1871,7 @@ K=does not know</p></td>
 <td><p>Vegetal protein excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1773,6 +1885,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>sumpani3</strong></p></td>
@@ -1784,6 +1897,7 @@ K=does not know</p></td>
 <td><p>Animal protein excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1797,6 +1911,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>sumgluc3</strong></p></td>
@@ -1808,6 +1923,7 @@ K=does not know</p></td>
 <td><p>Total carbs excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1821,6 +1937,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>sumlipi3</strong></p></td>
@@ -1832,6 +1949,7 @@ K=does not know</p></td>
 <td><p>Total fat excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>predictor</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1845,6 +1963,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>predictor</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>sumvitd3</strong></p></td>
@@ -1856,6 +1975,7 @@ K=does not know</p></td>
 <td><p>Vitamin D intake excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1869,6 +1989,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>pct_prot3</strong></p></td>
@@ -1880,6 +2001,7 @@ K=does not know</p></td>
 <td><p>% Protein excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1893,6 +2015,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>pct_pveg3</strong></p></td>
@@ -1904,6 +2027,7 @@ K=does not know</p></td>
 <td><p>% Veg. protein excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1917,6 +2041,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>pct_pani3</strong></p></td>
@@ -1928,6 +2053,7 @@ K=does not know</p></td>
 <td><p>% Ani. protein excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1941,6 +2067,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>pct_gluc3</strong></p></td>
@@ -1952,6 +2079,7 @@ K=does not know</p></td>
 <td><p>% Carbs excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1965,6 +2093,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td><p><strong>pct_lipi3</strong></p></td>
@@ -1976,6 +2105,7 @@ K=does not know</p></td>
 <td><p>% Fat excl. alc.</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
@@ -1989,6 +2119,7 @@ K=does not know</p></td>
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -1997,156 +2128,792 @@ K=does not know</p></td>
 
 OsteoLaus has 5 measurement time points labelled Baseline, V2, V3, V4, and V5. For each of these time point are following variables available. In case a variable was not measured for the entire cohort for a time point it is mentioned in the "Notes" column. FFQ variables are available for the first follow up measurement.
 
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-|                                                           |                                    |                     |                        |                  |                                                                                     |                                                                                                                                                                       |                                                                          |                                               |
-+===========================================================+====================================+=====================+========================+==================+=====================================================================================+=======================================================================================================================================================================+==========================================================================+===============================================+
-| **Original Name**                                         | **Derived Variable**               | **Data Type**       | **Role**               | **Multiplicity** | **Reference / Levels**                                                              | **Notes**                                                                                                                                                             | **Missing value handling**                                               | **Imputation Notes**                          |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **pt**                                                    | None                               | integer             | Primary Key            | 1..1             | NA                                                                                  | Unique identifier for the CoLaus/OsteoLaus cohort.                                                                                                                    | if not recorded unidentified row is excluded from analysis               | Not imputed, used as predictor                |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **id_pat/ PATIENT_KEY**                                   | None                               | character           | Excluded               | 0..1             | NA                                                                                  | Additional ID to `pt` in OsteoLaus dataset                                                                                                                            | NA                                                                       | Not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **Ethnicity**                                             | None                               | Factor              | Excluded               | 1..1             | 1=White,2=?, 3=Other                                                                | Redundant since `ethori_self` from CoLaus.                                                                                                                            | NA                                                                       | Not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **Ethnicity_other**                                       | None                               | Character           | Excluded               | 1..1             | NA                                                                                  | No information                                                                                                                                                        | NA                                                                       | Not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **SCAN_date**                                             | `exam_date_iso`                    | numeric daily date  | Source                 | 1..\*            | NA                                                                                  | Date of DXA/Physical visit. Required to link to OsteoLaus measurement time points to CoLaus measurement time points. In Day–abbreviated month–year (DDMonYYYY) format | see `exam_date_iso`                                                      | Not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **exam_date_iso**                                         | None                               | Date                | Temporal Key           | 1..\*            | NA                                                                                  | ISO 8601 (YYYY-MM-DD) format. Join key.                                                                                                                               | Visits with missing/ invalid values are excluded                         | Not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **Age**                                                   | None                               | Numeric (float)     | Time-Varying Covariate | 1..\*            | NA                                                                                  | Calculated at each `dataexam` with `birthdate` (not available). Continuous variable. For OsteoLaus generic birth dates were sometimes used                            | Visits with missing/ invalid values are excluded                         | imputed                                       |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **Weight**                                                | `BMI`                              | Numeric (float)     | Excluded               | 0..\*            | NA                                                                                  | Height in cm.                                                                                                                                                         | NA                                                                       | imputed                                       |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **Height**                                                | `BMI`                              | Numeric (float)     | Excluded               | 0..\*            | NA                                                                                  | Weight in kg.                                                                                                                                                         | NA                                                                       | imputed                                       |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **BMI**                                                   | `BMI_category`                     | Numeric (float)     | Source                 | 0..\*            | NA                                                                                  | Calculated as weight/height^2^ . Already provided in data.                                                                                                            | see `BMI_category`                                                       | not used since derived variables              |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **BMI_category**                                          | None                               | Factor              | Time-Varying Covariate | 0..\*            | 1=Underweight\                                                                      | Mapping:\                                                                                                                                                             | Visits with missing/ invalid values are excluded                         | not used since derived variables              |
-|                                                           |                                    |                     |                        |                  | 2=Normal,\                                                                          | \< 18.5 = Underweight,\                                                                                                                                               |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | 3=Overweight,\                                                                      | 18.5 - \< 25.0 Normal (reference)\                                                                                                                                    |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | 4=Obese. (Normal is reference)                                                      | 25.0 – \< 30.0 = Overweight,\                                                                                                                                         |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     | \>= 30.0 = Obese                                                                                                                                                      |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **HEAD_LEAN_MASS (**H_HEAD_LEAN_MASS for V5**)**          | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Recalculated (Total - Subtotal) in grams.                                                                                                                             | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **LARM_LEAN_MASS** (H_LARM_LEAN_MASS for V5)              | `ALM`                              | Numeric             | Source                 | 0..\*            | NA                                                                                  | Left arm lean mass (g)                                                                                                                                                | NA                                                                       | imputed                                       |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **RARM_LEAN_MASS** (H_RARM_LEAN_MASS for V5)              | `ALM`                              | Numeric             | Source                 | 0..\*            | NA                                                                                  | Right arm lean mass (g)                                                                                                                                               | NA                                                                       | imputed                                       |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **ARMS_LEAN_MASS** (H_ARMS_LEAN_MASS for V5)              | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Arms lean mass (g)                                                                                                                                                    | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **LLEG_LEAN_MASS** (H_LLEG_LEAN_MASS for V5)              | `ALM`                              | Numeric             | Source                 | 0..\*            | NA                                                                                  | Left leg lean mass (g)                                                                                                                                                | NA                                                                       | imputed                                       |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **RLEG_LEAN_MASS** (H_RLEG_LEAN_MASS for V5)              | `ALM`                              | Numeric             | Source                 | 0..\*            | NA                                                                                  | Right leg lean mass (g)                                                                                                                                               | NA                                                                       | imputed                                       |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **LEGS_LEAN_MASS** (H_LEGS_LEAN_MASS for V5)              | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Legs lean mass (g)                                                                                                                                                    | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **TRUNK_LEAN_MASS** (H_TRUNK_LEAN_MASS for V5)            | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Lean mass of the torso in gram. Available for V3/V4/V5                                                                                                                | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **LTRUNK_LEAN_MASS** (H_LTRUNK_LEAN_MASS for V5)          | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Left trunk lean mass (g). Available for V3/V4/V5                                                                                                                      | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **RTRUNK_LEAN_MASS** (H_RTRUNK_LEAN_MASS for V5)          | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Right trunk lean mass (g). Available for V3/V4/V5                                                                                                                     | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **SUBTOT_LEAN_MASS** (H_SUBTOT_LEAN_MASS for V5)          | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Whole body less head lean mass (g)                                                                                                                                    | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **WBTOT_LEAN_MASS** (H_WBTOT_LEAN_MASS for V5)            | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Whole body lean mass (g)                                                                                                                                              | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **LTOTAL_LEAN_MASS**                                      | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Left total lean mass (g). Available for V3/V4                                                                                                                         | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **RTOTAL_LEAN_MASS**                                      | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Right total lean mass (g). Available for V3/V4                                                                                                                        | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **ANDROID_LEAN_MASS**                                     | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Android lean mass (g)                                                                                                                                                 | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **GYNOID_LEAN_MASS**                                      | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Gynoid lean mass (g)                                                                                                                                                  | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **AND_plus_GYN_LEAN_MASS**                                | None                               | Numeric             | Excluded               | 0..\*            | NA                                                                                  | Lean mass in grams (AND + GYN). Not available for V4/V5                                                                                                               | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **ALM** (H_ALM for V5)                                    | `ALM_HT2`, `ALM_BMI`               | Numeric             | Source                 | 0..\*            | NA                                                                                  | Appendicular Lean Mass in grams (Arms + Legs).                                                                                                                        | NA                                                                       | imputed, normally distribution                |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **ALM_HT2** (H_ALM_HT2 for V5)                            | `ewgsop2_sarcopenia_stage`         | Numeric             | Primary Outcome        | 0..\*            | NA                                                                                  | Sarcopenia Marker: ALM/Height² in kg/m^2.^                                                                                                                            | Visits with missing/ invalid values are excluded for ALM analysis        | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **ALM_WT** (H_ALM_WT for V5)                              | None                               | Numeric             | Sensitive analysis     | 0..\*            | NA                                                                                  | Appendicular lean mass of arms + legs (kg) /weight (kg).                                                                                                              | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **ALM_BMI** (H_ALM_BMI for V5)                            | None                               | Numeric             | Sensitive analysis     | 0..\*            | NA                                                                                  | ALM scaled by BMI.                                                                                                                                                    | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **TUG_GETUP**                                             | None                               | Binary              | Excluded               | 0..\*            | 0=?,\                                                                               | Timed Up and Go: 1-Get up from a chair with crossed hands on chest, 0-help with. Only available for V4/V5.                                                            | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=?                                                                                 |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | <!--# check what coding stands for -->                                              |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **TUG_GO**                                                | None                               | Binary              | Excluded               | 0..\*            | 0=stop or uncomplete,\                                                              | Timed Up and Go. Only available for V4/V5.                                                                                                                            | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1= 1-Walk 3 meters                                                                  |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **TUG_TURN**                                              | None                               | Binary              | Excluded               | 0..\*            | 0=dysbalance, stop or uncomplete,\                                                  | Timed Up and Go. Only available for V4/V5.                                                                                                                            | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=Turn back                                                                         |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **TUG_GOBACKSIT**                                         | None                               | Binary              | Excluded               | 0..\*            | 0=?,\                                                                               | Timed Up and Go. Only available for V4/V5.                                                                                                                            | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=Come back 3m and sit                                                              |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | <!--# check what 0 codes for -->                                                    |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **TUG_TIME**                                              | None                               | Numeric             | Excluded               | 0..\*            | \-                                                                                  | Time to complete Timed Up and Go in seconds. Only available for V4/V5.                                                                                                | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **TUG_SCORE**                                             | None                               | Factor              | Excluded               | 0..\*            | 0=?,\                                                                               | Functional mobility score, 0-4 points. Only available for V4/V5. <!--# How is this score calculated? -->                                                              | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=?,\                                                                               |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | 2=?, ...\                                                                           |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | <!--# check what coding stands for -->                                              |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **6MGS** (renamed to gait_speed to conform to R language) | `ewgsop2_sarcopenia_stage`         | Numeric             | Primary Outcome        | 1..\*            | NA                                                                                  | Gait Speed: 6-meter walk time in m/s.                                                                                                                                 | Visits with missing/ invalid values are excluded for gait speed analysis | impute, normally distribution, only for V4/V5 |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **PHYSTEST_COMMENT**                                      | None                               | Character           | Exclude                | 0..\*            | NA                                                                                  | Comment on Timed Up and Go or Gait Speed. High misingness and not needed for main analysis.                                                                           | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **SARCF_STRENGHT**                                        | None                               | Factor              | Exclude                | 0..1             | 0=None,\                                                                            | SARC-F: Difficulty in lifting and carrying 10 pounds. Only available for V5.                                                                                          | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=Some,\                                                                            |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | 2=A lot or unable                                                                   |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **SARCF_WALK**                                            | None                               | Factor              | Exclude                | 0..1             | None=0,\                                                                            | SARC-F: Difficulty walking across a room. Only available for V5.                                                                                                      | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | Some=1,\                                                                            |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | 2=A lot, use aids, or unable                                                        |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **SARCF_CHAIR**                                           | None                               | Factor              | Exclude                | 0..1             | 0=None,\                                                                            | SARC-F: Difficulty transferring from a chair or bed.Only available for V5.                                                                                            | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=Some,\                                                                            |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | 2=A lot or unable                                                                   |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **SARCF_STAIRS**                                          | None                               | Factor              | Exclude                | 0..1             | 0=None,\                                                                            | SARC-F: Difficulty climbing a flight of 10 stairs. Only available for V5.                                                                                             | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=Some,\                                                                            |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | 2=A lot or unable                                                                   |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **SARCF_FALL**                                            | None                               | Factor              | Exclude                | 0..1             | 0=None,\                                                                            | SARC-F: How many times have you fallen in the past year. Only available for V5.                                                                                       | NA                                                                       | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=1-3 falls,\                                                                       |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  | 2=4+ falls                                                                          |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **SARCF_TOTAL**                                           | None                               | Integer             | Exclude                | 0..1             | 1=?, 2=?, ... <!--# check what coding stands for -->                                | Sarcopenia Screening: total of each other items. Only available for V5.                                                                                               | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **HGS_R1**                                                | `HGS_MAX` (already in raw dataset) | Numeric             | Source                 | 0..1             | NA                                                                                  | Hand grip 1st measure on right hand (measured if hand is dominant). Only available for V5.                                                                            | see `HGS_MAX`                                                            | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **HGS_R2**                                                | `HGS_MAX` (already in raw dataset) | Numeric             | Source                 | 0..1             | NA                                                                                  | Hand grip 2st measure on right hand (measured if hand is dominant). Only available for V5.                                                                            | see `HGS_MAX`                                                            | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **HGS_R3**                                                | `HGS_MAX` (already in raw dataset) | Numeric             | Source                 | 0..1             | NA                                                                                  | Hand grip 3st measure on right hand (measured if hand is dominant). Only available for V5.                                                                            | see `HGS_MAX`                                                            | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **HGS_L1**                                                | `HGS_MAX` (already in raw dataset) | Numeric             | Source                 | 0..1             | NA                                                                                  | Hand grip 1st measure on left hand (measured if hand is dominant). Only available for V5.                                                                             | see `HGS_MAX`                                                            | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **HGS_L2**                                                | `HGS_MAX` (already in raw dataset) | Numeric             | Source                 | 0..1             | NA                                                                                  | Hand grip 2st measure on left hand (measured if hand is dominant). Only available for V5.                                                                             | see `HGS_MAX`                                                            | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **HGS_L3**                                                | `HGS_MAX` (already in raw dataset) | Numeric             | Source                 | 0..1             | NA                                                                                  | Hand grip 3st measure on left hand (measured if hand is dominant). Only available for V5.                                                                             | see `HGS_MAX`                                                            | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **HGS_MAX**                                               | `ewgsop2_sarcopenia_stage`         | Numeric             | Primary Outcome        | 0..\*            | NA                                                                                  | Max Grip Strength (Peak of 6 measures) in kg. Only available for V5.                                                                                                  | <!--# define -->                                                         | impute                                        |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **L\_...LEAN_MASS/ L_ALM\_...**                           | None                               | multiple data types | Excluded               | 0..\*            | NA                                                                                  | multiple values for lean mass from Lunar DXA for V5, will not be used                                                                                                 | NA                                                                       | not used                                      |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **ewgsop2_sarcopenia_stage**                              | None                               | Factor              | Primary Outcome        | 0..\*            | 0=No sarcopenia, 1=Probable sarcopenia, 2=Confirmed Sarcopenia, 3=Severe sarcopenia | Mapping:                                                                                                                                                              | for Aim 2: participant with missing baseline value are excluded          | not used                                      |
-|                                                           |                                    |                     |                        |                  |                                                                                     |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     | - no                                                                                                                                                                  |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     | - probable: handgrip strength\<16 kg (for women)                                                                                                                      |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     | - confirmed: criteria of probable + low muscle quantity or quality. \<5.5 kg/m² (women)                                                                               |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     |                                                                                                                                                                       |                                                                          |                                               |
-|                                                           |                                    |                     |                        |                  |                                                                                     | - severe: criteria of confirmed + \<= 0.8 m/s                                                                                                                         |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| **FNIH_sarcopenia**                                       | None                               | Factor              | Secondary Outcome      | 0..\*            | 0=No,\                                                                              | FNIH criteria for sarcopenia for sensitivity analysis, Sarcopenia when grip strength \< 16 kg AND ALM/BMI \< 0.512                                                    | for Aim 3: participant with missing baseline value are excluded          | not used                                      |
-|                                                           |                                    |                     |                        |                  | 1=Sarcopenia                                                                        |                                                                                                                                                                       |                                                                          |                                               |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
-| DXA_method                                                | None                               | Factor              | For filtering          | 1..\*            | <!--# fill in -->                                                                   | To distinguish the method used to measure ALM                                                                                                                         | available for all                                                        | used as predictor                             |
-+-----------------------------------------------------------+------------------------------------+---------------------+------------------------+------------------+-------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------+-----------------------------------------------+
+<table>
+<tbody>
+<tr>
+<td><p><strong>Original Name</strong></p></td>
+<td><p><strong>Derived Variable</strong></p></td>
+<td><p><strong>Data Type</strong></p></td>
+<td><p><strong>Role</strong></p></td>
+<td><p><strong>Multiplicity</strong></p></td>
+<td><p><strong>Reference / Levels</strong></p></td>
+<td><p><strong>Notes</strong></p></td>
+<td><p><strong>Missing value handling</strong></p></td>
+<td><p><strong>Imputation Notes</strong></p></td>
+<td></td>
+<td><p><strong>Range</strong></p></td>
+</tr>
+<tr>
+<td><p><strong>pt</strong></p></td>
+<td><p>None</p></td>
+<td><p>integer</p></td>
+<td><p>Primary Key</p></td>
+<td><p>1..1</p></td>
+<td><p>NA</p></td>
+<td><p>Unique identifier for the CoLaus/OsteoLaus cohort.</p></td>
+<td><p>if not recorded unidentified row is excluded from analysis</p></td>
+<td><p>Not imputed, used as predictor</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>id_pat/ PATIENT_KEY</strong></p></td>
+<td><p>None</p></td>
+<td><p>character</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..1</p></td>
+<td><p>NA</p></td>
+<td><p>Additional ID to <code>pt</code> in OsteoLaus dataset</p></td>
+<td><p>NA</p></td>
+<td><p>Not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>Ethnicity</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Excluded</p></td>
+<td><p>1..1</p></td>
+<td><p>1=White,2=?, 3=Other</p></td>
+<td><p>Redundant since <code>ethori_self</code> from CoLaus.</p></td>
+<td><p>NA</p></td>
+<td><p>Not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>Ethnicity_other</strong></p></td>
+<td><p>None</p></td>
+<td><p>Character</p></td>
+<td><p>Excluded</p></td>
+<td><p>1..1</p></td>
+<td><p>NA</p></td>
+<td><p>No information</p></td>
+<td><p>NA</p></td>
+<td><p>Not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>SCAN_date</strong></p></td>
+<td><p><code>exam_date_iso</code></p></td>
+<td><p>numeric daily date</p></td>
+<td><p>Source</p></td>
+<td><p>1..*</p></td>
+<td><p>NA</p></td>
+<td><p>Date of DXA/Physical visit. Required to link to OsteoLaus measurement time points to CoLaus measurement time points. In Day–abbreviated month–year DDMonYYYY format</p></td>
+<td><p>see <code>exam_date_iso</code></p></td>
+<td><p>Not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>exam_date_iso</strong></p></td>
+<td><p>None</p></td>
+<td><p>Date</p></td>
+<td><p>Temporal Key</p></td>
+<td><p>1..*</p></td>
+<td><p>NA</p></td>
+<td><p>ISO 8601 YYYY-MM-DD format. Join key.</p></td>
+<td><p>Visits with missing/ invalid values are excluded</p></td>
+<td><p>Not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>Age</strong></p></td>
+<td><p>None</p></td>
+<td><p>Numeric float</p></td>
+<td><p>Time-Varying Covariate</p></td>
+<td><p>1..*</p></td>
+<td><p>NA</p></td>
+<td><p>Calculated at each <code>dataexam</code> with <code>birthdate</code> not available. Continuous variable.</p></td>
+<td><p>Visits with missing/ invalid values are excluded</p></td>
+<td><p>imputed</p></td>
+<td></td>
+<td><p>50.2 - 91.5</p></td>
+</tr>
+<tr>
+<td><p><strong>Weight</strong></p></td>
+<td><p><code>BMI</code></p></td>
+<td><p>Numeric float</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Height in cm.</p></td>
+<td><p>NA</p></td>
+<td><p>imputed</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>Height</strong></p></td>
+<td><p><code>BMI</code></p></td>
+<td><p>Numeric float</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Weight in kg.</p></td>
+<td><p>NA</p></td>
+<td><p>imputed</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>BMI</strong></p></td>
+<td><p><code>BMI_category</code></p></td>
+<td><p>Numeric float</p></td>
+<td><p>Source</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Calculated as weight/height<sup>2</sup> . Already provided in data.</p></td>
+<td><p>see <code>BMI_category</code></p></td>
+<td><p>not used since derived variables</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>BMI_category</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Time-Varying Covariate</p></td>
+<td><p>0..*</p></td>
+<td><p>1=Underweight<br />
+2=Normal,<br />
+3=Overweight,<br />
+4=Obese. Normal is reference</p></td>
+<td><p>Mapping:<br />
+&lt; 18.5 = Underweight,<br />
+18.5 - &lt; 25.0 Normal reference<br />
+25.0 – &lt; 30.0 = Overweight,<br />
+&gt;= 30.0 = Obese</p></td>
+<td><p>Visits with missing/ invalid values are excluded</p></td>
+<td><p>not used since derived variables</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>HEAD_LEAN_MASS</strong> H_HEAD_LEAN_MASS for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Recalculated Total - Subtotal in grams.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>LARM_LEAN_MASS</strong> H_LARM_LEAN_MASS for V5</p></td>
+<td><p><code>ALM</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Left arm lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>imputed</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>RARM_LEAN_MASS</strong> H_RARM_LEAN_MASS for V5</p></td>
+<td><p><code>ALM</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Right arm lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>imputed</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>ARMS_LEAN_MASS</strong> H_ARMS_LEAN_MASS for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Arms lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>LLEG_LEAN_MASS</strong> H_LLEG_LEAN_MASS for V5</p></td>
+<td><p><code>ALM</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Left leg lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>imputed</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>RLEG_LEAN_MASS</strong> H_RLEG_LEAN_MASS for V5</p></td>
+<td><p><code>ALM</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Right leg lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>imputed</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>LEGS_LEAN_MASS</strong> H_LEGS_LEAN_MASS for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Legs lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>TRUNK_LEAN_MASS</strong> H_TRUNK_LEAN_MASS for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Lean mass of the torso in gram. Available for V3/V4/V5</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>LTRUNK_LEAN_MASS</strong> H_LTRUNK_LEAN_MASS for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Left trunk lean mass g. Available for V3/V4/V5</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>RTRUNK_LEAN_MASS</strong> H_RTRUNK_LEAN_MASS for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Right trunk lean mass g. Available for V3/V4/V5</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>SUBTOT_LEAN_MASS</strong> H_SUBTOT_LEAN_MASS for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Whole body less head lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>WBTOT_LEAN_MASS</strong> H_WBTOT_LEAN_MASS for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Whole body lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>LTOTAL_LEAN_MASS</strong></p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Left total lean mass g. Available for V3/V4</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>RTOTAL_LEAN_MASS</strong></p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Right total lean mass g. Available for V3/V4</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>ANDROID_LEAN_MASS</strong></p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Android lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>GYNOID_LEAN_MASS</strong></p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Gynoid lean mass g</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>AND_plus_GYN_LEAN_MASS</strong></p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Lean mass in grams AND + GYN. Not available for V4/V5</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>ALM</strong> H_ALM for V5</p></td>
+<td><p><code>ALM_HT2</code>, <code>ALM_BMI</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Appendicular Lean Mass in grams Arms + Legs.</p></td>
+<td><p>NA</p></td>
+<td><p>imputed, normally distribution</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>ALM_HT2</strong> H_ALM_HT2 for V5</p></td>
+<td><p><code>ewgsop2_sarcopenia_stage</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Primary Outcome</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Sarcopenia Marker: ALM/Height² in kg/m<sup>2.</sup></p></td>
+<td><p>Visits with missing/ invalid values are excluded for ALM analysis</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>ALM_WT</strong> H_ALM_WT for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Sensitive analysis</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Appendicular lean mass of arms + legs kg /weight kg.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>ALM_BMI</strong> H_ALM_BMI for V5</p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Sensitive analysis</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>ALM scaled by BMI.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>TUG_GETUP</strong></p></td>
+<td><p>None</p></td>
+<td><p>Binary</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>0=?,<br />
+1=?</p></td>
+<td><p>Timed Up and Go: 1-Get up from a chair with crossed hands on chest, 0-help with. Only available for V4/V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>TUG_GO</strong></p></td>
+<td><p>None</p></td>
+<td><p>Binary</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>0=stop or uncomplete,<br />
+1= 1-Walk 3 meters</p></td>
+<td><p>Timed Up and Go. Only available for V4/V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>TUG_TURN</strong></p></td>
+<td><p>None</p></td>
+<td><p>Binary</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>0=dysbalance, stop or uncomplete,<br />
+1=Turn back</p></td>
+<td><p>Timed Up and Go. Only available for V4/V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>TUG_GOBACKSIT</strong></p></td>
+<td><p>None</p></td>
+<td><p>Binary</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>0=?,<br />
+1=Come back 3m and sit</p></td>
+<td><p>Timed Up and Go. Only available for V4/V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>TUG_TIME</strong></p></td>
+<td><p>None</p></td>
+<td><p>Numeric</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>-</p></td>
+<td><p>Time to complete Timed Up and Go in seconds. Only available for V4/V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>TUG_SCORE</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>0=?,<br />
+1=?,<br />
+2=?, ...<br />
+</p></td>
+<td><p>Functional mobility score, 0-4 points. Only available for V4/V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>6MGS</strong> renamed to gait_speed to conform to R language</p></td>
+<td><p><code>ewgsop2_sarcopenia_stage</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Primary Outcome</p></td>
+<td><p>1..*</p></td>
+<td><p>NA</p></td>
+<td><p>Gait Speed: 6-meter walk time in m/s.</p></td>
+<td><p>Visits with missing/ invalid values are excluded for gait speed analysis</p></td>
+<td><p>impute, normally distribution, only for V4/V5</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>PHYSTEST_COMMENT</strong></p></td>
+<td><p>None</p></td>
+<td><p>Character</p></td>
+<td><p>Exclude</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Comment on Timed Up and Go or Gait Speed. High misingness and not needed for main analysis.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>SARCF_STRENGHT</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Exclude</p></td>
+<td><p>0..1</p></td>
+<td><p>0=None,<br />
+1=Some,<br />
+2=A lot or unable</p></td>
+<td><p>SARC-F: Difficulty in lifting and carrying 10 pounds. Only available for V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>SARCF_WALK</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Exclude</p></td>
+<td><p>0..1</p></td>
+<td><p>None=0,<br />
+Some=1,<br />
+2=A lot, use aids, or unable</p></td>
+<td><p>SARC-F: Difficulty walking across a room. Only available for V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>SARCF_CHAIR</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Exclude</p></td>
+<td><p>0..1</p></td>
+<td><p>0=None,<br />
+1=Some,<br />
+2=A lot or unable</p></td>
+<td><p>SARC-F: Difficulty transferring from a chair or bed.Only available for V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>SARCF_STAIRS</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Exclude</p></td>
+<td><p>0..1</p></td>
+<td><p>0=None,<br />
+1=Some,<br />
+2=A lot or unable</p></td>
+<td><p>SARC-F: Difficulty climbing a flight of 10 stairs. Only available for V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>SARCF_FALL</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Exclude</p></td>
+<td><p>0..1</p></td>
+<td><p>0=None,<br />
+1=1-3 falls,<br />
+2=4+ falls</p></td>
+<td><p>SARC-F: How many times have you fallen in the past year. Only available for V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>SARCF_TOTAL</strong></p></td>
+<td><p>None</p></td>
+<td><p>Integer</p></td>
+<td><p>Exclude</p></td>
+<td><p>0..1</p></td>
+<td><p>1=?, 2=?, ...</p></td>
+<td><p>Sarcopenia Screening: total of each other items. Only available for V5.</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>HGS_R1</strong></p></td>
+<td><p><code>HGS_MAX</code> already in raw dataset</p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..1</p></td>
+<td><p>NA</p></td>
+<td><p>Hand grip 1st measure on right hand measured if hand is dominant. Only available for V5.</p></td>
+<td><p>see <code>HGS_MAX</code></p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>HGS_R2</strong></p></td>
+<td><p><code>HGS_MAX</code> already in raw dataset</p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..1</p></td>
+<td><p>NA</p></td>
+<td><p>Hand grip 2st measure on right hand measured if hand is dominant. Only available for V5.</p></td>
+<td><p>see <code>HGS_MAX</code></p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>HGS_R3</strong></p></td>
+<td><p><code>HGS_MAX</code> already in raw dataset</p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..1</p></td>
+<td><p>NA</p></td>
+<td><p>Hand grip 3st measure on right hand measured if hand is dominant. Only available for V5.</p></td>
+<td><p>see <code>HGS_MAX</code></p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>HGS_L1</strong></p></td>
+<td><p><code>HGS_MAX</code> already in raw dataset</p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..1</p></td>
+<td><p>NA</p></td>
+<td><p>Hand grip 1st measure on left hand measured if hand is dominant. Only available for V5.</p></td>
+<td><p>see <code>HGS_MAX</code></p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>HGS_L2</strong></p></td>
+<td><p><code>HGS_MAX</code> already in raw dataset</p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..1</p></td>
+<td><p>NA</p></td>
+<td><p>Hand grip 2st measure on left hand measured if hand is dominant. Only available for V5.</p></td>
+<td><p>see <code>HGS_MAX</code></p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>HGS_L3</strong></p></td>
+<td><p><code>HGS_MAX</code> already in raw dataset</p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..1</p></td>
+<td><p>NA</p></td>
+<td><p>Hand grip 3st measure on left hand measured if hand is dominant. Only available for V5.</p></td>
+<td><p>see <code>HGS_MAX</code></p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>HGS_MAX</strong></p></td>
+<td><p><code>ewgsop2_sarcopenia_stage</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Primary Outcome</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Max Grip Strength Peak of 6 measures in kg. Only available for V5.</p></td>
+<td></td>
+<td><p>impute</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>L_...LEAN_MASS/ L_ALM_...</strong></p></td>
+<td><p>None</p></td>
+<td><p>multiple data types</p></td>
+<td><p>Excluded</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>multiple values for lean mass from Lunar DXA for V5, will not be used</p></td>
+<td><p>NA</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>ewgsop2_sarcopenia_stage</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Primary Outcome</p></td>
+<td><p>0..*</p></td>
+<td><p>0=No sarcopenia, 1=Probable sarcopenia, 2=Confirmed Sarcopenia, 3=Severe sarcopenia</p></td>
+<td><p>Mapping:</p>
+<ul>
+<li><p>no</p></li>
+<li><p>probable: handgrip strength&lt;16 kg for women</p></li>
+<li><p>confirmed: criteria of probable + low muscle quantity or quality. &lt;5.5 kg/m² women</p></li>
+<li><p>severe: criteria of confirmed + &lt;= 0.8 m/s</p></li>
+</ul></td>
+<td><p>for Aim 2: participant with missing baseline value are excluded</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p><strong>FNIH_sarcopenia</strong></p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>Secondary Outcome</p></td>
+<td><p>0..*</p></td>
+<td><p>0=No,<br />
+1=Sarcopenia</p></td>
+<td><p>FNIH criteria for sarcopenia for sensitivity analysis, Sarcopenia when grip strength &lt; 16 kg AND ALM/BMI &lt; 0.512</p></td>
+<td><p>for Aim 3: participant with missing baseline value are excluded</p></td>
+<td><p>not used</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p>DXA_method</p></td>
+<td><p>None</p></td>
+<td><p>Factor</p></td>
+<td><p>For filtering</p></td>
+<td><p>1..*</p></td>
+<td></td>
+<td><p>To distinguish the method used to measure ALM</p></td>
+<td><p>available for all</p></td>
+<td><p>used as predictor</p></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
