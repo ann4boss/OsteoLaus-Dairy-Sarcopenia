@@ -129,117 +129,124 @@ apply_exclusions <- function(
     ))
   }
   
-  # MICE: apply shared IDs to every imputed slice, run per-imp pipeline
-  imps <- sort(unique(long$.imp))
-  imps <- imps[imps > 0L]
-  
-  per_imp <- run_by_imputation(
-    long     = long,
-    qc_table = qc_table,
-    imp_col  = ".imp",
-    fun      = function(slice, qt, imp_id) {
-      
-      # Apply shared keep IDs (derived from observed data)
-      slice_shared <- dplyr::filter(
-        slice, .data[[pt_col]] %in% shared_keep_ids
-      )
-      
-      run_pipeline(
-        slice_shared, qt, outcomes, covariates,
-        pt_col, visit_col, visit_min, exposure,
-        shared_consort = shared_consort
-      )
+  # ── MICE: long → per-outcome exclusions → mids ───────────────────────────
+  # All imputations (.imp 0..m) are filtered to shared_keep_ids and then
+  # processed together for each outcome. Running lags on all imps including
+  # .imp == 0 (observed data) gives mice::as.mids() a proper observed-data
+  # slot: lag columns are NA only where T1 was genuinely missing, not
+  # everywhere, so $imp is populated correctly without any manual injection.
+  long_shared <- dplyr::filter(long, .data[[pt_col]] %in% shared_keep_ids)
+  key_cols    <- c(pt_col, visit_col)
+
+  outcome_data    <- list()
+  outcome_mids    <- list()
+  outcome_excl    <- list()
+  outcome_consort <- list()
+
+  for (oc in outcomes) {
+
+    oc_long <- long_shared
+    covars  <- covariates[[oc]] %||% character(0)
+    n_start <- dplyr::n_distinct(dplyr::filter(oc_long, .imp == 0L)[[pt_col]])
+    consort <- .add_consort(.empty_consort(), oc, "Start outcome",
+                            n_remaining = n_start)
+
+    # 4. Lag (gait_speed only) — applied to ALL imps including .imp == 0.
+    #    create_lags() groups by .imp + pt so each imputation's lags are
+    #    independent. T1 rows are dropped after lagging.
+    if (oc == "gait_speed") {
+      oc_long <- create_lags(oc_long, pt_col, visit_col) |>
+        dplyr::filter(.data[[visit_col]] != "T1")
+      covars <- paste0(covars, "_lag")
     }
-  )
-  
-  # ── Enforce union exclusions across imputations ───────────────────────────
-  # A row (pt x visit) excluded in ANY imputation is excluded in ALL.
-  # This keeps slices rectangular so mice::as.mids() can reconstruct a valid
-  # mids, and is statistically correct — a row missing in some imputations
-  # but not others is structurally unobservable, not randomly missing.
-  outcome_long <- stats::setNames(
-    lapply(outcomes, function(oc) {
-      
-      # Collect row keys present in every imputation
-      imp_data <- lapply(names(per_imp), function(i) {
-        df <- per_imp[[i]]$data[[oc]]
-        if (!is.null(df) && nrow(df) > 0L) {
-          df[[".imp"]] <- as.integer(i)
-          df
-        }
-      })
-      imp_data <- Filter(Negate(is.null), imp_data)
-      if (length(imp_data) == 0L) return(tibble::tibble())
-      
-      # Row key = pt x visit_col combination
-      key_cols <- intersect(c(pt_col, visit_col), names(imp_data[[1]]))
-      
-      # Keys present in EVERY imputation (intersection = consistent survivors)
-      key_sets <- lapply(imp_data, function(df) {
-        dplyr::distinct(df, dplyr::across(dplyr::all_of(key_cols)))
-      })
-      common_keys <- Reduce(
-        function(a, b) dplyr::semi_join(a, b, by = key_cols),
-        key_sets
-      )
-      
-      # Filter every slice to the common keys, then stack
-      dplyr::bind_rows(lapply(imp_data, function(df) {
-        dplyr::semi_join(df, common_keys, by = key_cols)
-      }))
-    }),
-    outcomes
-  )
-  
-  # ── Collect excluded-by-outcome rows (from .imp == 1 as canonical) ────────
-  outcome_excluded_mice <- stats::setNames(
-    lapply(outcomes, function(oc) {
-      per_imp[["1"]]$excluded_by_oc[[oc]]
-    }),
-    outcomes
-  )
-  
-  # ── Reconstruct one mids per outcome ──────────────────────────────────────
-  # Now safe: union exclusion guarantees equal slice sizes across imputations.
-  # Lag columns are included: reconstruct_mids_after_exclusion NAs them out
-  # in the .imp == 0 observed slot (using type-safe NA so bind_rows preserves
-  # factor levels), and mice::as.mids() then tracks them in $imp so that
-  # mice::complete(mids, i) returns the correct per-imputation lag values.
-  original_mids <- data   # the mids passed into apply_exclusions()
-  outcome_mids <- stats::setNames(
-    lapply(outcomes, function(oc) {
-      lo <- outcome_long[[oc]]
-      if (is.null(lo) || nrow(lo) == 0L) return(NULL)
-      reconstruct_mids_after_exclusion(
-        long_excluded = lo,
-        original_mids = original_mids,
-        pt_col        = pt_col
-      )
-    }),
-    outcomes
-  )
-  
-  
-  # ── Pool CONSORT counts (average n across imputations) ────────────────────
-  pooled_consort <- .pool_consort(
-    lapply(per_imp, `[[`, "consort_long"),
-    shared_consort = shared_consort
-  )
-  
-  # Post-shared long tibble for MICE
-  mice_post_shared <- dplyr::filter(
-    long,
-    .imp > 0L,
-    .data[[pt_col]] %in% shared_keep_ids
-  )
-  
+
+    # 5. Prevalent baseline (sarcopenia) — evaluated on .imp == 0
+    if (oc %in% c("ewgsop2_sarcopenia_stage", "fnih_sarcopenia")) {
+      level    <- if (oc == "fnih_sarcopenia") "Sarcopenia" else "Confirmed"
+      prev_ids <- dplyr::filter(oc_long, .imp == 0L,
+                                .data[[visit_col]] == "T1",
+                                .data[[oc]] == level) |>
+        dplyr::pull(.data[[pt_col]]) |> unique()
+      oc_long  <- dplyr::filter(oc_long, !(.data[[pt_col]] %in% prev_ids))
+      n_after  <- dplyr::n_distinct(dplyr::filter(oc_long, .imp == 0L)[[pt_col]])
+      consort  <- .add_consort(consort, oc, "Prevalent baseline",
+                               n_excluded = n_start - n_after, n_remaining = n_after)
+      n_start  <- n_after
+    }
+
+    # 5b. sumtot1 row-level exclusion — identify bad rows via .imp > 0,
+    #     then remove those pt×visit keys from ALL imps for consistency
+    if ("sumtot1" %in% covars || "sumtot1_lag" %in% covars) {
+      bad_keys <- exclude_invalid_sumtot1(
+        dplyr::filter(oc_long, .imp > 0L), pt_col, visit_col
+      )$excluded_rows |>
+        dplyr::distinct(.data[[pt_col]], .data[[visit_col]])
+      if (nrow(bad_keys) > 0L)
+        oc_long <- dplyr::anti_join(oc_long, bad_keys, by = key_cols)
+      n_pts_after <- dplyr::n_distinct(dplyr::filter(oc_long, .imp == 0L)[[pt_col]])
+      consort <- .add_consort(consort, oc, "sumtot1 visits outside 500-4200",
+                              n_excluded = nrow(bad_keys), n_remaining = n_pts_after)
+      n_start <- n_pts_after
+    }
+
+    # 6-7. Missing covariates + missing outcome — on .imp > 0 only (imputed
+    #      data should be complete; any remaining NAs are structural).
+    imps_ok <- dplyr::filter(oc_long, .imp > 0L)
+    if (length(covars) > 0L)
+      imps_ok <- imps_ok[rowSums(is.na(imps_ok[covars])) == 0L, ]
+    imps_ok <- dplyr::filter(imps_ok, !is.na(.data[[oc]]))
+
+    # 8. Visit recheck — participant must have >= visit_min in EVERY imputation
+    keep_ids <- imps_ok |>
+      dplyr::distinct(.imp, .data[[pt_col]], .data[[visit_col]]) |>
+      dplyr::count(.imp, .data[[pt_col]], name = "n_v") |>
+      dplyr::filter(n_v >= visit_min) |>
+      dplyr::group_by(.data[[pt_col]]) |>
+      dplyr::filter(dplyr::n() == m) |>
+      dplyr::pull(.data[[pt_col]]) |>
+      unique()
+    imps_ok <- dplyr::filter(imps_ok, .data[[pt_col]] %in% keep_ids)
+
+    # Intersection of surviving pt×visit keys across all imps > 0
+    key_sets    <- lapply(split(imps_ok, imps_ok$.imp), function(df)
+      dplyr::distinct(df, .data[[pt_col]], .data[[visit_col]]))
+    common_keys <- Reduce(
+      function(a, b) dplyr::semi_join(a, b, by = key_cols),
+      key_sets
+    )
+
+    obs_final  <- dplyr::semi_join(
+      dplyr::filter(oc_long, .imp == 0L), common_keys, by = key_cols
+    )
+    imps_final <- dplyr::semi_join(imps_ok, common_keys, by = key_cols)
+    n_final    <- dplyr::n_distinct(obs_final[[pt_col]])
+    consort    <- .add_consort(consort, oc, paste0("<", visit_min, " visits final"),
+                               n_excluded = n_start - n_final, n_remaining = n_final)
+
+    # Bind all imps, assign consistent .id across imps, convert to mids.
+    # Sorting before row_number() ensures the same observation gets the same
+    # .id in every .imp slice, which is required by mice::as.mids().
+    oc_final <- dplyr::bind_rows(obs_final, imps_final) |>
+      dplyr::arrange(.imp, .data[[pt_col]], .data[[visit_col]]) |>
+      dplyr::group_by(.imp) |>
+      dplyr::mutate(.id = dplyr::row_number()) |>
+      dplyr::ungroup()
+
+    outcome_data[[oc]]    <- dplyr::filter(oc_final, .imp > 0L)
+    outcome_mids[[oc]]    <- mice::as.mids(oc_final)
+    outcome_excl[[oc]]    <- tibble::tibble()
+    outcome_consort[[oc]] <- consort
+  }
+
+  pooled_consort <- dplyr::bind_rows(shared_consort, dplyr::bind_rows(outcome_consort))
+
   list(
-    data             = outcome_long,
+    data             = outcome_data,
     mids             = outcome_mids,
     consort          = pooled_consort,
     excluded         = shared_excluded,
-    excluded_by_oc   = outcome_excluded_mice,
-    data_post_shared = mice_post_shared
+    excluded_by_oc   = outcome_excl,
+    data_post_shared = dplyr::filter(long_shared, .imp > 0L)
   )
 }
 
@@ -498,29 +505,6 @@ run_pipeline <- function(
   )
 }
 
-# Pool CONSORT counts across imputations: average n_remaining and n_excluded,
-# rounded to the nearest integer. Stage order is preserved from imp 1.
-.pool_consort <- function(consort_list, shared_consort = NULL) {
-  
-  all_consort <- dplyr::bind_rows(consort_list)
-  
-  pooled <- all_consort |>
-    dplyr::group_by(outcome, stage) |>
-    dplyr::summarise(
-      n_excluded  = as.integer(round(mean(n_excluded,  na.rm = TRUE))),
-      n_remaining = as.integer(round(mean(n_remaining, na.rm = TRUE))),
-      .groups = "drop"
-    )
-  
-  # Prepend the shared stages (these are count-exact, not averaged)
-  if (!is.null(shared_consort) && nrow(shared_consort) > 0L) {
-    dplyr::bind_rows(shared_consort, pooled)
-  } else {
-    pooled
-  }
-}
-
-
 # =============================================================================
 # Utilities
 # =============================================================================
@@ -548,13 +532,13 @@ run_pipeline <- function(
 exclude_invalid_sumtot1 <- function(data, pt_col, visit_col = "time_point") {
   
   bad_rows <- data |>
-    dplyr::filter(!is.na(sumtot1), (sumtot1 < 500 | sumtot1 > 4200)) |>
-    dplyr::mutate(exclusion_reason = "sumtot1 outside 500-4200")
+    dplyr::filter(!is.na(sumtot1), (sumtot1 < 500 | sumtot1 > 3500)) |>
+    dplyr::mutate(exclusion_reason = "sumtot1 outside 500-3500")
   
   list(
     data          = dplyr::filter(data,
                                   !(is.na(sumtot1) == FALSE &
-                                      (sumtot1 < 500 | sumtot1 > 4200))),
+                                      (sumtot1 < 500 | sumtot1 > 3500))),
     excluded_rows = bad_rows,
     n_rows_removed = nrow(bad_rows)
   )

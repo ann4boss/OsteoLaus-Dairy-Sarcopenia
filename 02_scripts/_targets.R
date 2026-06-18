@@ -16,7 +16,7 @@ tar_option_set(
         "stringr", "magrittr", "lubridate", "forcats", "purrr", "glue",
         "tibble", "cli",
         "mice", "here",
-        "gtsummary", "ggplot2", "patchwork", "scales", "ggridges", "ggalluvial",
+        "gtsummary", "ggplot2", "patchwork", "gridExtra", "scales", "ggridges", "ggalluvial",
         "RColorBrewer",
         "lme4", "lmerTest", "broom.mixed", "broom", "rms", "splines",
         "survival", "survminer", "gt", "survey",
@@ -214,7 +214,7 @@ mice_prep_targets <- list(
         mice_colaus_imp,
         impute_mice_colaus(
             core$colaus_long,
-            m     = 5L,
+            m     = 10L,
             maxit = 30L,
             seed  = 2024L
         )
@@ -224,7 +224,7 @@ mice_prep_targets <- list(
         mice_osteo_imp,
         impute_mice_osteo(
             core$osteo_long,
-            m     = 5L,
+            m     = 10L,
             maxit = 30L,
             seed  = 2024L
         )
@@ -288,16 +288,7 @@ mice_exclusion <- tar_target(
 # LMM TARGETS
 # =============================================================================
 
-covariate_sets_hgs <- list(
-    minimal = c(
-        "age_at_baseline", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_tertile_f1", "diabetes_status", "sumtot1"
-    ),
-    other_PA = c(
-        "age_at_baseline", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_who_f1", "diabetes_status", "sumtot1"
-    )
-)
+
 
 covariate_sets_alm <- list(
     minimal = c(
@@ -320,6 +311,8 @@ covariate_sets_gait <- list(
         "smoking_status_lag", "pa_levels_who_f1_lag", "diabetes_status_lag"
     )
 )
+
+
 
 LLM_targets_HGS <- list(
     tar_target(
@@ -433,6 +426,101 @@ LLM_targets_gait <- list(
 )
 
 
+covariate_sets_hgs <- list(
+    main = c(
+        "age_decades", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_tertile_f1", "diabetes_status", "sumtot1_hundreds"
+    ),
+    other_PA = c(
+        "age_decades", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_who_f1", "diabetes_status", "sumtot1_hundreds"
+    )
+)
+
+covariate_sets_gait <- list(
+    main = c(
+        "age_decades_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "pa_levels_tertile_f1_lag", "diabetes_status_lag"
+    ),
+    other_PA = c(
+        "age_decades_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "pa_levels_who_f1_lag", "diabetes_status_lag"
+    )
+)
+exposure_definitions <- tibble::tribble(
+    ~exposure,                  ~exposure_type, ~ref_level,
+    
+    "dairy_100g",         "linear",       NA,
+    "fermented_100g",         "linear",       NA,
+    "nonfermented_100g",         "linear",       NA,
+    "highfat_100g",         "linear",       NA,
+    "lowfat_100g",         "linear",       NA,
+    
+    "dairy_quartile_baseline",  "categorical",  "Q1",
+    
+    "dairy_guidelines_port",    "categorical",  "< 2 servings/day"
+)
+
+exposure_definitions_gait <- tibble::tribble(
+    ~exposure,                  ~exposure_type, ~ref_level,
+    
+    "dairy_100g_lag",         "linear",       NA,
+    "fermented_100g_lag",         "linear",       NA,
+    "nonfermented_100g_lag",         "linear",       NA,
+    "highfat_100g_lag",         "linear",       NA,
+    "lowfat_100g_lag",         "linear",       NA,
+    
+    "dairy_quartile_baseline_lag",  "categorical",  "Q1",
+    
+    "dairy_guidelines_port_lag",    "categorical",  "< 2 servings/day"
+)
+
+
+LMM_targets_HGS <- tar_target(
+    lmm_report_hgs,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$HGS_MAX,
+        outcome        = "HGS_MAX",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions,
+        covariate_sets = covariate_sets_hgs,
+        random_slope   = TRUE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory"
+    ),
+    format = "file")
+
+
+LMM_targets_ALM <- tar_target(
+    lmm_report_alm,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$ALM_HT2_harmonised,
+        outcome        = "ALM_HT2_harmonised",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions,
+        covariate_sets = covariate_sets_hgs,
+        random_slope   = TRUE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory"
+    ),
+    format = "file")
+
+
+LMM_targets_gait <- tar_target(
+    lmm_report_gait,
+    run_lmm_report_gait(
+        mids_object    = mice_analysis$mids$gait_speed,
+        outcome        = "gait_speed",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions_gait,
+        covariate_sets = covariate_sets_gait,
+        random_slope   = FALSE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory"
+    ),
+    format = "file")
+
+
 # =============================================================================
 # COX
 # =============================================================================
@@ -496,10 +584,11 @@ c(
     
     # ── MICE route ────────────────────────────────────────────────────────────
     mice_prep_targets,
-    mice_exclusion
+    mice_exclusion,
     # mice_table_one,
     
     # ── Models ────────────────────────────────────────────────────────────────
+    LMM_targets_gait
     # LLM_targets_HGS,
     # LLM_targets_ALM,
     # LLM_targets_gait,

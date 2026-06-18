@@ -1,16 +1,16 @@
 # =============================================================================
 # 2. MODEL GRID
 # =============================================================================
-exposure_definitions <- tibble::tribble(
-    ~exposure,                  ~exposure_type, ~ref_level,
-    
-    "dairy_total_gday_cumavg",         "linear",       NA,
-    "dairy_total_gday_cumavg",         "rcs",          NA,
-    
-    "dairy_quartile_baseline",  "categorical",  "Q1",
-    
-    "dairy_guidelines_port",    "categorical",  "< 2 servings/day"
-)
+# exposure_definitions <- tibble::tribble(
+#     ~exposure,                  ~exposure_type, ~ref_level,
+#     
+#     "dairy_total_gday_cumavg",         "linear",       NA,
+#     "dairy_total_gday_cumavg",         "rcs",          NA,
+#     
+#     "dairy_quartile_baseline",  "categorical",  "Q1",
+#     
+#     "dairy_guidelines_port",    "categorical",  "< 2 servings/day"
+# )
 
 exposure_definitions_gait <- tibble::tribble(
     ~exposure,                  ~exposure_type, ~ref_level,

@@ -592,9 +592,12 @@ impute_mice_colaus <- function(df,
     names(df_mice)
   )
   
+  
   for (col in sumtot1_wide_cols) {
-    post[col] <- "imp[[j]][,i] <- squeeze(imp[[j]][,i], c(500, 4200))"
+    post[col] <- "imp[[j]][,i] <- squeeze(imp[[j]][,i], c(500, 3500))"
   }
+
+  
   
   # ---------------------------------------------------------------------------
   # 8. Run MICE

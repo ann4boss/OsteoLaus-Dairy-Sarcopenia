@@ -71,12 +71,16 @@ normalise_exclusion_input <- function(data) {
 create_lags <- function(df,
                         pt_col   = "pt",
                         time_col = "time_point") {
-    
-    exclude_cols <- c(".imp", pt_col, time_col, "exam_date", "gait_speed")
+
+    exclude_cols <- c(".imp", ".id", pt_col, time_col, "exam_date", "gait_speed")
     lag_cols     <- setdiff(names(df), exclude_cols)
-    
+
+    # Group by .imp when present so each imputation's lags are computed
+    # independently — without this, lag() would bleed across imputations.
+    group_cols <- intersect(c(".imp", pt_col), names(df))
+
     df |>
-        dplyr::group_by(.data[[pt_col]]) |>
+        dplyr::group_by(dplyr::across(dplyr::all_of(group_cols))) |>
         dplyr::arrange(.data[[time_col]], .by_group = TRUE) |>
         dplyr::mutate(
             dplyr::across(
