@@ -1,0 +1,35 @@
+# Supplementary material
+
+## Supplementary material for method
+
+### Dairy product mapping
+
+The mapping of dairy products to their dairy category can be seen in Table S1
+
+### Directed acyclic graph
+
+The following figures show the directed acyclic graphs (DAGs) for each outcome individually
+
+## Supplementary material for results
+
+### Missingness
+
+xx
+
+### Imputation assessment
+
+xx
+
+### Comparisons of baseline characteristics between complete case and imputed dataset
+
+Table with p value
+
+### Variables over time
+
+alluvia graphs
+
+### Association between dairy intake and handgrip strength
+
+fermented ect analysis -\> beta values
+
+but also model fit and assumption checks

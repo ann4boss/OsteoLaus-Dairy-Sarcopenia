@@ -6,7 +6,7 @@ bibliography: references.bib
 
 # Results
 
-## Study Population
+## Study population
 
 A total of $1\,475$ women participated in the OsteoLaus study between 2010 and 2022. After applying study-level exclusion criteria, 2 participants were excluded to not having any match between OsteoLaus and CoLaus as defined in @sec-matching, 48 participants were excluded because of missing examination dates, and 188 participants that had only one visit time point (@fig-consort).
 
@@ -18,21 +18,25 @@ For the EWGSOP2 sarcopenia incidence analysis, 24 participants with sarcopenia a
 
 Most participants included in the HGS analysis contributed data from at least 3 of the 3 possible time points (mean 76.9% of participants). For GS, all participants had exactly two visits, as gait speed was measured at only two time points and the inclusion criterion required data from both visits. For ALMI, most participants contributed data from XX of the 3 possible study visits.
 
-## Dataset Matching
+## Dataset matching
 
 @fig-timepoint_dist shows the distribution of examination date differences between matched CoLaus and OsteoLaus visits. For T1 and T2, CoLaus assessments generally occurred before the corresponding OsteoLaus visits, with median differences of 254 and 276 days, respectively. For T3, CoLaus assessments more frequently occurred after the matched OsteoLaus visit, with a median difference of 175 days.
 
 ![](images/clipboard-2572005451.png){#fig-timepoint_dist fig-align="left"}
 
-## Missing Data and Imputation
+## Missing data and imputation
 
-Before imputation, the proportion of missing data ranged from X% for age to X% for gait speed (Supplementary Figure XX).
+Before imputation, the proportion of missing data ranged from 0% for age to 35"% for FNIH sarcopenia definitions. The imputation reduced this to maximally XX%. Detailed distribution of missingness over time points can be found in Supplementary Table XX for complete case and Supplementary Figure XX for imputed dataset.
 
-A total of XX multiply imputed datasets were generated. Diagnostic plots showed good convergence of the imputation models and similar distributions between observed and imputed values (Supplementary Figure XX). Comparisons of summary statistics between the original and imputed datasets showed no meaningful differences, and all statistical tests yielded p-values greater than 0.05.
+A total of 10 multiply imputed datasets were generated. Diagnostic plots showed mostly good convergence of the imputation models and similar distributions between observed and imputed values (Supplementary Figure XX).
 
-## Characteristics of the Study Population
+For the baseline variables of left/right arm lean mass, left/right leg lean mass, convergence showed a trend.
 
-### Baseline Characteristics
+For left leg lean mass also not ideal for all time points, right leg better but also some TIME points unideal
+
+## Characteristics of the study population
+
+### Baseline characteristics
 
 Participants in the highest quartile of dairy intake consumed a median of X g/day, compared with X g/day in the lowest quartile. This corresponded approximately to XX servings of milk per day in the highest quartile and XX servings per day in the lowest quartile.
 
@@ -50,34 +54,31 @@ Include:
 | BMI               |     |     |     |     |
 | Education         |     |     |     |     |
 | Smoking           |     |     |     |     |
-| Alcohol           |     |     |     |     |
 | Physical activity |     |     |     |     |
 | Diabetes          |     |     |     |     |
-| Hypertension      |     |     |     |     |
-| HRT               |     |     |     |     |
 | Energy intake     |     |     |     |     |
 | HGS               |     |     |     |     |
 | ALMI              |     |     |     |     |
 | Gait speed        |     |     |     |     |
 | Sarcopenia        |     |     |     |     |
 
-The fluctuation over time of BMI category, smoking status, activity levels, diabetes status, vitamin D and calcium intake was minimal over time (Supplement alluvial plots Figure XX)
+Comparisons of baseline characteristics between the original and imputed datasets showed no meaningful differences, and all statistical tests yielded p-values greater than 0.05 (supplementary material Table XX)
 
-### Dairy Intake and Muscle Outcomes Over Time
+### Variables over time
+
+The fluctuation of categorization over time of BMI category, smoking status, activity levels, diabetes status was minimal over time (supplementary material alluvial plots Figure XX)
 
 Mean total dairy intake at baseline was X g/day (SD X). Intake remained relatively stable over follow-up, ranging from X to X g/day.
 
-Provide descriptive exposure data.
-
 Table 2.
 
-| Variable            | Baseline | Follow-up 1 | Follow-up 2 | Follow-up 3 |
-|---------------------|----------|-------------|-------------|-------------|
-| Total dairy         |          |             |             |             |
-| Fermented dairy     |          |             |             |             |
-| Non-fermented dairy |          |             |             |             |
-| Full-fat dairy      |          |             |             |             |
-| Low-fat dairy       |          |             |             |             |
+| Variable            | T1  | T2  | T3  |
+|---------------------|-----|-----|-----|
+| Total dairy         |     |     |     |
+| Fermented dairy     |     |     |     |
+| Non-fermented dairy |     |     |     |
+| Full-fat dairy      |     |     |     |
+| Low-fat dairy       |     |     |     |
 
 ### Outcome Trajectories
 
@@ -101,27 +102,47 @@ Potential figure:
 
 Example:
 
-> Mean handgrip strength declined from X kg at baseline to X kg at the final visit, while mean ALMI decreased from X to X kg/m².
+> Mean handgrip strength declined from X kg at T1 to X kg at the final visit, while mean ALMI decreased from X to X kg/m².
 
-## Association Between Dairy Intake and Handgrip Strength
+## Association between dairy intake and handgrip strength
 
-Table 3.
+Handgrip was modelled with a random intercept and random slop. Looking at the data visually showed slightly different sloped per participants over time and comparing a model with and without random slope showed a smaller AIC and BIC for random slope.
 
-Linear mixed-effects models.
+\*visualize picture
 
-| Exposure                    | β   | 95% CI | p-value |
-|-----------------------------|-----|--------|---------|
-| Total dairy (per 100 g/day) |     |        |         |
-| Fermented dairy             |     |        |         |
-| Non-fermented dairy         |     |        |         |
-| Full-fat dairy              |     |        |         |
-| Low-fat dairy               |     |        |         |
+The models assumption of normality, homoc... were all met
 
-Text:
+\*graphs
 
-In adjusted mixed-effects models, higher cummulative average dairy intake was associated with \[higher/lower/no difference in\] handgrip strength (β = X kg per 100 g/day, 95% CI X to X).
+The model fit was as follows: \*Formula
 
-Compared with the lowest quartile, participants in the highest quartile had X kg higher handgrip strength (95% CI X to X).
+Table 3 shows the key findings of the linear mixed-effects models. Each additional 100g of dairy is associated with a 0.23 kg increase in HGS, independent of other factors. Other significant predictors of HGS are age at T1 (β = -2.92, 95% CI: XX, p\<0.001) and time since T1 (β = -0.11, p\<0.001). **The between-person effect showed t**hat for every 10-year difference in age at baseline, older participants started with approx. 2.9 kg less HGS than younger participants. **The within-person effect showed** that as an individual stays in the study, they lose about 0.11 kg of grip strength per year. Being a former smoker is associated with higher HGS compared to never-smokers (β = 0.70, p=0.03) but current smoker is not.
+
+- For BMI category **(Normal, Overweight, Obese),** all are significant and positive compared to the reference ("Underweight"). Being Overweight has the largest positive association (β = +2.43) with HGS.
+
+The other variables are not significantly associated with change in HGS.
+
+| Exposure (per 100 g/day)          | β   | 95% CI | p-value |
+|-----------------------------------|-----|--------|---------|
+| Cumalative average dairy \[100g\] |     |        |         |
+| Age at basline \[years\]          |     |        |         |
+| Time since baseline \[years\]     |     |        |         |
+| BMI                               |     |        |         |
+| BMI                               |     |        |         |
+| Physical activity moderate        |     |        |         |
+|                                   |     |        |         |
+
+Comparing other exposure variables such as quartiles, guideline or fermented dairy ect. None of them was significantly associated with HGS. Details to model effect can be seen in Supplements XX.
+
+| Exposure (per 100 g/day) | β   | 95% CI | p-value |
+|--------------------------|-----|--------|---------|
+| Cumalative average dairy |     |        |         |
+| quartile                 |     |        |         |
+| guidelines               |     |        |         |
+| Fermented dairy          |     |        |         |
+| Non-fermented dairy      |     |        |         |
+| Full-fat dairy           |     |        |         |
+| Low-fat dairy            |     |        |         |
 
 ## Association Between Dairy Intake and Appendicular Lean Mass Index
 
