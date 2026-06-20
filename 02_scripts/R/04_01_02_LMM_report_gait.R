@@ -1,36 +1,18 @@
 # =============================================================================
-# LMM Report — pooled MICE results printed to a dated PDF
+# LMM Report for GAIT SPEED — pooled MICE results printed to a dated PDF
 #
-# One outcome (user-specified transformation), multiple exposures ×
-# multiple covariate sets.  Uses mice::with() + mice::pool() internally.
+# One outcome (gait_speed), multiple exposures × multiple covariate sets.
+# Uses mice::with() + mice::pool() internally.
 # =============================================================================
-
 
 # ---------------------------------------------------------------------------
 # 1.  PER-IMPUTATION DATA PREPARATION
 # ---------------------------------------------------------------------------
 
-#' Apply scaling and factor coding to one completed data frame.
-#'
-#' Scaling centres are derived from the supplied data frame (typically the
-#' first imputation).  Pass `scale_centres` from a previous call to keep
-#' centres consistent across imputations.
-#'
-#' @param df             A single completed (non-mids) data frame.
-#' @param outcome        Raw outcome column name (e.g. `"HGS_MAX"`).
-#' @param outcome_fn     Function to create the response; applied as
-#'                       `response <- outcome_fn(df[[outcome]])`.
-#'                       Use `identity` to leave the outcome untransformed.
-#' @param id_var         Subject ID column.
-#' @param time_var       Time variable column.
-#' @param scale_centres  Named list with elements `age`, `sumtot`, `dairy`,
-#'                       `time`.  Computed from `df` when `NULL`.
-#' @return A list: `df` (prepared data frame) and `scale_centres`.
-
-.prep_one_imputation_gaits <- function(
+.prep_one_imputation_gait <- function(  # Changed: _gait suffix
     df,
     outcome       = "gait_speed",
-    resp_col      = outcome,   # pre-computed by caller; avoids substitute() issues
+    resp_col      = outcome,
     outcome_fn    = identity,
     id_var        = "pt",
     time_var      = "time_since_baseline",
@@ -47,113 +29,113 @@
             time   = median(df[[time_var]],             na.rm = TRUE)
         )
     }
-
+    
     df[[resp_col]] <- outcome_fn(df[[outcome]])
-
+    
     df <- df |>
         dplyr::mutate(
-            age_decades_lag      = as.numeric(scale(df$age_at_baseline_lag,
-                                                center = scale_centres$age_lag,
-                                                scale  = 10)),
+            age_at_baseline_scaled_lag      = as.numeric(scale(df$age_at_baseline_lag,
+                                                               center = scale_centres$age_lag,
+                                                               scale  = 10)),
             
             dairy_100g_lag       = as.numeric(scale(df$dairy_total_gday_cumavg_lag ,
-                                                center = scale_centres$dairy_lag ,
-                                                scale  = 100)),
-            fermented_100g_lag        = as.numeric(scale(df$dairy_fermented_gday_cumavg_lag ,
-                                                    center = scale_centres$fermented_lag ,
+                                                    center = scale_centres$dairy_lag ,
                                                     scale  = 100)),
+            fermented_100g_lag        = as.numeric(scale(df$dairy_fermented_gday_cumavg_lag ,
+                                                         center = scale_centres$fermented_lag ,
+                                                         scale  = 100)),
             nonfermented_100g_lag        = as.numeric(scale(df$dairy_non_fermented_gday_cumavg_lag ,
-                                                       center = scale_centres$nonfermented_lag ,
-                                                       scale  = 100)),
+                                                            center = scale_centres$nonfermented_lag ,
+                                                            scale  = 100)),
             highfat_100g_lag       = as.numeric(scale(df$dairy_highfat_gday_cumavg_lag ,
-                                                  center = scale_centres$highfat_lag ,
-                                                  scale  = 100)),
+                                                      center = scale_centres$highfat_lag ,
+                                                      scale  = 100)),
             lowfat_100g_lag        = as.numeric(scale(df$dairy_lowfat_gday_cumavg_lag ,
-                                                 center = scale_centres$lowfat_lag ,
-                                                 scale  = 100)),
-
+                                                      center = scale_centres$lowfat_lag ,
+                                                      scale  = 100)),
+            
             dairy_quartile_baseline = factor(dairy_quartile_baseline,
                                              levels  = c("Q1","Q2","Q3","Q4"),
                                              ordered = FALSE) |>
                 stats::relevel(ref = "Q1"),
-
+            
             dairy_guidelines_port   = factor(dairy_guidelines_port,
                                              levels  = c("< 2 servings/day",
-                                                         "≥ 2 servings/day"),
+                                                         ">= 2 servings/day"),
                                              ordered = FALSE) |>
                 stats::relevel(ref = "< 2 servings/day"),
             
-            airy_quartile_baseline_lag = factor(dairy_quartile_baseline_lag,
-                                            levels  = c("Q1","Q2","Q3","Q4"),
-                                            ordered = FALSE) |>
+            dairy_quartile_baseline_lag = factor(dairy_quartile_baseline_lag,  # Fixed: was "airy"
+                                                 levels  = c("Q1","Q2","Q3","Q4"),
+                                                 ordered = FALSE) |>
                 stats::relevel(ref = "Q1"),
             
             dairy_guidelines_port_lag   = factor(dairy_guidelines_port_lag,
-                                             levels  = c("< 2 servings/day",
-                                                         "≥ 2 servings/day"),
-                                             ordered = FALSE) |>
+                                                 levels  = c("< 2 servings/day",
+                                                             "≥ 2 servings/day"),
+                                                 ordered = FALSE) |>
                 stats::relevel(ref = "< 2 servings/day"),
-
+            
             BMI_category         = factor(BMI_category,
                                           levels  = c("Underweight","Normal",
                                                       "Overweight","Obese"),
                                           ordered = FALSE) |>
                 stats::relevel(ref = "Normal"),
-
+            
             education_level      = factor(education_level,
                                           levels  = c("Low (ISCED 0-2)",
                                                       "Medium (ISCED 3-4)",
                                                       "High (ISCED 5-8)"),
                                           ordered = FALSE) |>
                 stats::relevel(ref = "Low (ISCED 0-2)"),
-
+            
             smoking_status       = factor(smoking_status,
                                           levels  = c("Never","Former","Current"),
                                           ordered = FALSE) |>
                 stats::relevel(ref = "Never"),
-
+            
             pa_levels_tertile_f1 = factor(pa_levels_tertile_f1,
                                           levels  = c("Low","Medium","High"),
                                           ordered = FALSE) |>
                 stats::relevel(ref = "Low"),
-
+            
             diabetes_status      = factor(diabetes_status,
                                           levels  = c("No diabetes","Diabetes"),
                                           ordered = FALSE) |>
                 stats::relevel(ref = "No diabetes"),
             
             BMI_category_lag        = factor(BMI_category_lag,
-                                          levels  = c("Underweight","Normal",
-                                                      "Overweight","Obese"),
-                                          ordered = FALSE) |>
+                                             levels  = c("Underweight","Normal",
+                                                         "Overweight","Obese"),
+                                             ordered = FALSE) |>
                 stats::relevel(ref = "Normal"),
             
             education_level_lag      = factor(education_level_lag,
-                                          levels  = c("Low (ISCED 0-2)",
-                                                      "Medium (ISCED 3-4)",
-                                                      "High (ISCED 5-8)"),
-                                          ordered = FALSE) |>
+                                              levels  = c("Low (ISCED 0-2)",
+                                                          "Medium (ISCED 3-4)",
+                                                          "High (ISCED 5-8)"),
+                                              ordered = FALSE) |>
                 stats::relevel(ref = "Low (ISCED 0-2)"),
             
             smoking_status_lag       = factor(smoking_status_lag,
-                                          levels  = c("Never","Former","Current"),
-                                          ordered = FALSE) |>
+                                              levels  = c("Never","Former","Current"),
+                                              ordered = FALSE) |>
                 stats::relevel(ref = "Never"),
             
             pa_levels_tertile_f1_lag = factor(pa_levels_tertile_f1_lag,
-                                          levels  = c("Low","Medium","High"),
-                                          ordered = FALSE) |>
+                                              levels  = c("Low","Medium","High"),
+                                              ordered = FALSE) |>
                 stats::relevel(ref = "Low"),
             
             diabetes_status_lag      = factor(diabetes_status_lag,
-                                          levels  = c("No diabetes","Diabetes"),
-                                          ordered = FALSE) |>
+                                              levels  = c("No diabetes","Diabetes"),
+                                              ordered = FALSE) |>
                 stats::relevel(ref = "No diabetes"),
-
+            
             dplyr::across(dplyr::all_of(id_var),
                           ~ factor(.x, ordered = FALSE))
         )
-
+    
     list(df = df, scale_centres = scale_centres, resp_col = resp_col)
 }
 
@@ -162,9 +144,11 @@
 # 2.  FORMULA BUILDER
 # ---------------------------------------------------------------------------
 
-.build_formula <- function(resp_col, exposure, exposure_type,
-                           covariates, time_var, id_var,
-                           random_slope, interaction) {
+.build_formula_gait <- function(  # Changed: _gait suffix
+    resp_col, exposure, exposure_type,
+    covariates, time_var, id_var,
+    random_slope, interaction
+) {
     exp_term <- switch(
         exposure_type,
         linear      = exposure,
@@ -173,18 +157,18 @@
         ns          = paste0("splines::ns(", exposure, ", df = 3)"),
         stop("Unknown exposure_type: ", exposure_type)
     )
-
+    
     rhs <- c(exp_term, time_var, covariates)
-
+    
     if (isTRUE(interaction))
         rhs <- c(rhs, paste0(exp_term, ":", time_var))
-
+    
     re <- if (isTRUE(random_slope)) {
         paste0("(1 + ", time_var, " | ", id_var, ")")
     } else {
         paste0("(1 | ", id_var, ")")
     }
-
+    
     stats::as.formula(paste(resp_col, "~", paste(c(rhs, re), collapse = " + ")))
 }
 
@@ -193,25 +177,11 @@
 # 3.  POOLED MICE FIT
 # ---------------------------------------------------------------------------
 
-#' Fit one LMM across all imputations and return pooled results.
-#'
-#' @param mids_object   A `mids` object.
-#' @param formula       Model formula (built by `.build_formula()`).
-#' @param outcome       Raw outcome column name.
-#' @param outcome_fn    Transformation function (e.g. `sqrt`, `log`,
-#'                      `identity`).
-#' @param id_var        Subject ID column.
-#' @param time_var      Time variable column.
-#' @param random_slope  Logical.
-#' @return A list: `pooled_tidy` (tidy summary with beta/SE/p/CI),
-#'   `first_model` (fitted lmer on imputation 1, for diagnostics),
-#'   `formula`, `n_imp`.
-
-fit_pooled_lmm_gait <- function(
+fit_pooled_lmm_gait <- function(  # Already has _gait
     mids_object,
     formula,
-    outcome      = "HGS_MAX",
-    resp_col     = outcome,   # pre-computed by run_lmm_report()
+    outcome      = "gait_speed",  # Changed default
+    resp_col     = outcome,
     outcome_fn   = identity,
     ref_col      = NULL,
     ref_lev      = NULL,
@@ -221,30 +191,30 @@ fit_pooled_lmm_gait <- function(
 ) {
     m      <- mids_object$m
     ctrl   <- lme4::lmerControl(optimizer = "bobyqa",
-                                 optCtrl  = list(maxfun = 20000))
-
+                                optCtrl  = list(maxfun = 20000))
+    
     # Compute scaling centres once from imputation 1
     df1     <- mice::complete(mids_object, 1)
-    prep1   <- .prep_one_imputation_gaits(df1,
-                                    outcome      = outcome,
-                                    resp_col     = resp_col,
-                                    outcome_fn   = outcome_fn,
-                                    id_var       = id_var,
-                                    time_var     = time_var)
+    prep1   <- .prep_one_imputation_gait(df1,  # Changed: _gait
+                                         outcome      = outcome,
+                                         resp_col     = resp_col,
+                                         outcome_fn   = outcome_fn,
+                                         id_var       = id_var,
+                                         time_var     = time_var)
     centres <- prep1$scale_centres
-
+    
     models <- vector("list", m)
     for (i in seq_len(m)) {
         df_i   <- mice::complete(mids_object, i)
-        prep_i <- .prep_one_imputation_gaits(df_i,
-                                        outcome       = outcome,
-                                        resp_col      = resp_col,
-                                        outcome_fn    = outcome_fn,
-                                        id_var        = id_var,
-                                        time_var      = time_var,
-                                        scale_centres = centres)
+        prep_i <- .prep_one_imputation_gait(df_i,  # Changed: _gait
+                                            outcome       = outcome,
+                                            resp_col      = resp_col,
+                                            outcome_fn    = outcome_fn,
+                                            id_var        = id_var,
+                                            time_var      = time_var,
+                                            scale_centres = centres)
         df_fit <- prep_i$df
-
+        
         # Apply reference level for categorical exposures
         if (!is.null(ref_col) && !is.null(ref_lev)) {
             df_fit[[ref_col]] <- stats::relevel(
@@ -252,11 +222,11 @@ fit_pooled_lmm_gait <- function(
                 ref = ref_lev
             )
         }
-
+        
         models[[i]] <- lmerTest::lmer(formula, data = df_fit,
-                                       REML = FALSE, control = ctrl)
+                                      REML = FALSE, control = ctrl)
     }
-
+    
     pooled      <- mice::pool(mice::as.mira(models))
     pooled_tidy <- summary(pooled, conf.int = TRUE) |>
         tibble::as_tibble() |>
@@ -272,7 +242,7 @@ fit_pooled_lmm_gait <- function(
         ) |>
         dplyr::select(term, estimate, std_error, statistic, df,
                       p_value, conf_low, conf_high)
-
+    
     list(
         pooled_tidy = pooled_tidy,
         first_model = models[[1]],
@@ -285,34 +255,62 @@ fit_pooled_lmm_gait <- function(
 # ---------------------------------------------------------------------------
 # 4.  PDF HELPERS
 # ---------------------------------------------------------------------------
+.pal_gait <- c(  # Changed: _gait suffix
+    "#E76254FF","#EF8A47FF","#F7AA58FF","#FFD06FFF",
+    "#AADCE0FF","#72BCD5FF","#528FADFF","#376795FF","#1E466EFF"
+)
 
-.pal <- c("#E76254FF","#EF8A47FF","#F7AA58FF","#FFD06FFF",
-          "#AADCE0FF","#72BCD5FF","#528FADFF","#376795FF","#1E466EFF")
+.term_labels_gait <- c(
+    dairy_100g_lag                            = "Dairy intake cum. avg. [100g/day]",
+    fermented_100g_lag                         = "Fermented Dairy intake cum. avg. [100g/day]",
+    nonfermented_100g_lag                     = "Non-Fermented Dairy intake cum. avg. [100g/day]",
+    highfat_100g_lag                           = "High Fat Dairy intake cum. avg. [100g/day]",
+    lowfat_100g_lag                            = "Low Fat Dairy intake cum. avg. [100g/day]",
+    dairy_quartile_baseline_lagQ2             = "Dairy intake Q2",
+    dairy_quartile_baseline_lagQ3             = "Dairy intake Q3",
+    dairy_quartile_baseline_lagQ4             = "Dairy intake Q4",
+    `dairy_guidelines_port_lag>= 2 servings/day` = "Dairy intake ≥ 2 servings/day",
+    time_since_baseline                   = "Time since baseline [year]",
+    age_at_baseline_scaled_lag               = "Age at T1 [year]", 
+    BMI_category_lagUnderweight               = "BMI - Underweight",
+    BMI_category_lagOverweight                = "BMI - Overweight",
+    BMI_category_lagObese                     = "BMI - Obese",
+    `education_level_lagMedium (ISCED 3-4)` = "Education - Medium (ISCED 3-4)",
+    `education_level_lagHigh (ISCED 5-8)`   = "Education - High (ISCED 5-8)",
+    smoking_status_lagFormer                  = "Smoking - Former",
+    smoking_status_lagCurrent                 = "Smoking - Current",
+    pa_levels_tertile_f1_lagMedium            = "Physical activity - Medium",
+    pa_levels_tertile_f1_lagHigh              = "Physical activity - High",
+    diabetes_status_lagDiabetes               = "Diabetes - Yes"
+)
 
-.theme_report <- function() {
-    ggplot2::theme_minimal(base_size = 10) +
+.theme_report_gait <- function() {  # Changed: _gait suffix
+    ggplot2::theme_minimal(base_size = 12) +
         ggplot2::theme(
-            panel.grid = ggplot2::element_blank(),
-            axis.line  = ggplot2::element_line(colour = "black", linewidth = 0.4),
-            axis.ticks = ggplot2::element_line(colour = "black"),
-            axis.text  = ggplot2::element_text(colour = "black"),
-            axis.title = ggplot2::element_text(colour = "black"),
-            plot.title = ggplot2::element_text(face = "bold", size = 10)
+            panel.grid  = ggplot2::element_blank(),
+            axis.line   = ggplot2::element_line(colour = "black", linewidth = 0.4),
+            axis.ticks  = ggplot2::element_line(colour = "black"),
+            axis.text   = ggplot2::element_text(colour = "black", family = "Helvetica"),
+            axis.title  = ggplot2::element_text(colour = "black", family = "Helvetica"),
+            plot.title  = ggplot2::element_text(face = "bold", size = 13,
+                                                family = "Helvetica"),
+            text        = ggplot2::element_text(family = "Helvetica"),
+            plot.margin = ggplot2::margin(4, 4, 4, 4)
         )
 }
 
-.section_page <- function(title, subtitle = NULL) {
+.section_page_gait <- function(title, subtitle = NULL) {  # Changed: _gait suffix
     grid::grid.newpage()
-    grid::grid.rect(gp = grid::gpar(fill = .pal[9], col = NA))
+    grid::grid.rect(gp = grid::gpar(fill = .pal_gait[9], col = NA))  # Changed: .pal_gait
     grid::grid.text(title, x = 0.5, y = if (is.null(subtitle)) 0.5 else 0.55,
                     gp = grid::gpar(col = "white", fontsize = 16,
                                     fontface = "bold"))
     if (!is.null(subtitle))
         grid::grid.text(subtitle, x = 0.5, y = 0.43,
-                        gp = grid::gpar(col = .pal[5], fontsize = 11))
+                        gp = grid::gpar(col = .pal_gait[5], fontsize = 11))  # Changed: .pal_gait
 }
 
-.text_page <- function(lines, title = NULL) {
+.text_page_gait <- function(lines, title = NULL) {  # Changed: _gait suffix
     grid::grid.newpage()
     y <- 0.97
     if (!is.null(title)) {
@@ -328,9 +326,8 @@ fit_pooled_lmm_gait <- function(
     }
 }
 
-# Tidy results as a ggplot table (coefficient plot + numeric table side-by-side)
-.results_page <- function(tidy_df, title) {
-
+.results_page_gait <- function(tidy_df, title) { 
+    
     # Round for display
     disp <- tidy_df |>
         dplyr::mutate(
@@ -342,32 +339,70 @@ fit_pooled_lmm_gait <- function(
             ),
             df = round(df, 1)
         )
-
+    
     # ── Coefficient plot (exclude intercept) ----------------------------------
     plot_df <- tidy_df |>
         dplyr::filter(term != "(Intercept)") |>
         dplyr::mutate(
-            sig   = p_value < 0.05,
-            term  = forcats::fct_rev(factor(term))
+            sig = p_value < 0.05,
+            # Get the base label (without asterisk)
+            term_label_base = {
+                idx <- match(term, names(.term_labels_gait))
+                ifelse(is.na(idx), term, .term_labels_gait[idx])
+            },
+            # Create display label with asterisk if significant
+            term_label_display = dplyr::case_when(
+                sig ~ paste0(term_label_base, " *"),
+                TRUE ~ term_label_base
+            ),
+            # Create factor with proper ordering (using base labels)
+            term_label = factor(
+                term_label_base,
+                levels = rev(c(
+                    unname(.term_labels_gait),
+                    sort(unique(term_label_base[!(term %in% names(.term_labels_gait))]))
+                ))
+            )
         )
-
+    
     p_coef <- ggplot2::ggplot(
         plot_df,
-        ggplot2::aes(x = estimate, y = term,
+        ggplot2::aes(x = estimate, y = term_label,
                      xmin = conf_low, xmax = conf_high,
                      colour = sig)
     ) +
         ggplot2::geom_vline(xintercept = 0, linetype = "dashed",
                             colour = "grey60") +
-        ggplot2::geom_errorbarh(height = 0.3, linewidth = 0.7) +
-        ggplot2::geom_point(size = 2.5) +
+        ggplot2::geom_errorbarh(height = 0.3, linewidth = 1) +
+        ggplot2::geom_point(size = 1.8) +
         ggplot2::scale_colour_manual(
-            values = c(`TRUE` = .pal[9], `FALSE` = .pal[5]),
+            values = c(`TRUE` = "#92D050", `FALSE` = "#FF6666"),
             guide  = "none"
         ) +
-        ggplot2::labs(x = "Estimate (95 % CI)", y = NULL, title = title) +
-        .theme_report()
-
+        ggplot2::scale_y_discrete(
+            expand = ggplot2::expansion(add = 0.1),
+            labels = setNames(plot_df$term_label_display, plot_df$term_label_base)
+        ) +
+        ggplot2::labs(
+            x = "Estimate (95 % CI)", 
+            y = NULL, 
+            title = title,
+            caption = "* p < 0.05"
+        ) +
+        .theme_report_gait() +  # FIXED: was .theme_report()
+        ggplot2::theme(
+            axis.text.y = ggplot2::element_text(size = 14),
+            axis.text.x = ggplot2::element_text(size = 9),
+            plot.margin = ggplot2::margin(2, 2, 2, 2)
+        )
+    
+    # Fix panel height so rows are compact regardless of page size
+    n_terms    <- nlevels(plot_df$term_label)
+    coef_grob  <- ggplot2::ggplotGrob(p_coef)
+    panel_row  <- which(coef_grob$layout$name == "panel")
+    coef_grob$heights[coef_grob$layout$t[panel_row]] <-
+        grid::unit(n_terms * 0.18, "in")
+    
     # ── Numeric table ---------------------------------------------------------
     tbl_grob <- gridExtra::tableGrob(
         disp,
@@ -379,45 +414,45 @@ fit_pooled_lmm_gait <- function(
                                                 x = 0.05))
         )
     )
-
-    gridExtra::grid.arrange(p_coef, tbl_grob, ncol = 2, widths = c(1.2, 1.8))
+    
+    gridExtra::grid.arrange(coef_grob, tbl_grob, ncol = 2, widths = c(1.2, 1.8))
 }
 
 
 # ── Diagnostic plots ---------------------------------------------------------
 
-.plot_diagnostics <- function(model, label = "") {
+.plot_diagnostics_gait <- function(model, label = "") {  # Already has _gait
     res_v  <- residuals(model)
     fit_v  <- fitted(model)
     df_d   <- data.frame(fitted    = fit_v,
-                          residuals = res_v,
-                          sqrt_abs  = sqrt(abs(res_v)))
-
+                         residuals = res_v,
+                         sqrt_abs  = sqrt(abs(res_v)))
+    
     p_rd <- ggplot2::ggplot(df_d, ggplot2::aes(fitted, residuals)) +
-        ggplot2::geom_point(colour = .pal[8], alpha = 0.45, size = 1.2) +
+        ggplot2::geom_point(colour = .pal_gait[8], alpha = 0.45, size = 1.2) +  # Changed: .pal_gait
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed",
-                            colour = .pal[1]) +
-        ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
-                             fill = .pal[4], alpha = 0.2, linewidth = 0.7) +
+                            colour = .pal_gait[1]) +  # Changed: .pal_gait
+        ggplot2::geom_smooth(method = "lm", se = TRUE, colour = .pal_gait[1],  # Changed: .pal_gait
+                             fill = .pal_gait[4], alpha = 0.2, linewidth = 0.7) +  # Changed: .pal_gait
         ggplot2::labs(x = "Fitted", y = "Residuals",
                       title = paste("A  Residuals vs Fitted", label)) +
-        .theme_report()
-
+        .theme_report_gait()  # Changed: _gait
+    
     p_sl <- ggplot2::ggplot(df_d, ggplot2::aes(fitted, sqrt_abs)) +
-        ggplot2::geom_point(colour = .pal[8], alpha = 0.45, size = 1.2) +
-        ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
-                             fill = .pal[3], alpha = 0.2, linewidth = 0.7) +
+        ggplot2::geom_point(colour = .pal_gait[8], alpha = 0.45, size = 1.2) +  # Changed: .pal_gait
+        ggplot2::geom_smooth(method = "lm", se = TRUE, colour = .pal_gait[1],  # Changed: .pal_gait
+                             fill = .pal_gait[3], alpha = 0.2, linewidth = 0.7) +  # Changed: .pal_gait
         ggplot2::labs(x = "Fitted", y = expression(sqrt("|Residuals|")),
                       title = "B  Scale-Location") +
-        .theme_report()
-
+        .theme_report_gait()  # Changed: _gait
+    
     p_qq <- ggplot2::ggplot(df_d, ggplot2::aes(sample = residuals)) +
-        ggplot2::stat_qq(colour = .pal[8], alpha = 0.45, size = 1.2) +
-        ggplot2::stat_qq_line(colour = .pal[1], linewidth = 0.7) +
+        ggplot2::stat_qq(colour = .pal_gait[8], alpha = 0.45, size = 1.2) +  # Changed: .pal_gait
+        ggplot2::stat_qq_line(colour = .pal_gait[1], linewidth = 0.7) +  # Changed: .pal_gait
         ggplot2::labs(x = "Theoretical quantiles", y = "Sample quantiles",
                       title = "C  Q-Q") +
-        .theme_report()
-
+        .theme_report_gait()  # Changed: _gait
+    
     patchwork::wrap_plots(p_rd, p_sl, p_qq, ncol = 3)
 }
 
@@ -426,46 +461,7 @@ fit_pooled_lmm_gait <- function(
 # 5.  MAIN REPORT FUNCTION
 # ---------------------------------------------------------------------------
 
-#' Fit pooled LMMs (mice::with + mice::pool) for every exposure × covariate-set
-#' combination and write all results to a PDF.
-#'
-#' @param mids_object       A `mids` object (output of mice).
-#' @param outcome           Raw outcome column name (e.g. `"HGS_MAX"`).
-#' @param outcome_fn        Function to transform the outcome before modelling
-#'                          (e.g. `sqrt`, `log`).  Use `identity` for no
-#'                          transformation.  The response column will be named
-#'                          `<outcome>_<fn_name>`, or `<outcome>` for identity.
-#' @param exposures         Data frame / tibble with columns:
-#'                          - `exposure`       column name of the exposure
-#'                          - `exposure_type`  `"linear"`, `"categorical"`,
-#'                                             `"rcs"`, or `"ns"`
-#'                          - `ref_level`      reference level for categorical
-#'                                             exposures; use `NA` otherwise
-#' @param covariate_sets    Named list of character vectors.  One model is fit
-#'                          for each list element.
-#' @param random_slope      Logical; include `(1 + time_var | id_var)` when
-#'                          `TRUE`, `(1 | id_var)` when `FALSE`.
-#' @param interaction       Logical; add `exposure × time_var` term when `TRUE`.
-#' @param id_var            Subject ID column (default `"pt"`).
-#' @param time_var          Time variable column (default
-#'                          `"time_since_baseline"`).
-#' @param out_dir           Directory to write the PDF into.
-#' @return Invisibly, the path to the written PDF.
-#'
-#' @examples
-#' \dontrun{
-#' run_lmm_report(
-#'     mids_object    = mice_analysis$mids$HGS_MAX,
-#'     outcome        = "HGS_MAX",
-#'     outcome_fn     = sqrt,
-#'     exposures      = exposure_definitions,
-#'     covariate_sets = covariate_sets_hgs,
-#'     random_slope   = TRUE,
-#'     interaction    = FALSE
-#' )
-#' }
-
-run_lmm_report_gait <- function(
+run_lmm_report_gait <- function(  # Already has _gait
     mids_object,
     outcome        = "gait_speed",
     outcome_fn     = identity,
@@ -475,9 +471,9 @@ run_lmm_report_gait <- function(
         ref_level     = NA_character_
     ),
     covariate_sets = list(
-        minimal = c("age_decades", "BMI_category", "education_level",
+        minimal = c("age_at_baseline_scaled", "BMI_category", "education_level",
                     "smoking_status", "pa_levels_tertile_f1",
-                    "diabetes_status", "sumtot1_hundreds")
+                    "diabetes_status")
     ),
     random_slope   = TRUE,
     interaction    = FALSE,
@@ -486,14 +482,10 @@ run_lmm_report_gait <- function(
     out_dir        = "03_outputs/LMM_exploratory"
 ) {
     # ── Resolve outcome column name -------------------------------------------
-    # deparse(substitute()) captures the literal passed by the user (e.g. "sqrt").
-    # If the user passes a variable holding a function, we fall back to the
-    # function's own name via deparse(body()) — identity stays as-is.
     fn_name <- deparse(substitute(outcome_fn))
     if (grepl("^[a-zA-Z_][a-zA-Z0-9_.]*$", fn_name)) {
         # looks like a plain name — keep it
     } else {
-        # complex expression: try to get the underlying function name
         fn_name <- tryCatch(
             deparse(as.list(body(outcome_fn))[[1]]),
             error = function(e) "transformed"
@@ -504,26 +496,26 @@ run_lmm_report_gait <- function(
     } else {
         paste0(outcome, "_", fn_name)
     }
-
+    
     # ── PDF setup -------------------------------------------------------------
     dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
     timestamp <- format(Sys.time(), "%Y%m%d_%H%M")
     pdf_path  <- file.path(out_dir,
-                           paste0(resp_col, "_LMM_", timestamp, ".pdf"))
-
+                           paste0(resp_col, "_LMM_gait_", timestamp, ".pdf"))  # Added _gait to filename
+    
     grDevices::pdf(pdf_path, width = 14, height = 9)
     on.exit(grDevices::dev.off(), add = TRUE)
-
+    
     # ── Cover page -----------------------------------------------------------
     grid::grid.newpage()
     grid::grid.rect(gp = grid::gpar(fill = "#1E466EFF", col = NA))
-    grid::grid.text(paste0("LMM Report  —  ", resp_col),
+    grid::grid.text(paste0("LMM Report  —  GAIT SPEED  —  ", resp_col),  # Changed: added GAIT SPEED
                     x = 0.5, y = 0.60,
                     gp = grid::gpar(col = "white", fontsize = 24,
                                     fontface = "bold"))
     grid::grid.text(paste0("Generated: ", format(Sys.time(), "%Y-%m-%d %H:%M")),
                     x = 0.5, y = 0.48,
-                    gp = grid::gpar(col = .pal[5], fontsize = 12))
+                    gp = grid::gpar(col = .pal_gait[5], fontsize = 12))  # Changed: .pal_gait
     info_lines <- c(
         paste0("Imputations: ", mids_object$m),
         paste0("Random slope: ", random_slope,
@@ -533,10 +525,10 @@ run_lmm_report_gait <- function(
     )
     for (k in seq_along(info_lines))
         grid::grid.text(info_lines[k], x = 0.5, y = 0.40 - (k - 1) * 0.06,
-                        gp = grid::gpar(col = .pal[5], fontsize = 10))
-
+                        gp = grid::gpar(col = .pal_gait[5], fontsize = 10))  # Changed: .pal_gait
+    
     # ── Configuration summary ------------------------------------------------
-    .text_page(
+    .text_page_gait(  # Changed: _gait
         c(paste("Outcome column:", resp_col),
           paste("Outcome transform:", fn_name),
           paste("Random slope:", random_slope),
@@ -553,16 +545,16 @@ run_lmm_report_gait <- function(
           ))),
         title = "Model Configuration"
     )
-
+    
     # ── Loop: covariate set × exposure --------------------------------------
     for (cov_nm in names(covariate_sets)) {
         covariates <- covariate_sets[[cov_nm]]
-
-        .section_page(
+        
+        .section_page_gait(  # Changed: _gait
             title    = paste0("Covariate set: ", cov_nm),
             subtitle = paste(covariates, collapse = "  ·  ")
         )
-
+        
         for (i in seq_len(nrow(exposures))) {
             exp_row   <- exposures[i, ]
             exp_col   <- exp_row$exposure
@@ -570,9 +562,9 @@ run_lmm_report_gait <- function(
             ref_lev   <- if (!is.na(exp_row$ref_level)) exp_row$ref_level else NULL
             model_tag <- paste0(resp_col, " ~ ", exp_col,
                                 " (", exp_type, ")  |  ", cov_nm)
-
+            
             # ── Build formula ------------------------------------------------
-            formula <- .build_formula(
+            formula <- .build_formula_gait(  # Changed: _gait
                 resp_col     = resp_col,
                 exposure     = exp_col,
                 exposure_type = exp_type,
@@ -582,8 +574,8 @@ run_lmm_report_gait <- function(
                 random_slope = random_slope,
                 interaction  = interaction
             )
-
-                    # ── Fit ----------------------------------------------------------
+            
+            # ── Fit ----------------------------------------------------------
             fit <- tryCatch(
                 fit_pooled_lmm_gait(
                     mids_object  = mids_object,
@@ -598,7 +590,7 @@ run_lmm_report_gait <- function(
                     random_slope = random_slope
                 ),
                 error = function(e) {
-                    .text_page(
+                    .text_page_gait(  # Changed: _gait
                         c(paste("ERROR:", conditionMessage(e)),
                           "",
                           deparse(formula)),
@@ -608,34 +600,34 @@ run_lmm_report_gait <- function(
                 }
             )
             if (is.null(fit)) next
-
+            
             # ── Formula page -------------------------------------------------
-            .text_page(
+            .text_page_gait(  # Changed: _gait
                 c(deparse(fit$formula),
                   "",
                   paste("Imputations pooled:", fit$n_imp)),
                 title = paste("Formula —", model_tag)
             )
-
+            
             # ── Results: coefficient plot + table ----------------------------
-            .results_page(fit$pooled_tidy, title = model_tag)
-
+            .results_page_gait(fit$pooled_tidy, title = model_tag)  # Changed: _gait
+            
             # ── Diagnostics (imputation 1) -----------------------------------
             p_diag <- tryCatch(
-                .plot_diagnostics(fit$first_model,
-                                  label = paste0("[imp 1, ", model_tag, "]")),
+                .plot_diagnostics_gait(fit$first_model,
+                                       label = paste0("[imp 1, ", model_tag, "]")),
                 error = function(e) NULL
             )
             if (!is.null(p_diag)) print(p_diag)
         }
     }
-
+    
     # ── Session info ---------------------------------------------------------
-    .text_page(
+    .text_page_gait(  # Changed: _gait
         utils::capture.output(sessioninfo::session_info()),
         title = "Session Info"
     )
-
+    
     message("PDF written to: ", pdf_path)
     invisible(pdf_path)
 }

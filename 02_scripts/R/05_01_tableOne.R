@@ -55,7 +55,7 @@
     dairy_highfat_gday       ~ "High-fat dairy (g/day)",
     HGS_MAX                  ~ "Grip strength (kg)",
     ALM_HT2_harmonised       ~ "ALMI (kg/m\u00b2)",
-    gait_speed               ~ "Gait speed at V4 (m/s)",
+    gait_speed               ~ "Gait speed at T3 (m/s)",
     ewgsop2_sarcopenia_stage ~ "EWGSOP2 sarcopenia stage",
     fnih_sarcopenia          ~ "FNIH Sarcopenia"
 )
@@ -128,6 +128,10 @@ labels_for_data <- function(data, vars = names(data)) {
 
 #' TRUE when `data` is a mids object (mice package).
 is_mids <- function(data) inherits(data, "mids")
+
+#' Convert a mids to imputed long format (imp > 0 only).
+#' Defined here so it is available to tar_source() workers.
+mids_to_long <- function(m) mice::complete(m, action = "long", include = FALSE)
 
 #' TRUE when `data` is a long-format imputed data frame (has `.imp` column
 #' with more than one imputation index).
@@ -243,7 +247,8 @@ is_imputed <- function(data) is_mids(data) || is_imputed_long(data)
     })
     # Use the average n across imputations as the denominator for pool.scalar
     n_avg <- round(mean(vapply(x_by_imp, function(x) sum(!is.na(x)), integer(1))))
-    if (n_avg == 0L) return(list(n = 0L, stat = "—"))
+    if (length(x_by_imp) == 0L || is.na(n_avg) || n_avg == 0L)
+      return(list(n = 0L, stat = "—"))
     
     r <- .pool_continuous_rubin(x_by_imp, n_avg)
     list(
@@ -280,8 +285,7 @@ make_display_baseline <- function(analysis_long,
                                   id             = "pt",
                                   visit          = ".visit_osteo",
                                   baseline_visit = "Baseline",
-                                  gait_visit     = "V4",
-                                  almi_visit     = "V3") {
+                                  gait_visit     = "T3") {
     if (!all(c(id, visit) %in% names(analysis_long)))
         stop("`analysis_long` must contain `", id, "` and `", visit, "`.", call. = FALSE)
     
@@ -299,17 +303,6 @@ make_display_baseline <- function(analysis_long,
             dplyr::left_join(v4_gait, by = id)
     }
     
-    if ("ALM_HT2_Lunar" %in% names(analysis_long)) {
-        v3_almi <- analysis_long |>
-            dplyr::filter(.data[[visit]] == almi_visit, !is.na(.data$ALM_HT2_Lunar)) |>
-            dplyr::group_by(.data[[id]]) |>
-            dplyr::slice(1) |>
-            dplyr::ungroup() |>
-            dplyr::select(dplyr::all_of(id), ALM_HT2_Lunar)
-        baseline <- baseline |>
-            dplyr::select(-dplyr::any_of("ALM_HT2_Lunar")) |>
-            dplyr::left_join(v3_almi, by = id)
-    }
     baseline
 }
 
@@ -355,6 +348,74 @@ make_display_baseline_imputed <- function(analysis_long,
     baseline
 }
 
+#' One baseline row per participant (complete-case).
+#' Each variable is taken from the earliest time_point where it is non-NA,
+#' so variables only available at later visits (e.g. gait speed at T3) are
+#' automatically pulled from the right visit.
+make_display_baseline_earliest <- function(analysis_long,
+                                           id    = "pt",
+                                           visit = "time_point") {
+    if (!all(c(id, visit) %in% names(analysis_long)))
+        stop("`analysis_long` must contain `", id, "` and `", visit, "`.", call. = FALSE)
+
+    data_vars <- setdiff(names(analysis_long), c(id, visit))
+
+    # Minimum time_point where each variable is non-NA
+    var_min_tp <- vapply(data_vars, function(v) {
+        tps <- analysis_long[[visit]][!is.na(analysis_long[[v]])]
+        if (length(tps) == 0L) NA_character_ else as.character(min(tps))
+    }, character(1))
+
+    unique_tps <- sort(unique(na.omit(var_min_tp)))
+    result <- dplyr::distinct(analysis_long[, id, drop = FALSE])
+
+    for (tp in unique_tps) {
+        vars_here <- data_vars[!is.na(var_min_tp) & var_min_tp == tp]
+        if (length(vars_here) == 0L) next
+        tp_data <- analysis_long |>
+            dplyr::filter(.data[[visit]] == tp) |>
+            dplyr::select(dplyr::all_of(c(id, vars_here)))
+        result <- dplyr::left_join(result, tp_data, by = id)
+    }
+    result
+}
+
+#' One baseline row per participant per imputation.
+#' Each variable is taken from the earliest time_point where it is non-NA
+#' across any imputation, so structurally-late variables (e.g. gait speed,
+#' which first appears at T3) are automatically pulled from the right visit.
+make_display_baseline_earliest_imputed <- function(analysis_long,
+                                                   id      = "pt",
+                                                   visit   = "time_point",
+                                                   imp_col = ".imp") {
+    stopifnot(all(c(id, visit, imp_col) %in% names(analysis_long)))
+    analysis_long <- analysis_long[analysis_long[[imp_col]] > 0L, , drop = FALSE]
+
+    data_vars <- setdiff(names(analysis_long), c(id, imp_col, visit))
+
+    # Minimum time_point (across all imputations) where each variable is non-NA.
+    # This is a structural property of the data, consistent across imputations.
+    var_min_tp <- vapply(data_vars, function(v) {
+        tps <- analysis_long[[visit]][!is.na(analysis_long[[v]])]
+        if (length(tps) == 0L) NA_character_ else as.character(min(tps))
+    }, character(1))
+
+    unique_tps <- sort(unique(na.omit(var_min_tp)))
+
+    result <- analysis_long |>
+        dplyr::distinct(.data[[id]], .data[[imp_col]])
+
+    for (tp in unique_tps) {
+        vars_here <- data_vars[!is.na(var_min_tp) & var_min_tp == tp]
+        if (length(vars_here) == 0L) next
+        tp_data <- analysis_long |>
+            dplyr::filter(.data[[visit]] == tp) |>
+            dplyr::select(dplyr::all_of(c(id, imp_col, vars_here)))
+        result <- dplyr::left_join(result, tp_data, by = c(id, imp_col))
+    }
+    result
+}
+
 # ---------------------------------------------------------------------------
 # Manual table builder (imputed path)
 # ---------------------------------------------------------------------------
@@ -388,13 +449,19 @@ make_display_baseline_imputed <- function(analysis_long,
 
 # In R/tableOne.R — .make_manual_table_object()
 
-.make_manual_table_object <- function(table_body, caption, footnote) {
+.make_manual_table_object <- function(table_body, caption, footnote, col_n = NULL) {
     stat_cols <- grep("^stat_", names(table_body), value = TRUE)
-    
+
     display <- table_body |>
         dplyr::select(label, level, row_type, dplyr::all_of(stat_cols))  # <-- add row_type
-    
-    stat_labels <- as.list(sub("^stat_", "", stat_cols))
+
+    # If N per column is provided, append "N = X" to each column header.
+    stat_labels <- as.list(vapply(stat_cols, function(sc) {
+        nm <- sub("^stat_", "", sc)
+        if (!is.null(col_n) && sc %in% names(col_n))
+            paste0(nm, "\nN = ", format(col_n[[sc]], big.mark = ","))
+        else nm
+    }, character(1)))
     names(stat_labels) <- stat_cols
     
     gt_tbl <- display |>
@@ -482,21 +549,37 @@ make_display_baseline_imputed <- function(analysis_long,
     }
     
     body <- dplyr::bind_rows(rows)
-    names(body)[match(stat_cols, names(body))] <- paste0("stat_", make.names(stat_names))
+
+    # Compute N per column from first imputation (representative; structural N).
+    imp1  <- data[data[[imp_col]] == .imp_values(data, imp_col)[1L], , drop = FALSE]
+    col_n_raw <- if (is.null(by)) {
+        setNames(list(dplyr::n_distinct(imp1[[id]])), "stat_0")
+    } else {
+        setNames(
+            lapply(groups, function(g) sum(as.character(imp1[[by]]) == g, na.rm = TRUE)),
+            stat_cols
+        )
+    }
+
+    # Rename stat cols in body AND re-key col_n to the new names in one step.
+    new_stat_cols <- paste0("stat_", make.names(stat_names))
+    names(body)[match(stat_cols, names(body))] <- new_stat_cols
+    col_n <- setNames(as.list(unlist(col_n_raw)), new_stat_cols)
+
     body <- .insert_manual_heading(body, .MEDICATION_VARS, "Medication")
     body <- .insert_manual_heading(body, .DAIRY_VARS,      "Dairy consumption")
-    
+
     footnote <- paste0(
         "Continuous: pooled mean (mean of within-imputation SDs); ",
         "pooled median [pooled Q1, Q3]. ",
         "Proportions averaged across imputations (van Buuren 2018, \u00a79.5). ",
         "Missing included in categorical denominators. ",
-        "Gait speed from V4; ALMI from V3. ",
+        "Gait speed from T3. ",
         "Severe sarcopenia could not be defined at baseline (gait speed not measured then).",
         footnote_suffix
     )
-    
-    .make_manual_table_object(body, caption, footnote)
+
+    .make_manual_table_object(body, caption, footnote, col_n = col_n)
 }
 
 # ---------------------------------------------------------------------------
@@ -554,7 +637,7 @@ make_display_baseline_imputed <- function(analysis_long,
                 "Continuous: mean (SD); median [Q1, Q3]. ",
                 "Categorical: n (%). ",
                 "Missing shown only when present. ",
-                "Gait speed from V4; ALMI from V3. ",
+                "Gait speed from T3",
                 "Severe sarcopenia not defined at baseline.",
                 footnote_suffix
             )
@@ -611,21 +694,44 @@ make_table_one <- function(analysis_long,
 #' @param by Grouping / exposure variable name.
 #' @inheritParams make_table_one
 make_table_one_by_exposure <- function(analysis_long,
-                                       by      = "baseline_dairy_quartile",
-                                       id      = "pt",
-                                       visit   = "time_point",
-                                       imp_col = ".imp") {
+                                       by            = "baseline_dairy_quartile",
+                                       baseline_data = NULL,
+                                       id            = "pt",
+                                       visit         = "time_point",
+                                       imp_col       = ".imp") {
     if (is_imputed(analysis_long)) {
-        long      <- .to_long(analysis_long, imp_col)
-        baseline  <- make_display_baseline_imputed(long, id = id, visit = visit, imp_col = imp_col) |>
+        long <- .to_long(analysis_long, imp_col)
+
+        # If a richer dataset is supplied for demographics (e.g. pre-column-selection),
+        # filter it to post-exclusion participants and join the `by` column from
+        # analysis_long (which is the one that went through derive steps).
+        if (!is.null(baseline_data)) {
+            bl_long   <- .to_long(baseline_data, imp_col)
+            study_ids <- unique(long[[id]])
+            bl_long   <- dplyr::filter(bl_long, .data[[id]] %in% study_ids)
+            # Add `by` column from analysis_long if not already present
+            if (!by %in% names(bl_long) && by %in% names(long)) {
+                by_vals <- long |>
+                    dplyr::distinct(.data[[id]], .data[[imp_col]], .data[[by]])
+                bl_long <- dplyr::left_join(bl_long, by_vals, by = c(id, imp_col))
+            }
+        } else {
+            bl_long <- long
+        }
+
+        # Per-variable earliest time_point: most variables come from T1,
+        # structurally-late variables (e.g. gait speed) from their first visit.
+        baseline <- make_display_baseline_earliest_imputed(bl_long, id = id,
+                                                           visit = visit,
+                                                           imp_col = imp_col) |>
             dplyr::select(dplyr::any_of(c(.TABLE_VARS, by, id, imp_col))) |>
             .normalize_table_types()
-        
+
         if (!by %in% names(baseline) || all(is.na(baseline[[by]]))) {
             warning("Grouping variable `", by, "` absent or all-missing.")
             return(NULL)
         }
-        
+
         return(.manual_table_one(
             baseline,
             by              = by,
@@ -636,22 +742,159 @@ make_table_one_by_exposure <- function(analysis_long,
             footnote_suffix = " No significance tests shown. Estimates pooled across imputations."
         ))
     }
-    
-    baseline <- make_display_baseline(analysis_long, id = id, visit = visit) |>
+
+    # Complete-case path: per-variable earliest time_point
+    baseline <- make_display_baseline_earliest(analysis_long, id = id, visit = visit) |>
         dplyr::select(dplyr::any_of(c(.TABLE_VARS, by))) |>
         .normalize_table_types()
-    
+
     if (!by %in% names(baseline) || all(is.na(baseline[[by]]))) {
         warning("Grouping variable `", by, "` absent or all-missing.")
         return(NULL)
     }
-    
+
     .build_tbl_summary(
         baseline,
         by              = by,
         caption         = "**Table 1.** Participant characteristics by exposure group",
         footnote_suffix = " No significance tests shown."
     )
+}
+
+#' Build Table 1 comparing baseline characteristics across analysis datasets.
+#'
+#' Use this to show one column per outcome-specific analysis population
+#' (e.g., HGS dataset, ALM dataset, gait-speed dataset) side by side.
+#' For stratification by exposure quartiles use \code{make_table_one_by_exposure()}.
+#'
+#' @param datasets      Named list of datasets (mids, imputed long df, or cc df).
+#'   If any element is imputed, all use the pooling path; otherwise gtsummary.
+#' @param baseline_data Optional shared dataset (mids or long df) used to
+#'   extract baseline characteristics. Supply this when outcome datasets
+#'   lack demographic columns (e.g. after column selection). For each outcome
+#'   dataset the baseline is its minimum time_point, so gait speed (T3) and
+#'   HGS (T1) each pull from the right visit automatically.
+#' @param id       Participant ID column.
+#' @param visit    Visit column (used to identify the minimum time_point per dataset).
+#' @param imp_col  Imputation index column (ignored for cc data).
+#' @param caption  Table caption (markdown supported).
+#' @return A \code{manual_table_one} (imputed path) or \code{gtsummary} object.
+make_table_one_by_dataset <- function(
+    datasets,
+    baseline_data = NULL,
+    id            = "pt",
+    visit         = "time_point",
+    imp_col       = ".imp",
+    caption       = "**Table 1.** Participant characteristics by analysis dataset"
+) {
+  stopifnot(
+    is.list(datasets), length(datasets) >= 2L,
+    !is.null(names(datasets)), all(nzchar(names(datasets)))
+  )
+
+  any_imputed <- any(vapply(datasets, is_imputed, logical(1)))
+
+  # If a shared baseline dataset is provided, convert it to long once —
+  # but do NOT pre-filter by visit: each outcome dataset may have a different
+  # minimum time_point (HGS → T1, gait speed → T3 after lagging).
+  baseline_long_shared <- if (!is.null(baseline_data)) {
+    .to_long(baseline_data, imp_col)
+  } else NULL
+
+  if (any_imputed) {
+    # ── Imputed path: build one stat column per dataset, merge on variable+level
+
+    # For each outcome dataset: find the minimum time_point (its "baseline"),
+    # then filter the shared baseline data to that visit and those participants.
+    baselines <- lapply(datasets, function(d) {
+      long    <- .to_long(d, imp_col)
+      min_tp  <- min(long[[visit]], na.rm = TRUE)
+      if (!is.null(baseline_long_shared)) {
+        outcome_ids <- unique(long[[id]])
+        dplyr::filter(baseline_long_shared,
+                      .data[[id]] %in% outcome_ids,
+                      .data[[visit]] == min_tp)
+      } else {
+        make_display_baseline_imputed(long, id = id, visit = visit,
+                                      imp_col = imp_col,
+                                      baseline_visit = as.character(min_tp))
+      }
+    })
+
+    stat_frames <- mapply(function(baseline, nm) {
+      tbl <- .manual_table_one(
+        baseline,
+        id           = id,
+        imp_col      = imp_col,
+        include_vars = .table_vars_for_data(baseline),
+        caption      = "",
+        footnote_suffix = ""
+      )
+      body     <- tbl$table_body
+      stat_col <- grep("^stat_", names(body), value = TRUE)[1L]
+      body     <- body[, c("variable", "level", "row_type", "label", stat_col)]
+      names(body)[names(body) == stat_col] <- paste0("stat_", make.names(nm))
+      body
+    }, baselines, names(datasets), SIMPLIFY = FALSE)
+
+    body <- Reduce(
+      function(a, b) dplyr::full_join(a, b, by = c("variable", "level", "row_type", "label")),
+      stat_frames
+    )
+
+    # Fill missing cells (variable not in that dataset) with an em-dash
+    stat_cols <- grep("^stat_", names(body), value = TRUE)
+    for (col in stat_cols)
+      body[[col]] <- dplyr::coalesce(body[[col]], "—")
+
+    # Restore section headings
+    body <- .insert_manual_heading(body, .MEDICATION_VARS, "Medication")
+    body <- .insert_manual_heading(body, .DAIRY_VARS,      "Dairy consumption")
+
+    footnote <- paste0(
+      "Continuous: pooled mean (mean of within-imputation SDs); ",
+      "pooled median [pooled Q1, Q3]. ",
+      "Proportions averaged across imputations (van Buuren 2018, §9.5). ",
+      "— = variable not available in that analysis dataset."
+    )
+
+    # Rename stat columns to human-readable dataset names
+    final_stat_cols <- paste0("stat_", names(datasets))
+    names(body)[match(stat_cols, names(body))] <- final_stat_cols
+
+    # N per dataset: unique participants in the first imputation of each dataset.
+    col_n <- setNames(
+        lapply(datasets, function(d) {
+            long <- .to_long(d, imp_col)
+            imp1 <- long[long[[imp_col]] == .imp_values(long, imp_col)[1L], , drop = FALSE]
+            dplyr::n_distinct(imp1[[id]])
+        }),
+        final_stat_cols
+    )
+
+    .make_manual_table_object(body, caption, footnote, col_n = col_n)
+
+  } else {
+    # ── Complete-case path: one tbl_summary per dataset, merged with tbl_merge
+    tbls <- mapply(function(d, nm) {
+      min_tp <- min(d[[visit]], na.rm = TRUE)
+      if (!is.null(baseline_long_shared)) {
+        outcome_ids <- unique(d[[id]])
+        baseline <- dplyr::filter(baseline_long_shared,
+                                  .data[[id]] %in% outcome_ids,
+                                  .data[[visit]] == min_tp) |>
+          dplyr::select(dplyr::all_of(.table_vars_for_data(d)))
+      } else {
+        baseline <- make_display_baseline(d, id = id, visit = visit,
+                                          baseline_visit = as.character(min_tp)) |>
+          dplyr::select(dplyr::all_of(.table_vars_for_data(d)))
+      }
+      .build_tbl_summary(baseline, caption = "")
+    }, datasets, names(datasets), SIMPLIFY = FALSE)
+
+    gtsummary::tbl_merge(tbls, tab_spanner = names(datasets)) |>
+      gtsummary::modify_caption(caption)
+  }
 }
 
 # ---------------------------------------------------------------------------
@@ -670,6 +913,7 @@ as_gt_table <- function(tbl) {
 # ---------------------------------------------------------------------------
 
 save_gtsummary_table <- function(tbl, path_without_extension) {
+    dir.create(dirname(path_without_extension), recursive = TRUE, showWarnings = FALSE)
     html_path <- paste0(path_without_extension, ".html")
     csv_path  <- paste0(path_without_extension, ".csv")
     

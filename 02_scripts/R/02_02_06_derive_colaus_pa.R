@@ -60,7 +60,7 @@ derive_pa <- function(df) {
     # ── Shared intermediate: raw MVPA (min/day) ───────────────────────────────
     df <- df |>
         dplyr::mutate(
-            tmp_mvpa_min_day = dplyr::case_when(
+            mvpa_min_day = dplyr::case_when(
                 is.na(PAFQ_MPA) & is.na(PAFQ_VPA) ~ NA_real_,
                 TRUE ~ dplyr::coalesce(PAFQ_MPA, 0) +
                     dplyr::coalesce(PAFQ_VPA, 0)
@@ -71,8 +71,8 @@ derive_pa <- function(df) {
     # METHOD 1 — Tertile classification
     # =========================================================================
     f1_mvpa <- df |>
-        dplyr::filter(.visit == "F1", !is.na(tmp_mvpa_min_day)) |>
-        dplyr::pull(tmp_mvpa_min_day)
+        dplyr::filter(.visit == "F1", !is.na(mvpa_min_day)) |>
+        dplyr::pull(mvpa_min_day)
     
     if (length(f1_mvpa) < 10)
         cli::cli_warn("Fewer than 10 F1 observations — tertile cuts may be unstable.")
@@ -84,10 +84,10 @@ derive_pa <- function(df) {
     df <- df |>
         dplyr::mutate(
             pa_levels_tertile = dplyr::case_when(
-                is.na(tmp_mvpa_min_day)   ~ NA_character_,
-                tmp_mvpa_min_day <  t33   ~ "Low",
-                tmp_mvpa_min_day <  t67   ~ "Medium",
-                tmp_mvpa_min_day >= t67   ~ "High"
+                is.na(mvpa_min_day)   ~ NA_character_,
+                mvpa_min_day <  t33   ~ "Low",
+                mvpa_min_day <  t67   ~ "Medium",
+                mvpa_min_day >= t67   ~ "High"
             ) |>
                 factor(levels = c("Low", "Medium", "High"), ordered = TRUE)
         )
@@ -121,8 +121,7 @@ derive_pa <- function(df) {
                     labels  = c("Low", "Medium", "High"),
                     ordered = TRUE
                 )
-        ) |>
-        dplyr::select(-dplyr::starts_with("tmp_"))
+        ) 
     
     
     # =========================================================================
@@ -132,8 +131,11 @@ derive_pa <- function(df) {
     f1_lookup <- df |>
         dplyr::filter(.visit == "F1") |>
         dplyr::select(pt,
+                      mvpa_min_day_f1 = mvpa_min_day,  # Add this
                       pa_levels_tertile_f1 = pa_levels_tertile,
                       pa_levels_who_f1     = pa_levels_who)
+    
+    
     
     df <- df |>
         dplyr::left_join(f1_lookup, by = "pt")
@@ -142,6 +144,7 @@ derive_pa <- function(df) {
     f2_lookup <- df |>
         dplyr::filter(.visit == "F2") |>
         dplyr::select(pt,
+                      mvpa_min_day_f2 = mvpa_min_day,  # Add this
                       pa_levels_tertile_f2 = pa_levels_tertile,
                       pa_levels_who_f2     = pa_levels_who)
     

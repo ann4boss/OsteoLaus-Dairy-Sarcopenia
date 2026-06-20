@@ -18,10 +18,10 @@ digraph consort_diagram {
   
   # Main stream
   n1 [label = 'Enrolled in OsteoLaus\\n(n = 1475)', shape = box]
-  n2 [label = 'Included in analysis\\n(n = 1215)', shape = box, fillcolor = '#E9ECEF']
+  n2 [label = 'Included in analysis\\n(n = 1101)', shape = box, fillcolor = '#E9ECEF']
 
   # Top Main Exclusion Box
-  e1 [label = 'Excluded (n = 260):\\l• Missing match between OsteoLaus & CoLaus (n=2)\\l• Missing examination data (n=48)\\l• Missing exposure values (n=22)\\l• Fewer than 2 visits (n=188)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 3.0]
+  e1 [label = 'Excluded (n = 374):\\l• Missing match between OsteoLaus & CoLaus (n=1)\\l• Missing examination data (n=49)\\l• Missing exposure values (n=42)\\l• Calorie intake out of range (500-3550) (n=9)\\l• Fewer than 2 visits (n=273)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 3.0]
   
   # Four analysis trackers (Headers)
   hgs_h [label = 'HGS Analysis', shape = box]
@@ -30,16 +30,16 @@ digraph consort_diagram {
   sarc_h [label = 'Sarcopenia Analysis', shape = box]
 
   # Four exclusion notes
-  hgs_e [label = 'Excluded:\\lFewer than 2 visits with\\l  complete data (n = 29)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
-  alm_e [label = 'Excluded:\\lFewer than 2 visits with\\l  complete data (n = 108)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
-  gait_e [label = 'Excluded:\\lFewer than 2 visits with\\l  complete data (n = 386)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
-  sarc_e [label = 'Excluded (n = 52):\\l• Sarcopenic at baseline\\l  (n = 24)\\l• Fewer than 2 visits with\\l  complete data (n = 28)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
+  hgs_e [label = 'Excluded:\\lFewer than 2 visits with\\l  complete data (n = 23)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
+  alm_e [label = 'Excluded:\\lFewer than 2 visits with\\l  complete data (n = 68)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
+  gait_e [label = 'Excluded:\\lFewer than 2 visits with\\l  complete data (n = 287)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
+  sarc_e [label = 'Excluded (n = 35):\\l• Sarcopenic at baseline\\l  (n = 12)\\l• Fewer than 2 visits with\\l  complete data (n = 23)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
 
   # Final analytical cohorts
-  hgs_f [label = 'Participants included\\nn = 1186', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#72BCD5', color = '#5990A1', width = 1.8]
-  alm_f [label = 'Participants included\\nn = 1107', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#72BCD5', color = '#5990A1', width = 1.8]
-  gait_f [label = 'Participants included\\nn = 829', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#72BCD5', color = '#5990A1', width = 1.8]
-  sarc_f [label = 'Participants included\\nn = 1163', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#72BCD5', color = '#5990A1', width = 1.8]
+  hgs_f [label = 'Participants included\\nn = 1078', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#72BCD5', color = '#5990A1', width = 1.8]
+  alm_f [label = 'Participants included\\nn = 1033', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#72BCD5', color = '#5990A1', width = 1.8]
+  gait_f [label = 'Participants included\\nn = 814', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#72BCD5', color = '#5990A1', width = 1.8]
+  sarc_f [label = 'Participants included\\nn = 1066', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#72BCD5', color = '#5990A1', width = 1.8]
 
   # ----------------- DEFINE EDGES (CONNECTIONS) -----------------
   

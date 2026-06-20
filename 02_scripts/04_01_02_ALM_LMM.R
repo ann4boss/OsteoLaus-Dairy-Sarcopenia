@@ -7,23 +7,32 @@ imp1 <- mice::complete(mice_analysis$mids$ALM_HT2_harmonised, action = 1)
 df <- imp1
 
 # Calculate medians from your data
-median_age <- median(df$age_at_baseline, na.rm = TRUE)
+median_age <- median(df$Age, na.rm = TRUE)
+median_age_baseline <- median(df$age_at_baseline, na.rm = TRUE)
 median_sumtot1 <- median(df$sumtot1, na.rm = TRUE)
 median_dairy <- median(df$dairy_total_gday_cumavg, na.rm = TRUE)
+median_fermented <- median(df$dairy_fermented_gday_cumavg, na.rm = TRUE)
 median_time <- median(df$time_since_baseline, na.rm = TRUE)
+median_BMI <- median(df$BMI, na.rm = TRUE)
 
 df_stans_scaled <- df %>%
     mutate(
         # scale by 10 years
-        age_decades = scale(age_at_baseline, 
-                            center = median_age,    
-                            scale = 10),    # Per 10 years
-        
-        # scale by 100
-        sumtot1_hundreds = scale(sumtot1,
-                                 center = median_sumtot1,
-                                 scale = 100),
-        
+      age_at_baseline_scaled = scale(age_at_baseline, 
+                                     center = median_age_baseline,    
+                                     scale = 10),  
+      age_decades = scale(Age, 
+                          center = median_age,    
+                          scale = 10),  
+      
+      BMI_scale = scale(BMI, 
+                        center = median_BMI,    
+                        scale = 1),  
+      
+      sumtot1_scaled = scale(sumtot1,
+                             center = median_sumtot1,
+                             scale = 1000),
+      
         
         time_years = scale(time_since_baseline,
                            center = median_time,
@@ -36,7 +45,7 @@ df_stans_scaled <- df %>%
         
         ALM_HT2_log = log(ALM_HT2_harmonised),
         ALM_HT2_sqrt = sqrt(ALM_HT2_harmonised),
-        sumtot_spline = ns(sumtot1_hundreds, 2),
+        sumtot_spline = ns(sumtot1_scaled, 2),
         
         # Ensure categorical variables are unordered factors
         dairy_quartile_baseline = factor(dairy_quartile_baseline, 
@@ -82,9 +91,9 @@ df_stans_scaled <- df %>%
 
 # Model 1: WITH random slope (your full model)
 mod_with_slope <- lmerTest::lmer(
-    ALM_HT2_log ~ dairy_quartile_baseline + age_decades +
+    ALM_HT2_log ~ dairy_100g + age_at_baseline_scaled +
         BMI_category + education_level + smoking_status +
-        pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
+        pa_levels_tertile_f1 + diabetes_status + sumtot1_scaled +
       time_since_baseline +  (1 + time_since_baseline | pt),
     data = df_stans_scaled, 
     REML = FALSE,
@@ -94,11 +103,13 @@ mod_with_slope <- lmerTest::lmer(
     )
 )
 
+summary(lm(resid(mod_with_slope) ~ fitted(mod_with_slope)))
+
 # Model 2: WITHOUT random slope (only random intercept)
 mod_no_slope <- lmerTest::lmer(
-    ALM_HT2_log ~ dairy_quartile_baseline + age_decades +
+    ALM_HT2_log ~ dairy_quartile_baseline + age_at_baseline_scaled +
         BMI_category + education_level + smoking_status +
-        pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
+        pa_levels_tertile_f1 + diabetes_status + sumtot1_scaled +
       time_since_baseline + (1 | pt), 
     data = df_stans_scaled, 
     REML = FALSE,
@@ -107,6 +118,12 @@ mod_no_slope <- lmerTest::lmer(
         optCtrl = list(maxfun = 20000)  # Increase iterations
     )
 )
+
+cor(df_stans_scaled$ALM_HT2_harmonised, fitted(mod_with_slope), use = "complete.obs")^2
+
+length(df_stans_scaled$ALM_HT2_harmonised)
+length(fitted(mod_with_slope))
+
 
 # ------------------------------------------------------------------------------
 # 2. LIKELIHOOD RATIO TEST (Formal Comparison)
@@ -298,7 +315,7 @@ abline(v = 2*length(fixef(mod_with_slope))/nrow(df_stans_scaled), col = "blue", 
 # Get the most extreme outliers
 extreme_outliers <- df_stans_scaled[
     order(abs(df_stans_scaled$std_resid), decreasing = TRUE), 
-    c("pt", "HGS_MAX", "age_decades", "dairy_100g", "BMI_category", 
+    c("pt", "HGS_MAX", "age_at_baseline_scaled", "dairy_100g", "BMI_category", 
       "time_since_baseline", "std_resid", "cooks_d")
 ]
 head(extreme_outliers, 10)
@@ -349,8 +366,8 @@ plot_diagnostics <- function(model, model_name = "Model") {
     sqrt_abs_resid = sqrt_abs_resid
   )
   
-  y_max_sl <- max(abs(sqrt_abs_resid), na.rm = TRUE) * 2
-  y_max_rd <- max(abs(df$residuals), na.rm = TRUE) * 2
+  y_max_sl <- max(abs(sqrt_abs_resid), na.rm = TRUE) * 1
+  y_max_rd <- max(abs(df$residuals), na.rm = TRUE) * 1
   
   # A. Scale-Location plot
   p_sl <- ggplot(df, aes(x = fitted, y = sqrt_abs_resid)) +
@@ -428,4 +445,3 @@ plot_diagnostics <- function(model, model_name = "Model") {
 
 # Usage:
 plot_diagnostics(mod_with_slope, "ALM_HT2 LMM")
-ß

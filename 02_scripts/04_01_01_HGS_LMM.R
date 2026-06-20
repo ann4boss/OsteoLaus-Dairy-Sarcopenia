@@ -3,108 +3,218 @@ library(flexplot)
 library(ggplot2)
 library(splines)
 library(dplyr)
-
-imp1 <- mice::complete(mice_analysis$mids$HGS_MAX, action = 1)
-
-imp1 <- imp1 |>
-  dplyr::group_by(pt) |>  # or whatever your patient ID column is
-  dplyr::filter(!any(dairy_total_gday_cumavg > 750, na.rm = TRUE)) |>
-  dplyr::ungroup()
+library(nlme)
+library(mgcv)
 
 
-df <- imp1
+imp1_hgs <- mice::complete(mice_analysis$mids$HGS_MAX, action = 1)
+
+#imp1 <- mice_analysis$data$HGS_MAX[mice_analysis$data$HGS_MAX$.imp == 1, ]
+
+# imp1<- imp1 |>
+#   dplyr::group_by(pt) |>  # or whatever your patient ID column is
+#   dplyr::filter(!any(dairy_total_gday_cumavg > 750, na.rm = TRUE)) |>
+#   dplyr::ungroup()
+
+
 
 # Calculate medians from your data
-median_age <- median(df$Age, na.rm = TRUE)
-median_age_baseline <- median(df$age_at_baseline, na.rm = TRUE)
-median_sumtot1 <- median(df$sumtot1, na.rm = TRUE)
-median_dairy <- median(df$dairy_total_gday_cumavg, na.rm = TRUE)
-median_fermented <- median(df$dairy_fermented_gday_cumavg, na.rm = TRUE)
-median_time <- median(df$time_since_baseline, na.rm = TRUE)
-median_BMI <- median(df$BMI, na.rm = TRUE)
+median_age_hgs <- median(imp1_hgs$Age, na.rm = TRUE)
+median_age_baseline_hgs <- median(imp1_hgs$age_at_baseline, na.rm = TRUE)
+median_sumtot1_hgs <- median(imp1_hgs$sumtot1, na.rm = TRUE)
+median_dairy_hgs <- median(imp1_hgs$dairy_total_gday_cumavg, na.rm = TRUE)
+median_fermented_hgs <- median(imp1_hgs$dairy_fermented_gday_cumavg, na.rm = TRUE)
+median_time_hgs <- median(imp1_hgs$time_since_baseline, na.rm = TRUE)
+median_BMI_hgs <- median(imp1_hgs$BMI, na.rm = TRUE)
+median_height_hgs <- median(imp1_hgs$Height, na.rm = TRUE)
+median_weight_hgs <- median(imp1_hgs$Weight, na.rm = TRUE)
 
-df_stans_scaled <- df %>%
-    mutate(
-        # scale by 10 years
-        age_baseline = scale(age_at_baseline, 
-                            center = median_age_baseline,    
-                            scale = 10),  
-        age_decades = scale(Age, 
-                            center = median_age,    
-                            scale = 10),  
-        
-        BMI_scale = scale(BMI, 
-                            center = median_BMI,    
-                            scale = 1),  
-        
-        # scale by 100
-        sumtot1_hundreds = scale(sumtot1,
-                                 center = median_sumtot1,
-                                 scale = 100),
-        
-        
-        time_years = scale(time_since_baseline,
-                           center = median_time,
-                           scale = 1),
-        
-        # Dairy: scale by 100g
-        dairy_100g = scale(dairy_total_gday_cumavg,
-                           center = median_dairy,
+# Create within and between components for time-varying predictors
+df_stans_scaled_hgs <- imp1_hgs %>%
+  group_by(pt) %>%
+  mutate(
+    # ============================================
+    # WITHIN and BETWEEN components for BMI
+    # ============================================
+    BMI_mean = mean(BMI, na.rm = TRUE),                          # Between-person (stable)
+    BMI_within = BMI - BMI_mean,                                 # Within-person (change over time)
+    BMI_scale_mean = scale(BMI_mean, center = median_BMI_hgs, scale = 1),
+    BMI_scale_within = scale(BMI_within, center = 0, scale = 1), # Within is already centered
+    
+    # ============================================
+    # WITHIN and BETWEEN components for Calories
+    # ============================================
+    sumtot1_mean = mean(sumtot1, na.rm = TRUE),
+    sumtot1_within = sumtot1 - sumtot1_mean,
+    sumtot1_scaled_mean = scale(sumtot1_mean, center = median_sumtot1_hgs, scale = 1000),
+    sumtot1_scaled_within = scale(sumtot1_within, center = 0, scale = 1000),
+    
+    # Smoking components
+    smoking_mean = as.numeric(factor(smoking_status, 
+                                     levels = c("Never", "Former", "Current"))) - 1,
+    
+    # Diabetes components
+    diabetes_mean = as.numeric(diabetes_status == "Diabetes"),
+    # ============================================
+    # Standard scaling for time-invariant predictors
+    # ============================================
+    age_at_baseline_scaled = scale(age_at_baseline, 
+                                   center = median_age_baseline_hgs,    
+                                   scale = 10),
+    age_decades = scale(Age, 
+                        center = median_age_hgs,    
+                        scale = 10),
+    
+    Weight_scale = scale(Weight,
+                         center = median_weight_hgs,    
+                         scale = 1),
+    Height_scale = scale(Height,
+                         center = median_height_hgs,    
+                         scale = 1),
+    
+    # ============================================
+    # Scale time-varying predictors at the within level
+    # ============================================
+    # For time, the within component is just the centered time
+    time_years = scale(time_since_baseline,
+                       center = median_time_hgs,
+                       scale = 1),
+    
+    # ============================================
+    # Scale dairy predictors
+    # ============================================
+    dairy_100g = scale(dairy_total_gday_cumavg,
+                       center = median_dairy_hgs,
+                       scale = 100),
+    fermented_100g = scale(dairy_fermented_gday_cumavg,
+                           center = median_fermented_hgs,
                            scale = 100),
-        # Dairy: scale by 100g
-        fermented_100g = scale(dairy_fermented_gday_cumavg,
-                           center = median_fermented,
-                           scale = 100),
-        
-        HGS_MAX_log = log(HGS_MAX),
-        HGS_MAX_sqrt = sqrt(HGS_MAX),
-        sumtot_spline = ns(sumtot1_hundreds, 2),
-        dairy_100g_spline =ns(dairy_100g, 3), 
-        time_since_baseline_spline =  ns(time_since_baseline, df = 2),
-        BMI_spline = ns(BMI_scale, 3),
-        age_decades_spline = ns(age_decades, 3),
-        
-        # Ensure categorical variables are unordered factors
-        dairy_quartile_baseline = factor(dairy_quartile_baseline, 
-                                         levels = c("Q1", "Q2", "Q3", "Q4"), 
-                                         ordered = FALSE) |> 
-            relevel(ref = "Q1"),
-        
-        dairy_guidelines_port= factor(dairy_quartile_baseline, 
-                                         levels = c("< 2 servings/day", "≥ 2 servings/day"), 
-                                         ordered = FALSE) |> 
-          relevel(ref = "< 2 servings/day"),
-        
-        
-        BMI_category = factor(BMI_category, 
-                              levels = c("Underweight", "Normal", "Overweight", "Obese"), 
-                              ordered = FALSE) |> 
-            relevel(ref = "Normal"),
-        
-        education_level = factor(education_level, 
-                                 levels = c("Low (ISCED 0-2)", "Medium (ISCED 3-4)", "High (ISCED 5-8)"), 
-                                 ordered = FALSE) |> 
-            relevel(ref = "Low (ISCED 0-2)"),
-        
-        smoking_status = factor(smoking_status, 
-                                levels = c("Never", "Former", "Current"), 
-                                ordered = FALSE) |> 
-            relevel(ref = "Never"),
-        
-        pa_levels_tertile_f1 = factor(pa_levels_tertile_f1, 
-                                      levels = c("Low", "Medium", "High"), 
-                                      ordered = FALSE) |> 
-            relevel(ref = "Low"),
-        diabetes_status = factor(diabetes_status, 
-                                 levels = c("No diabetes", "Diabetes"), 
-                                 ordered = FALSE) |> 
-            relevel(ref = "No diabetes",
-        
-        pt = factor(pt, ordered = FALSE)
-    )
-    )
+    
+    # ============================================
+    # Transformations of HGS_MAX
+    # ============================================
+    HGS_MAX_log = log(HGS_MAX),
+    HGS_MAX_sqrt = sqrt(HGS_MAX),
+    
+    # ============================================
+    # Spline terms (using scaled predictors)
+    # ============================================
+    
+    # dairy_100g_spline = ns(dairy_100g, 3),
+    # time_since_baseline_spline = ns(time_since_baseline, 2),
+    # BMI_spline = ns(BMI_scale, 3),
+    # age_decades_spline = ns(age_decades, 3),
+    # age_at_baseline_scaled_spline = ns(age_at_baseline_scaled, 3)
+  ) %>%
+  ungroup() %>%
+  mutate(
+    # ============================================
+    # Create within-person components for categorical variables
+    # ============================================
+    # For smoking: create indicators for each level
+    smoking_never = as.numeric(smoking_status == "Never"),
+    smoking_former = as.numeric(smoking_status == "Former"),
+    smoking_current = as.numeric(smoking_status == "Current"),
+    
+    # Between-person smoking (proportion of time in each category)
+    smoking_never_mean = as.numeric(smoking_mean == 0),
+    smoking_former_mean = as.numeric(smoking_mean == 1),
+    smoking_current_mean = as.numeric(smoking_mean == 2),
+    
+    # Within-person smoking (change from usual)
+    smoking_never_within = smoking_never - smoking_never_mean,
+    smoking_former_within = smoking_former - smoking_former_mean,
+    smoking_current_within = smoking_current - smoking_current_mean,
+    
+    # For diabetes: create indicators
+    diabetes_no = as.numeric(diabetes_status == "No diabetes"),
+    diabetes_yes = as.numeric(diabetes_status == "Diabetes"),
+    
+    # Between-person diabetes (proportion of time with diabetes)
+    diabetes_yes_mean = diabetes_mean,
+    diabetes_no_mean = 1 - diabetes_mean,
+    
+    # Within-person diabetes (change from usual)
+    diabetes_yes_within = diabetes_yes - diabetes_yes_mean,
+    diabetes_no_within = diabetes_no - diabetes_no_mean,
+    
+    # ============================================
+    # Ensure categorical variables are unordered factors
+    # ============================================
+    dairy_quartile_baseline = factor(dairy_quartile_baseline, 
+                                     levels = c("Q1", "Q2", "Q3", "Q4"), 
+                                     ordered = FALSE) |> 
+      relevel(ref = "Q1"),
+    
+    dairy_guidelines_port = factor(dairy_guidelines_port, 
+                                   levels = c("< 2 servings/day", ">= 2 servings/day"), 
+                                   ordered = FALSE) |> 
+      relevel(ref = "< 2 servings/day"),
+    
+    BMI_category = factor(BMI_category, 
+                          levels = c("Underweight", "Normal", "Overweight", "Obese"), 
+                          ordered = FALSE) |> 
+      relevel(ref = "Normal"),
+    
+    education_level = factor(education_level, 
+                             levels = c("Low (ISCED 0-2)", "Medium (ISCED 3-4)", "High (ISCED 5-8)"), 
+                             ordered = FALSE) |> 
+      relevel(ref = "Low (ISCED 0-2)"),
+    
+    smoking_status = factor(smoking_status, 
+                            levels = c("Never", "Former", "Current"), 
+                            ordered = FALSE) |> 
+      relevel(ref = "Never"),
+    
+    pa_levels_tertile_f1 = factor(pa_levels_tertile_f1, 
+                                  levels = c("Low", "Medium", "High"), 
+                                  ordered = FALSE) |> 
+      relevel(ref = "Low"),
+    
+    diabetes_status = factor(diabetes_status, 
+                             levels = c("No diabetes", "Diabetes"), 
+                             ordered = FALSE) |> 
+      relevel(ref = "No diabetes"),
+    
+    pt = factor(pt, ordered = FALSE)
+  )
+
+# ============================================
+# Verify the within-person components
+# ============================================
+cat("=== WITHIN-PERSON DECOMPOSITION CHECK ===\n\n")
+
+# Check BMI decomposition
+BMI_check <- df_stans_scaled_hgs %>%
+  group_by(pt) %>%
+  summarise(
+    mean_BMI = mean(BMI, na.rm = TRUE),
+    mean_BMI_mean = mean(BMI_mean, na.rm = TRUE),
+    sum_BMI_within = sum(BMI_within, na.rm = TRUE),  # Should be ~0
+    n = n()
+  )
+
+cat("BMI decomposition check (sum of within should be ~0):\n")
+print(summary(BMI_check$sum_BMI_within))
+
+# Check calories decomposition
+calories_check <- df_stans_scaled_hgs %>%
+  group_by(pt) %>%
+  summarise(
+    sum_calories_within = sum(sumtot1_within, na.rm = TRUE),  # Should be ~0
+    n = n()
+  )
+
+cat("\nCalories decomposition check (sum of within should be ~0):\n")
+print(summary(calories_check$sum_calories_within))
     
 
+# df_stans_scaled_hgs <- df_stans_scaled_hgs %>%
+#   group_by(pt) %>%
+#   filter(n_distinct(time_since_baseline) > 2) %>%
+#   ungroup()
+# 
+# 
 
 
 
@@ -115,11 +225,19 @@ df_stans_scaled <- df %>%
 # Model 1: WITH random slope (your full model)
 mod_with_slope <- lmerTest::lmer(
   HGS_MAX ~ 
-    dairy_100g  + age_decades +
-    BMI_category + education_level + smoking_status +
-    pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
-    time_since_baseline  + (1 + time_since_baseline | pt),
-  data = df_stans_scaled, 
+    time_point +
+    age_at_baseline +
+    dairy_100g + 
+    sumtot1_scaled_mean + 
+    sumtot1_scaled_within +
+    BMI_scale_mean + 
+    BMI_scale_within +
+    education_level + 
+    smoking_status + 
+    pa_levels_tertile_f1 + 
+    diabetes_status +
+    (1 | pt),
+  data = df_stans_scaled_hgs, 
   REML = FALSE,
   control = lmerControl(
     optimizer = "bobyqa",
@@ -127,261 +245,361 @@ mod_with_slope <- lmerTest::lmer(
   )
 )
 
-mod_no_slope <- lmerTest::lmer(
+
+
+cor(fitted(mod_with_slope), resid(mod_with_slope))
+summary(lm(resid(mod_with_slope) ~ fitted(mod_with_slope)))
+
+
+fit_hetero <- lme(
+  fixed = HGS_MAX ~ 
+    age_at_baseline_scaled * time_since_baseline +  # Use * for both main + interaction
+    dairy_100g * time_since_baseline +              # Use * for both main + interaction
+    age_at_baseline_scaled * BMI_scale +         # Use * for both main + interaction
+    dairy_100g + 
+    sumtot1_scaled + 
+    BMI_scale + 
+    education_level + 
+    smoking_status + 
+    pa_levels_tertile_f1 + 
+    diabetes_status +
+    time_since_baseline,
+  
+  random = ~ time_since_baseline | pt,
+  
+  weights = varExp(form = ~ fitted(.)),
+  
+  data = df_stans_scaled_hgs,
+  method = "ML",
+  
+  control = lmeControl(
+    maxIter = 200,
+    msMaxIter = 200,
+    opt = "optim"
+  )
+)
+
+
+
+
+
+mod_gam <- gam(
   HGS_MAX ~ 
-    dairy_100g  + age_decades +
-    BMI_category + education_level + smoking_status +
-    pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
-    time_since_baseline  + (1 | pt),
-  data = df_stans_scaled, 
-  REML = FALSE,
-  control = lmerControl(
-    optimizer = "bobyqa",
-    optCtrl = list(maxfun = 20000)
+    s(age_at_baseline_scaled, k = 5) + 
+    s(dairy_100g, k = 5) +
+    s(sumtot1_scaled, k = 5) +
+    s(time_since_baseline, k = 5) +
+    BMI_category + 
+    education_level + 
+    smoking_status + 
+    pa_levels_tertile_f1 + 
+    diabetes_status,
+  data = df_stans_scaled_hgs,
+  method = "REML"
+)
+
+
+
+mod_with_ar1 <- lme(
+  HGS_MAX ~ 
+    age_at_baseline_scaled * time_since_baseline +
+    dairy_100g * time_since_baseline +
+    age_at_baseline_scaled * BMI_category +
+    dairy_100g + 
+    sumtot1_scaled + 
+    BMI_category + 
+    education_level + 
+    smoking_status + 
+    pa_levels_tertile_f1 + 
+    diabetes_status,
+  random = ~ 1 + time_since_baseline | pt,
+  correlation = corAR1(form = ~ time_since_baseline | pt),  # ← ADD THIS
+  data = df_stans_scaled_hgs,
+  method = "ML",
+  control = lmeControl(maxIter = 200, msMaxIter = 200)
+)
+
+
+
+
+# Get residuals from each time point separately
+T1_data <- df_stans_scaled_hgs %>% filter(time_point == "T1")
+T2_data <- df_stans_scaled_hgs %>% filter(time_point == "T2")
+T3_data <- df_stans_scaled_hgs %>% filter(time_point == "T3")
+
+# Fit simple models at each time point
+lm_T1 <- lm(HGS_MAX ~ age_at_baseline_scaled + dairy_100g + sumtot1_scaled + 
+              BMI_category + education_level + smoking_status + 
+              pa_levels_tertile_f1 + diabetes_status + time_since_baseline, data = T1_data)
+
+lm_T2 <- lm(HGS_MAX ~ age_at_baseline_scaled + dairy_100g + sumtot1_scaled + 
+              BMI_category + education_level + smoking_status + 
+              pa_levels_tertile_f1 + diabetes_status+ time_since_baseline, data = T2_data)
+
+lm_T3 <- lm(HGS_MAX ~ age_at_baseline_scaled + dairy_100g + sumtot1_scaled + 
+              BMI_category + education_level + smoking_status + 
+              pa_levels_tertile_f1 + diabetes_status+ time_since_baseline, data = T3_data)
+
+
+summary(lm_T3)
+
+comparison_plots <- function(model, time_label) {
+  data.frame(
+    fitted = fitted(model),
+    resid = residuals(model),
+    time = time_label
   )
+}
+
+all_data <- rbind(
+  comparison_plots(lm_T1, "T1"),
+  comparison_plots(lm_T2, "T2"),
+  comparison_plots(lm_T3, "T3")
 )
 
-
-mod_with_slope_spline_both <- lmerTest::lmer(
-  HGS_MAX ~ dairy_100g  + age_decades_spline +
-    BMI_spline + education_level + smoking_status +
-    pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
-    time_since_baseline  + (1 + time_since_baseline | pt),
-  data = df_stans_scaled, 
-  REML = FALSE,
-  control = lmerControl(
-    optimizer = "bobyqa",
-    optCtrl = list(maxfun = 20000)
-  )
+# Also get longitudinal data
+long_data <- data.frame(
+  fitted = fitted(mod_with_slope),
+  resid = residuals(mod_with_slope),
+  time = "Longitudinal"
 )
 
-mod_with_slope_spline_BMI <- lmerTest::lmer(
-  HGS_MAX ~ dairy_100g  + age_decades +
-    BMI_spline + education_level + smoking_status +
-    pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
-    time_since_baseline  + (1 + time_since_baseline | pt),
-  data = df_stans_scaled, 
-  REML = FALSE,
-  control = lmerControl(
-    optimizer = "bobyqa",
-    optCtrl = list(maxfun = 20000)
-  )
+all_data <- rbind(all_data, long_data)
+
+# Plot comparison
+ggplot(all_data, aes(x = fitted, y = resid)) +
+  geom_point(alpha = 0.2, size = 0.8) +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  geom_smooth(method = "loess", color = "blue", se = TRUE) +
+  facet_wrap(~ time, scales = "free") +
+  labs(title = "Residual Patterns: Cross-Sectional vs Longitudinal",
+       subtitle = "Pattern only appears in longitudinal model",
+       x = "Fitted Values",
+       y = "Residuals") +
+  theme_minimal()
+
+slope_T1 <- coef(lm(residuals(lm_T1) ~ fitted(lm_T1)))[2]
+slope_T2 <- coef(lm(residuals(lm_T2) ~ fitted(lm_T2)))[2]
+slope_T3 <- coef(lm(residuals(lm_T3) ~ fitted(lm_T3)))[2]
+slope_long <- coef(lm(residuals(mod_with_slope) ~ fitted(mod_with_slope)))[2]
+
+# Create summary table
+slope_table <- data.frame(
+  Model = c("T1", "T2", "T3", "Longitudinal"),
+  Slope = round(c(slope_T1, slope_T2, slope_T3, slope_long), 4)
 )
 
+print(slope_table)
 
-mod_with_slope_spline_age <- lmerTest::lmer(
-  HGS_MAX ~ dairy_100g  + age_decades_spline +
-    BMI_category + education_level + smoking_status +
-    pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
-    time_since_baseline  + (1 + time_since_baseline | pt),
-  data = df_stans_scaled, 
-  REML = FALSE,
-  control = lmerControl(
-    optimizer = "bobyqa",
-    optCtrl = list(maxfun = 20000)
-  )
-)
+cat("\n========== INTERPRETATION ==========\n\n")
+cat("Cross-sectional slopes (T1, T2, T3):", 
+    round(slope_T1, 4), ",", round(slope_T2, 4), ",", round(slope_T3, 4), "\n")
+cat("Longitudinal slope:", round(slope_long, 4), "\n")
+cat("Difference:", round(slope_long - slope_T1, 4), "\n\n")
 
-mod_with_slope_spline_time <- lmerTest::lmer(
-  HGS_MAX ~ dairy_100g  + age_decades +
-    BMI_category + education_level + smoking_status +
-    pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
-    time_since_baseline_spline  + (1 + time_since_baseline | pt),
-  data = df_stans_scaled, 
-  REML = FALSE,
-  control = lmerControl(
-    optimizer = "bobyqa",
-    optCtrl = list(maxfun = 20000)
-  )
-)
-
-mod_with_slope_spline_time_age <- lmerTest::lmer(
-  HGS_MAX ~ dairy_100g  + age_decades_spline +
-    BMI_category + education_level + smoking_status +
-    pa_levels_tertile_f1 + diabetes_status + sumtot1_hundreds +
-    time_since_baseline_spline  + (1 + time_since_baseline | pt),
-  data = df_stans_scaled, 
-  REML = FALSE,
-  control = lmerControl(
-    optimizer = "bobyqa",
-    optCtrl = list(maxfun = 20000)
-  )
-)
-
-
-model_poly <- lmerTest::lmer(HGS_MAX ~ 
-                     ns(dairy_100g, df = 3) + 
-                     ns(age_decades, df = 4) + 
-                     poly(time_since_baseline, 2) +
-                    age_decades * time_since_baseline +
-                     BMI_category + education_level + 
-                     smoking_status + pa_levels_tertile_f1 + 
-                     diabetes_status + sumtot1_hundreds + 
-                     (1 + time_since_baseline | pt),
-                     data = df_stans_scaled, 
-                     REML = FALSE,
-                     control = lmerControl(
-                       optimizer = "bobyqa",
-                       optCtrl = list(maxfun = 20000)
-                       )
-)
-
-model_simple <- lmer(HGS_MAX ~ dairy_100g + (1 + time_since_baseline | pt), data = df_stans_scaled)
-
-plot_diagnostics(mod_with_slope, "HGS LMM - Simple")
-
-plot_diagnostics(mod_with_slope_spline_both, "HGS LMM - Spline Both")
-plot_diagnostics(mod_with_slope_spline_age, "HGS LMM - Spline only for age at baseline")
-plot_diagnostics(mod_with_slope_spline_BMI, "HGS LMM- Spline BMI")
-plot_diagnostics(mod_with_slope_spline_time, "HGS LMM - Spline only for time sine baseline")
-plot_diagnostics(mod_with_slope_spline_time_age, "HGS LMM - Spline for time sine baseline and age at baseline")
+if (abs(slope_long) > max(abs(c(slope_T1, slope_T2, slope_T3))) * 2) {
+  cat("🔴 Longitudinal slope is MUCH LARGER than cross-sectional slopes\n")
+  cat("   → Pattern is ENTIRELY driven by longitudinal variation\n")
+  cat("   → This is CLASSIC RANDOM EFFECTS SHRINKAGE\n")
+  cat("   → Your model is working correctly!\n")
+}
 
 
 
-summary(imp1$HGS_MAX
-      )
+
+
+
+#-----
+
+plot_diagnostics(lm_baseline, "HGS LMM - lm baseline")
+plot_diagnostics(mod_with_slope, "HGS LMM - Slope")
+plot_diagnostics(mod_within_between, "HGS LMM - within eff")
+
+
+#----
+install.packages("DHARMa")
+library(DHARMa)
+
+# Step 1: Simulate residuals
+simulationOutput <- simulateResiduals(fittedModel = mod_with_slope, plot = F)
+
+# Step 2: Create main diagnostic plots
+plot(simulationOutput, quantreg = TRUE)
+
+# Step 3: Run formal tests
+testResiduals(simulationOutput)
+
+# Step 4: Check residuals against specific predictors if needed
+plotResiduals(simulationOutput, form = df_stans_scaled_hgs$age_at_baseline_scaled)
+plotResiduals(simulationOutput, form = df_stans_scaled_hgs$time_since_baseline)
+#---
+
+library(car)
+vif(mod_with_slope)
+
+residuals_l1 <- residuals(mod_with_slope)
+
+
+# Check normality
+qqnorm(residuals_l1)
+qqline(residuals_l1)
+
+# Check homoscedasticity
+plot(fitted(mod_with_slope), residuals_l1)
+abline(h = 0)
+
+# Check independence
+acf(residuals_l1)  
+
+length(df_stans_scaled_hgs$HGS_MAX)
+length(fitted(mod_with_slope))
+
+library(performance)
+performance::check_model(mod_with_slope)
+
+acf(residuals(mod_with_slope))
+
+performance::r2(mod_with_slope)
+library(insight)
+
+
+summary(lm(resid(mod_with_slope) ~ fitted(mod_with_slope)))
+
+plot(fitted(mod_with_slope, level = 0), resid(mod_with_slope))
+plot(fitted(mod_with_slope, level = 1), resid(mod_with_slope))
+
+
+# Get both types of fitted values
+fitted_fixed <- fitted(mod_with_slope, re.form = NA)  # Fixed effects ONLY
+fitted_conditional <- fitted(mod_with_slope)          # Fixed + Random (default)
+
+# Get residuals (conditional residuals - always the same)
+residuals_cond <- residuals(mod_with_slope)
+
+
+test_fixed <- lm(residuals_cond ~ fitted_fixed)
+summary(test_fixed)
+
+test_conditional <- lm(residuals_cond ~ fitted_conditional)
+summary(test_conditional)
+
+slope_fixed <- coef(test_fixed)[2]
+slope_conditional <- coef(test_conditional)[2]
+
+cat("Slope (Fixed Effects Only):", round(slope_fixed, 4), "\n")
+cat("Slope (Conditional):", round(slope_conditional, 4), "\n")
+
+VarCorr(mod_with_slope)
+
+# Get variance decomposition
+variance_decomp <- get_variance(mod_with_slope)
+print(variance_decomp)
+
+
+summary(imp1$HGS_MAX)
 
 boxplot(imp1$HGS_MAX)
 df_plot <- data.frame(HGS_MAX = imp1$HGS_MAX)
 
-ggplot(df_plot, aes(x = "", y = HGS_MAX)) +
-  geom_boxplot(fill = "lightblue", color = "darkblue") +
-  geom_jitter(width = 0.2, alpha = 0.5, color = "red", size = 1.5) +
-  labs(title = "HGS_MAX Distribution",
-       y = "HGS_MAX",
-       x = "") +
-  theme_minimal()
+# ------------------------------------------------------------------------------
 
+df <- data.frame(
+  fitted = fitted(mod_with_slope),
+  resid  = resid(mod_with_slope)
+)
 
-ggplot(df_stans_scaled, aes(x = dairy_total_gday_cumavg, y = HGS_MAX)) +
-  geom_point(alpha = 0.3) +
-  geom_smooth(method = "loess", se = FALSE) +
-  facet_wrap(~ BMI_category) +
-  theme_minimal()
+# Create quintile groups
+df$quintile <- cut(df$fitted, 
+                   breaks = quantile(df$fitted, probs = seq(0, 1, 0.2), na.rm = TRUE),
+                   include.lowest = TRUE,
+                   labels = c("Q1 (Lowest)", "Q2", "Q3", "Q4", "Q5 (Highest)"))
 
-ggplot(df_stans_scaled, aes(x = dairy_total_gday_cumavg, y = HGS_MAX)) +
-  geom_point(alpha = 0.3) +
-  geom_smooth(method = "loess", se = FALSE) +
-  facet_wrap(~ diabetes_status) +
-  theme_minimal()
-
-df_stans_scaled$age_group <- cut(df_stans_scaled$age_decades, breaks = c(0, 4, 6, 8, 10))
-ggplot(df_stans_scaled, aes(x = dairy_total_gday_cumavg, y = HGS_MAX)) +
-  geom_point(alpha = 0.3) +
-  geom_smooth(method = "loess", se = FALSE) +
-  facet_wrap(~ age_group) +
-  theme_minimal()
-
-ggplot(df_stans_scaled, aes(x = dairy_total_gday_cumavg, y = HGS_MAX)) +
-  geom_point(alpha = 0.3) +
-  geom_smooth(method = "loess", se = FALSE) +
-  facet_wrap(~ pa_levels_tertile_f1) +
-  theme_minimal()
-
-summary(df_stans_scaled$dairy_total_gday_cumavg)
-hist(df_stans_scaled$dairy_total_gday_cumavg, breaks = 50, main = "Distribution of Dairy Intake")
-quantile(df$dairy_total_gday_cumavg, probs = c(0.90, 0.95, 0.99, 1))
-
-n_total <- nrow(df_stans_scaled)
-n_high_dairy <- sum(df_stans_scaled$dairy_total_gday_cumavg >= 500)
-pct_high_dairy <- n_high_dairy / n_total * 100
-
-cat("Total N:", n_total, "\n")
-cat("N with ≥500g dairy:", n_high_dairy, "\n")
-cat("Percentage:", round(pct_high_dairy, 2), "%\n")
-
-# Look at the distribution of the high dairy group
-high_dairy <- df_stans_scaled[df_stans_scaled$dairy_total_gday_cumavg >= 500, ]
-summary(high_dairy$dairy_total_gday_cumavg)
-hist(high_dairy$dairy_total_gday_cumavg, breaks = 20)
-
-# How many are EXTREMELY high (>800g)?
-n_extreme <- sum(df_stans_scaled$dairy_total_gday_cumavg >= 800)
-cat("N with ≥800g dairy:", n_extreme, "\n")
-
-df_stans_scaled$dairy_group2 <- ifelse(df_stans_scaled$dairy_total_gday_cumavg >= 500, "High (≥500g)", "Normal (<500g)")
-
-comparison_high <- df_stans_scaled %>%
-  group_by(dairy_group2) %>%
+# Compute mean residuals per quintile
+quintile_means <- df %>%
+  group_by(quintile) %>%
   summarise(
-    n = n(),
-    mean_HGS = mean(HGS_MAX, na.rm = TRUE),
-    mean_age = mean(age_decades, na.rm = TRUE),
-    mean_BMI = mean(as.numeric(BMI_category), na.rm = TRUE),
-    pct_educated = mean(education_level %in% c("High", "University"), na.rm = TRUE),
-    pct_diabetes = mean(diabetes_status == "Yes", na.rm = TRUE),
-    pct_smoker = mean(smoking_status == "Current", na.rm = TRUE),
-    pct_active = mean(pa_levels_tertile_f1 == "High", na.rm = TRUE),
-    mean_time = mean(time_since_baseline, na.rm = TRUE)
+    mean_fitted = mean(fitted, na.rm = TRUE),
+    mean_resid = mean(resid, na.rm = TRUE),
+    sd_resid = sd(resid, na.rm = TRUE),
+    n = n()
   )
 
-print(comparison_high)
+print(quintile_means)
 
-t.test(HGS_MAX ~ dairy_group2, data = df_stans_scaled)
-t.test(age_decades ~ dairy_group2, data = df_stans_scaled)
-chisq.test(table(df_stans_scaled$dairy_group2, df_stans_scaled$diabetes_status))
-chisq.test(table(df_stans_scaled$dairy_group2, df_stans_scaled$education_level))
+# Create the plot with quintile means
+ggplot(df, aes(x = fitted, y = resid)) +
+  # Individual points (semi-transparent)
+  geom_point(alpha = 0.1, size = 1, color = "gray40") +
+  
+  # LOESS smooth (overall trend)
+  geom_smooth(method = "loess", se = TRUE, color = "blue", size = 1.2) +
+  
+  # Quintile means as points
+  geom_point(data = quintile_means, 
+             aes(x = mean_fitted, y = mean_resid),
+             color = "red", size = 4, shape = 18) +
+  
+  # Quintile means with error bars (±SE)
+  geom_errorbar(data = quintile_means,
+                aes(x = mean_fitted, 
+                    ymin = mean_resid - sd_resid/sqrt(n),
+                    ymax = mean_resid + sd_resid/sqrt(n)),
+                color = "red", width = 0.3, alpha = 0.5) +
+  
+  # Horizontal line at zero
+  geom_hline(yintercept = 0, linetype = "dashed", color = "darkred", size = 0.8) +
+  
+  # Labels
+  labs(
+    title = "Residuals vs Fitted Values with Quintile Means",
+    subtitle = paste0("Red points = mean residual per fitted-value quintile"),
+    x = "Fitted Values",
+    y = "Residuals"
+  ) +
+  
+  theme_minimal() +
+  
+  # Add annotation with quintile information
+  annotate("text", 
+           x = max(df$fitted, na.rm = TRUE) * 0.95,
+           y = max(df$resid, na.rm = TRUE) * 0.9,
+           label = paste(
+             "Q1 mean:", round(quintile_means$mean_resid[1], 3), "\n",
+             "Q2 mean:", round(quintile_means$mean_resid[2], 3), "\n",
+             "Q3 mean:", round(quintile_means$mean_resid[3], 3), "\n",
+             "Q4 mean:", round(quintile_means$mean_resid[4], 3), "\n",
+             "Q5 mean:", round(quintile_means$mean_resid[5], 3)
+           ),
+           hjust = 1, vjust = 1, size = 3, color = "darkred")
 
+# ------------------------------------------------------------------------------
 
-range(fitted(mod_with_slope))
-hist(fitted(mod_with_slope), breaks = 30)
+plot(resid(mod_with_slope) ~ df_stans_scaled_hgs$age_at_baseline_scaled,
+     xlab = "Age at Baseline",
+     ylab = "Residuals",
+     main = "Residuals vs Age")
+abline(h = 0, col = "red", lty = 2)
 
-# Where is the curve happening?
-plot(fitted(mod_with_slope), residuals(mod_with_slope))
-abline(h = 0, col = "red")
-lines(lowess(fitted(mod_with_slope), residuals(mod_with_slope)), col = "blue", lwd = 2)
+plot(resid(mod_with_slope) ~ df_stans_scaled_hgs$BMI_scale,
+     xlab = "BMI",
+     ylab = "Residuals",
+     main = "Residuals vs BMI")
+abline(h = 0, col = "red", lty = 2)
 
-# Add vertical lines at key points
-abline(v = quantile(fitted(mod_with_slope), c(0.25, 0.5, 0.75)), lty = 2, col = "gray")
+plot(resid(mod_with_slope) ~ df_stans_scaled_hgs$sumtot1,
+     xlab = "Calorie Intake",
+     ylab = "Residuals",
+     main = "Residuals vs Calorie Intake")
+abline(h = 0, col = "red", lty = 2)
 
-plot(df_stans_scaled$alcohol_category_conso, residuals(mod_with_slope))
-abline(h = 0, col = "red")
-lines(lowess(df_stans_scaled$alcohol_category_conso, residuals(mod_with_slope)), col = "blue", lwd = 2)
-
-
-plot(df_stans_scaled$time_since_baseline, residuals(mod_with_slope))
-abline(h = 0, col = "red")
-lines(lowess(df_stans_scaled$time_since_baseline, residuals(mod_with_slope)), col = "blue", lwd = 2)
-
-
-ranef_data <- as.data.frame(ranef(mod_with_slope)$pt)
-colnames(ranef_data) <- c("Intercept", "Slope")
-
-
-plot(ranef_data$Intercept, ranef_data$Slope, 
-     xlab = "Random Intercept", ylab = "Random Slope",
-     main = "Are the random effects correlated?")
-abline(v = 0, h = 0, col = "red")
-
-summary(mod_with_slope)
-
-
-plot(df_stans_scaled$HGS_MAX, fitted(mod_no_slope), 
-     xlab = "Observed HGS", ylab = "Fitted HGS",
-     main = "Observed vs Fitted")
-abline(0, 1, col = "red")
-
-cor(df_stans_scaled$HGS_MAX, fitted(mod_no_slope), use = "complete.obs")^2
-
-
-library(lme4)
-
-model_gamma <- glmer(HGS_MAX ~ 
-                       ns(dairy_100g, df = 3) + 
-                       ns(age_decades, df = 4) + 
-                       time_since_baseline + 
-                       I(time_since_baseline^2) +
-                       BMI_category + education_level + 
-                       smoking_status + pa_levels_tertile_f1 + 
-                       diabetes_status + sumtot1_hundreds + 
-                       (1 + time_since_baseline | pt),
-                     data = df_stans_scaled,
-                     family = Gamma(link = "log"))
 
 
 
 library(clubSandwich)
-coef_test(mod_with_slope, vcov = "CR2")
+
+
+confint(mod_with_slope)
+confint(coef_test(mod_with_slope, vcov = "CR2"))
 # ------------------------------------------------------------------------------
 # 2. LIKELIHOOD RATIO TEST (Formal Comparison)
 # ------------------------------------------------------------------------------
@@ -400,6 +618,7 @@ print(comparison)
 # Get summaries
 summary(mod_with_slope)
 summary(mod_no_slope)
+summary(fit_hetero)
 
 
 # ------------------------------------------------------------------------------
@@ -474,7 +693,7 @@ abline(v = 2*length(fixef(mod_with_slope))/nrow(df_stans_scaled), col = "blue", 
 # Get the most extreme outliers
 extreme_outliers <- df_stans_scaled[
     order(abs(df_stans_scaled$std_resid), decreasing = TRUE), 
-    c("pt", "HGS_MAX", "age_decades", "dairy_100g", "BMI_category", 
+    c("pt", "HGS_MAX", "age_at_baseline_scaled", "dairy_100g", "BMI_category", 
       "time_since_baseline", "std_resid", "cooks_d")
 ]
 head(extreme_outliers, 10)
@@ -533,9 +752,9 @@ partial_residual_plot <- function(model, predictor, data) {
 
 # Use for each continuous predictor
 partial_residual_plot(model_clean, dairy_100g, df_clean)
-partial_residual_plot(model_clean, age_decades, df_clean)
+partial_residual_plot(model_clean, age_at_baseline_scaled, df_clean)
 partial_residual_plot(model_clean, time_since_baseline, df_clean)
-partial_residual_plot(model_clean, sumtot1_hundreds, df_clean)
+partial_residual_plot(model_clean, sumtot1_scaled, df_clean)
 
 s# ------------------------------------------------------------------------------
 # Plot model assumption inspectation  + visuallize
@@ -562,7 +781,7 @@ plot_diagnostics <- function(model, model_name = "Model") {
   # A. Scale-Location plot
   p_sl <- ggplot(df, aes(x = fitted, y = sqrt_abs_resid)) +
     geom_point(color = palette[9], alpha = 0.6, size = 1.8) +
-    geom_smooth(method = "loess", se = TRUE,
+    geom_smooth(method = "lm", se = TRUE,
                 color = palette[1], fill = palette[3], alpha = 0.2) +
     labs(
       x = "Fitted values",
@@ -582,7 +801,7 @@ plot_diagnostics <- function(model, model_name = "Model") {
   p_rd <- ggplot(df, aes(x = fitted, y = residuals)) +
     geom_point(color = palette[9], alpha = 0.6, size = 1.8) +
     geom_hline(yintercept = 0, linetype = "dashed", color = palette[1]) +
-    geom_smooth(method = "loess", se = TRUE,
+    geom_smooth(method = "lm", se = TRUE,
                 color = palette[1], fill = palette[4], alpha = 0.2) +
     labs(
       x = "Fitted values",

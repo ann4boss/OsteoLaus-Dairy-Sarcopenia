@@ -36,6 +36,7 @@
     "smoking_status", "smoking_impute_source",
     "alcohol_category_conso", "alcohol_category_sumalco",
     "pa_levels_tertile_f1", "pa_levels_who_f1",
+    "mvpa_min_day_f1",
     "diabetes_status", "htn_status",
     # Medications
     "hrt_status", "hypolip_drug_status", "corticoids_status", "vitD_status",

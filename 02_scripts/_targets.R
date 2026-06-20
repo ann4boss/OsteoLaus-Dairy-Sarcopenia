@@ -118,8 +118,8 @@ prep_core <- tar_target(
         "pa_levels_tertile_f1", "diabetes_status", "sumtot1"
     ),
     gait_speed = c(
-        "Age", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_tertile_f1", "diabetes_status"
+        "Age_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "pa_levels_tertile_f1_lag", "diabetes_status_lag"
     ),
     ALM_HT2_harmonised = c(
         "Age", "BMI_category", "education_level", "smoking_status",
@@ -182,16 +182,25 @@ cc_prep_targets <- list(
 
 cc_exclusion <- tar_target(
     cc_analysis,
-    apply_exclusions(
-        data       = cc_merged_derived,
-        qc_table   = core$qc_tbl,
-        outcomes   = .OUTCOMES,
-        covariates = .COVARIATES,
-        visit_min  = 2L,
-        pt_col     = "pt",
-        visit_col  = "time_point",
-        exposure   = "dairy_total_gday_cumavg"
-    )
+    {
+        res      <- run_exclusions(
+            data       = cc_merged_derived,
+            qc_tbl     = core$qc_tbl,
+            outcomes   = .OUTCOMES,
+            covariates = .COVARIATES,
+            min_visit  = 2L,
+            pt_col     = "pt",
+            visit_col  = "time_point",
+            exposure   = "dairy_total_gday"
+        )
+        # $data and $mids aliases keep downstream targets unchanged.
+        # For the CC route $data_outcome holds plain data frames; mids is NULL.
+        res$data <- res$data_outcome
+        res$mids <- stats::setNames(
+            vector("list", length(.OUTCOMES)), .OUTCOMES
+        )
+        res
+    }
 )
 
 
@@ -271,16 +280,23 @@ mice_prep_targets <- list(
 
 mice_exclusion <- tar_target(
     mice_analysis,
-    apply_exclusions(
-        data       = mice_merged_derived,
-        qc_table   = core$qc_tbl,
-        outcomes   = .OUTCOMES,
-        covariates = .COVARIATES,
-        visit_min  = 2L,
-        pt_col     = "pt",
-        visit_col  = "time_point",
-        exposure   = "dairy_total_gday_cumavg"
-    )
+    {
+        res      <- run_exclusions(
+            data       = mice_merged_derived,
+            qc_tbl     = core$qc_tbl,
+            outcomes   = .OUTCOMES,
+            covariates = .COVARIATES,
+            min_visit  = 2L,
+            pt_col     = "pt",
+            visit_col  = "time_point",
+            exposure   = "dairy_total_gday"
+        )
+        # $data_outcome holds mids objects for the MICE route.
+        # $data and $mids aliases keep all downstream targets unchanged.
+        res$data <- res$data_outcome
+        res$mids <- res$data_outcome
+        res
+    }
 )
 
 
@@ -289,161 +305,36 @@ mice_exclusion <- tar_target(
 # =============================================================================
 
 
-
-covariate_sets_alm <- list(
-    minimal = c(
-        "age_at_baseline", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_tertile_f1", "diabetes_status", "sumtot1"
-    ),
-    other_PA = c(
-        "age_at_baseline", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_who_f1", "diabetes_status", "sumtot1"
-    )
-)
-
-covariate_sets_gait <- list(
-    minimal = c(
-        "age_at_baseline", "BMI_category_lag", "education_level_lag",
-        "smoking_status_lag", "pa_levels_tertile_f1_lag", "diabetes_status_lag"
-    ),
-    other_PA = c(
-        "age_at_baseline", "BMI_category_lag", "education_level_lag",
-        "smoking_status_lag", "pa_levels_who_f1_lag", "diabetes_status_lag"
-    )
-)
-
-
-
-LLM_targets_HGS <- list(
-    tar_target(
-        lmm_model_grid_hgs,
-        create_model_grid(
-            outcomes             = c("HGS_MAX"),
-            exposure_definitions = exposure_definitions,
-            datasets             = c("cc", "mice"),
-            interactions         = c(TRUE, FALSE),
-            random_slopes        = c(FALSE, TRUE),
-            cov_sets             = c("minimal", "other_PA")
-        )
-    ),
-    tar_target(
-        lmm_results_hgs,
-        run_lmm_model(
-            config         = lmm_model_grid_hgs,
-            cc_data        = cc_analysis$data$HGS_MAX,
-            mice_data      = mice_analysis$data$HGS_MAX,
-            covariate_sets = covariate_sets_hgs,
-            id_var         = "pt",
-            time_var       = "time_since_baseline"
-        ),
-        pattern = map(lmm_model_grid_hgs)
-    ),
-    tar_target(
-        lmm_exports_hgs,
-        export_lmm_results(lmm_results_hgs),
-        pattern = map(lmm_results_hgs),
-        format  = "file"
-    ),
-    tar_target(
-        lmm_diagnostics_hgs,
-        run_lmm_diagnostics(lmm_results_hgs),
-        pattern = map(lmm_results_hgs)
-    )
-)
-
-LLM_targets_ALM <- list(
-    tar_target(
-        lmm_model_grid_alm,
-        create_model_grid(
-            outcomes             = c("ALM_HT2_harmonised"),
-            exposure_definitions = exposure_definitions,
-            datasets             = c("cc", "mice"),
-            interactions         = c(TRUE, FALSE),
-            random_slopes        = c(FALSE, TRUE),
-            cov_sets             = c("minimal", "other_PA")
-        )
-    ),
-    tar_target(
-        lmm_results_alm,
-        run_lmm_model(
-            config         = lmm_model_grid_alm,
-            cc_data        = cc_analysis$data$ALM_HT2_harmonised,
-            mice_data      = mice_analysis$data$ALM_HT2_harmonised,
-            covariate_sets = covariate_sets_alm,
-            id_var         = "pt",
-            time_var       = "time_since_baseline"
-        ),
-        pattern = map(lmm_model_grid_alm)
-    ),
-    tar_target(
-        lmm_exports_alm,
-        export_lmm_results(lmm_results_alm),
-        pattern = map(lmm_results_alm),
-        format  = "file"
-    ),
-    tar_target(
-        lmm_diagnostics_alm,
-        run_lmm_diagnostics(lmm_results_alm),
-        pattern = map(lmm_results_alm)
-    )
-)
-
-LLM_targets_gait <- list(
-    tar_target(
-        lmm_model_grid_gait,
-        create_model_grid(
-            outcomes             = c("gait_speed"),
-            exposure_definitions = exposure_definitions_gait,
-            datasets             = c("cc", "mice"),
-            interactions         = c(TRUE, FALSE),
-            random_slopes        = c(FALSE, TRUE),
-            cov_sets             = c("minimal", "other_PA")
-        )
-    ),
-    tar_target(
-        lmm_results_gait,
-        run_lmm_model(
-            config         = lmm_model_grid_gait,
-            cc_data        = cc_analysis$data$gait_speed,
-            mice_data      = mice_analysis$data$gait_speed,
-            covariate_sets = covariate_sets_gait,
-            id_var         = "pt",
-            time_var       = "time_since_baseline"
-        ),
-        pattern = map(lmm_model_grid_gait)
-    ),
-    tar_target(
-        lmm_exports_gait,
-        export_lmm_results(lmm_results_gait),
-        pattern = map(lmm_results_gait),
-        format  = "file"
-    ),
-    tar_target(
-        lmm_diagnostics_gait,
-        run_lmm_diagnostics(lmm_results_gait),
-        pattern = map(lmm_results_gait)
-    )
-)
-
-
 covariate_sets_hgs <- list(
     main = c(
-        "age_decades", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_tertile_f1", "diabetes_status", "sumtot1_hundreds"
+        "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_tertile_f1", "diabetes_status", "sumtot1_scaled"
     ),
     other_PA = c(
-        "age_decades", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_who_f1", "diabetes_status", "sumtot1_hundreds"
+        "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_who_f1", "diabetes_status", "sumtot1_scaled"
     )
 )
 
+covariate_sets_alm <- list(
+    main = c(
+        "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_tertile_f1", "diabetes_status", "sumtot1_scaled"
+    ),
+    other_PA = c(
+        "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_who_f1", "diabetes_status", "sumtot1_scaled"
+    )
+)
+
+
 covariate_sets_gait <- list(
     main = c(
-        "age_decades_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "age_at_baseline_scaled_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
         "pa_levels_tertile_f1_lag", "diabetes_status_lag"
     ),
     other_PA = c(
-        "age_decades_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "age_at_baseline_scaled_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
         "pa_levels_who_f1_lag", "diabetes_status_lag"
     )
 )
@@ -496,9 +387,9 @@ LMM_targets_ALM <- tar_target(
     run_lmm_report(
         mids_object    = mice_analysis$mids$ALM_HT2_harmonised,
         outcome        = "ALM_HT2_harmonised",
-        outcome_fn     = identity,
+        outcome_fn     = log,
         exposures      = exposure_definitions,
-        covariate_sets = covariate_sets_hgs,
+        covariate_sets = covariate_sets_alm,
         random_slope   = TRUE,
         interaction    = FALSE,
         out_dir        = "03_outputs/LMM_exploratory"
@@ -521,6 +412,118 @@ LMM_targets_gait <- tar_target(
     format = "file")
 
 
+#OLD
+# LLM_targets_HGS <- list(
+#     tar_target(
+#         lmm_model_grid_hgs,
+#         create_model_grid(
+#             outcomes             = c("HGS_MAX"),
+#             exposure_definitions = exposure_definitions,
+#             datasets             = c("cc", "mice"),
+#             interactions         = c(TRUE, FALSE),
+#             random_slopes        = c(FALSE, TRUE),
+#             cov_sets             = c("minimal", "other_PA")
+#         )
+#     ),
+#     tar_target(
+#         lmm_results_hgs,
+#         run_lmm_model(
+#             config         = lmm_model_grid_hgs,
+#             cc_data        = cc_analysis$data$HGS_MAX,
+#             mice_data      = mice_analysis$data$HGS_MAX,
+#             covariate_sets = covariate_sets_hgs,
+#             id_var         = "pt",
+#             time_var       = "time_since_baseline"
+#         ),
+#         pattern = map(lmm_model_grid_hgs)
+#     ),
+#     tar_target(
+#         lmm_exports_hgs,
+#         export_lmm_results(lmm_results_hgs),
+#         pattern = map(lmm_results_hgs),
+#         format  = "file"
+#     ),
+#     tar_target(
+#         lmm_diagnostics_hgs,
+#         run_lmm_diagnostics(lmm_results_hgs),
+#         pattern = map(lmm_results_hgs)
+#     )
+# )
+# 
+# LLM_targets_ALM <- list(
+#     tar_target(
+#         lmm_model_grid_alm,
+#         create_model_grid(
+#             outcomes             = c("ALM_HT2_harmonised"),
+#             exposure_definitions = exposure_definitions,
+#             datasets             = c("cc", "mice"),
+#             interactions         = c(TRUE, FALSE),
+#             random_slopes        = c(FALSE, TRUE),
+#             cov_sets             = c("minimal", "other_PA")
+#         )
+#     ),
+#     tar_target(
+#         lmm_results_alm,
+#         run_lmm_model(
+#             config         = lmm_model_grid_alm,
+#             cc_data        = cc_analysis$data$ALM_HT2_harmonised,
+#             mice_data      = mice_analysis$data$ALM_HT2_harmonised,
+#             covariate_sets = covariate_sets_alm,
+#             id_var         = "pt",
+#             time_var       = "time_since_baseline"
+#         ),
+#         pattern = map(lmm_model_grid_alm)
+#     ),
+#     tar_target(
+#         lmm_exports_alm,
+#         export_lmm_results(lmm_results_alm),
+#         pattern = map(lmm_results_alm),
+#         format  = "file"
+#     ),
+#     tar_target(
+#         lmm_diagnostics_alm,
+#         run_lmm_diagnostics(lmm_results_alm),
+#         pattern = map(lmm_results_alm)
+#     )
+# )
+# 
+# LLM_targets_gait <- list(
+#     tar_target(
+#         lmm_model_grid_gait,
+#         create_model_grid(
+#             outcomes             = c("gait_speed"),
+#             exposure_definitions = exposure_definitions_gait,
+#             datasets             = c("cc", "mice"),
+#             interactions         = c(TRUE, FALSE),
+#             random_slopes        = c(FALSE, TRUE),
+#             cov_sets             = c("minimal", "other_PA")
+#         )
+#     ),
+#     tar_target(
+#         lmm_results_gait,
+#         run_lmm_model(
+#             config         = lmm_model_grid_gait,
+#             cc_data        = cc_analysis$data$gait_speed,
+#             mice_data      = mice_analysis$data$gait_speed,
+#             covariate_sets = covariate_sets_gait,
+#             id_var         = "pt",
+#             time_var       = "time_since_baseline"
+#         ),
+#         pattern = map(lmm_model_grid_gait)
+#     ),
+#     tar_target(
+#         lmm_exports_gait,
+#         export_lmm_results(lmm_results_gait),
+#         pattern = map(lmm_results_gait),
+#         format  = "file"
+#     ),
+#     tar_target(
+#         lmm_diagnostics_gait,
+#         run_lmm_diagnostics(lmm_results_gait),
+#         pattern = map(lmm_results_gait)
+#     )
+# )
+
 # =============================================================================
 # COX
 # =============================================================================
@@ -532,7 +535,7 @@ cox_targets <- list(
         run_cox_sarcopenia(
             data           = cc_analysis$data$ewgsop2_sarcopenia_stage,
             sarcopenia_def = "ewgsop2",
-            covariate_type = "fixed",
+            covariate_type = "time_dependent",
             dairy_type     = "continuous",
             dairy_col      = "dairy_total_gday_cumavg",
             analysis_route = "cc"
@@ -547,9 +550,9 @@ cox_targets <- list(
         run_cox_sarcopenia(
             data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
             sarcopenia_def = "ewgsop2",
-            covariate_type = "fixed",
-            dairy_type     = "categorical",
-            dairy_cat_col  = "dairy_quartile_baseline",
+            covariate_type = "time_dependent",
+            dairy_type     = "continuous",
+            dairy_cat_col  = "dairy_total_gday_cumavg",
             analysis_route = "mice"
         )
     ),
@@ -565,6 +568,43 @@ cox_targets <- list(
 # =============================================================================
 
 
+tableOne_targets_1 <-
+    tar_target(tableOne_quartile,
+        make_table_one_by_exposure(
+            mids_to_long(mice_analysis$data_shared),
+            by    = "dairy_quartile_baseline",
+            visit = "time_point"
+        )
+    )
+
+    # Analysis populations as columns (HGS vs ALM vs gait speed).
+    # Each dataset's baseline is its minimum time_point (HGS/ALM → T1,
+    # gait speed → T3 after lagging). All needed columns are present in
+    # the analysis datasets.
+tableOne_targets_2 <- tar_target(tableOne_datasets,
+        make_table_one_by_dataset(
+            list(
+                HGS          = mids_to_long(mice_analysis$mids$HGS_MAX),
+                ALM          = mids_to_long(mice_analysis$mids$ALM_HT2_harmonised),
+                `Gait speed` = mids_to_long(mice_analysis$mids$gait_speed),
+                Shared       = mids_to_long(mice_analysis$data_shared)
+            ),
+            visit = "time_point"
+        )
+    )
+
+tableOne_save <- list(
+    tar_target(
+        tableOne_quartile_files,
+        save_gtsummary_table(tableOne_quartile, "03_outputs/TableOne/mice/quartile"),
+        format = "file"
+    ),
+    tar_target(
+        tableOne_datasets_files,
+        save_gtsummary_table(tableOne_datasets, "03_outputs/TableOne/mice/datasets"),
+        format = "file"
+    )
+)
 
 
 # =============================================================================
@@ -588,12 +628,14 @@ c(
     # mice_table_one,
     
     # ── Models ────────────────────────────────────────────────────────────────
-    LMM_targets_gait
-    # LLM_targets_HGS,
-    # LLM_targets_ALM,
-    # LLM_targets_gait,
-    # cox_targets,
+    # LMM_targets_HGS,
+    #LMM_targets_ALM,
+    #LMM_targets_gait
+    #cox_targets
     
     # ── Descriptives ──────────────────────────────────────────────────────────
     # consort
+    tableOne_targets_1,
+    tableOne_targets_2,
+    tableOne_save
 )

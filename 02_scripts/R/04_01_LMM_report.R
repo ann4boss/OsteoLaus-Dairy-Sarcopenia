@@ -30,7 +30,7 @@
 .prep_one_imputation <- function(
     df,
     outcome       = "HGS_MAX",
-    resp_col      = outcome,   # pre-computed by caller; avoids substitute() issues
+    resp_col      = outcome,  
     outcome_fn    = identity,
     id_var        = "pt",
     time_var      = "time_since_baseline",
@@ -38,14 +38,15 @@
 ) {
     if (is.null(scale_centres)) {
         scale_centres <- list(
-            age    = median(df$age_at_baseline,         na.rm = TRUE),
-            sumtot = median(df$sumtot1,                 na.rm = TRUE),
-            dairy  = median(df$dairy_total_gday_cumavg, na.rm = TRUE),
-            fermented = median(df$dairy_fermented_gday_cumavg, na.rm = TRUE),
-            nonfermented = median(df$dairy_non_fermented_gday_cumavg, na.rm = TRUE),
-            highfat = median(df$dairy_highfat_gday_cumavg, na.rm = TRUE),
-            lowfat = median(df$dairy_lowfat_gday_cumavg, na.rm = TRUE),
-            time   = median(df[[time_var]],             na.rm = TRUE)
+            age                  = median(df$Age, na.rm = TRUE),
+            age_baseline_median  = median(df$age_at_baseline, na.rm = TRUE),
+            sumtot               = median(df$sumtot1,                 na.rm = TRUE),
+            dairy                = median(df$dairy_total_gday_cumavg, na.rm = TRUE),
+            fermented            = median(df$dairy_fermented_gday_cumavg, na.rm = TRUE),
+            nonfermented         = median(df$dairy_non_fermented_gday_cumavg, na.rm = TRUE),
+            highfat              = median(df$dairy_highfat_gday_cumavg, na.rm = TRUE),
+            lowfat               = median(df$dairy_lowfat_gday_cumavg, na.rm = TRUE),
+            time                 = median(df[[time_var]],             na.rm = TRUE)
         )
     }
 
@@ -53,12 +54,15 @@
 
     df <- df |>
         dplyr::mutate(
-            age_decades      = as.numeric(scale(age_at_baseline,
-                                                center = scale_centres$age,
-                                                scale  = 10)),
-            sumtot1_hundreds = as.numeric(scale(sumtot1,
+            age_at_baseline_scaled = scale(age_at_baseline, 
+                                 center = scale_centres$age_baseline_median,    
+                                 scale = 10),  
+            age_decades = scale(Age, 
+                                center = scale_centres$age,    
+                                scale = 10), 
+            sumtot1_scaled = as.numeric(scale(sumtot1,
                                                 center = scale_centres$sumtot,
-                                                scale  = 100)),
+                                                scale  = 1000)),
             dairy_100g       = as.numeric(scale(dairy_total_gday_cumavg,
                                                 center = scale_centres$dairy,
                                                 scale  = 100)),
@@ -84,7 +88,7 @@
 
             dairy_guidelines_port   = factor(dairy_guidelines_port,
                                              levels  = c("< 2 servings/day",
-                                                         "≥ 2 servings/day"),
+                                                         ">= 2 servings/day"),
                                              ordered = FALSE) |>
                 stats::relevel(ref = "< 2 servings/day"),
             
@@ -259,15 +263,43 @@ fit_pooled_lmm <- function(
 .pal <- c("#E76254FF","#EF8A47FF","#F7AA58FF","#FFD06FFF",
           "#AADCE0FF","#72BCD5FF","#528FADFF","#376795FF","#1E466EFF")
 
+.term_labels <- c(
+    dairy_100g                            = "Dairy intake cum. avg. [100g/day]",
+    fermented_100g                        = "Fermented Dairy intake cum. avg. [100g/day]",
+    nonfermented_100g                     = "Non- Fermented Dairy intake cum. avg. [100g/day]",
+    highfat_100g                          = "High Fat Dairy intake cum. avg. [100g/day]",
+    lowfat_100g                           = "Low Fat Dairy intake cum. avg. [100g/day]",
+    dairy_quartile_baselineQ2             = "Dairy intale Q2",
+    dairy_quartile_baselineQ3             = "Dairy intake Q3",
+    dairy_quartile_baselineQ4             = "Dairy intake Q4",
+    `dairy_guidelines_port>= 2 servings/day` = "Dairy intake ≥ 2 servings/day",
+    time_since_baseline                   = "Time since baseline [year]",
+    age_at_baseline_scaled                = "Age at T1 [year]",
+    BMI_categoryUnderweight               = "BMI - Underweight",
+    BMI_categoryOverweight                = "BMI - Overweight",
+    BMI_categoryObese                     = "BMI - Obese",
+    `education_levelMedium (ISCED 3-4)` = "Education - Medium (ISCED 3-4)",
+    `education_levelHigh (ISCED 5-8)`   = "Education - High (ISCED 5-8)",
+    smoking_statusFormer                  = "Smoking - Former",
+    smoking_statusCurrent                 = "Smoking - Current",
+    pa_levels_tertile_f1Medium            = "Physical activity - Medium",
+    pa_levels_tertile_f1High              = "Physical activity - High",
+    diabetes_statusDiabetes               = "Diabetes - Yes",
+    sumtot1_scaled                      = "Total calorie intake [kcal]"
+)
+
 .theme_report <- function() {
-    ggplot2::theme_minimal(base_size = 10) +
+    ggplot2::theme_minimal(base_size = 12) +
         ggplot2::theme(
-            panel.grid = ggplot2::element_blank(),
-            axis.line  = ggplot2::element_line(colour = "black", linewidth = 0.4),
-            axis.ticks = ggplot2::element_line(colour = "black"),
-            axis.text  = ggplot2::element_text(colour = "black"),
-            axis.title = ggplot2::element_text(colour = "black"),
-            plot.title = ggplot2::element_text(face = "bold", size = 10)
+            panel.grid  = ggplot2::element_blank(),
+            axis.line   = ggplot2::element_line(colour = "black", linewidth = 0.4),
+            axis.ticks  = ggplot2::element_line(colour = "black"),
+            axis.text   = ggplot2::element_text(colour = "black", family = "Helvetica"),
+            axis.title  = ggplot2::element_text(colour = "black", family = "Helvetica"),
+            plot.title  = ggplot2::element_text(face = "bold", size = 13,
+                                                family = "Helvetica"),
+            text        = ggplot2::element_text(family = "Helvetica"),
+            plot.margin = ggplot2::margin(4, 4, 4, 4)
         )
 }
 
@@ -300,7 +332,7 @@ fit_pooled_lmm <- function(
 
 # Tidy results as a ggplot table (coefficient plot + numeric table side-by-side)
 .results_page <- function(tidy_df, title) {
-
+    
     # Round for display
     disp <- tidy_df |>
         dplyr::mutate(
@@ -312,32 +344,77 @@ fit_pooled_lmm <- function(
             ),
             df = round(df, 1)
         )
-
+    
     # ── Coefficient plot (exclude intercept) ----------------------------------
     plot_df <- tidy_df |>
         dplyr::filter(term != "(Intercept)") |>
         dplyr::mutate(
-            sig   = p_value < 0.05,
-            term  = forcats::fct_rev(factor(term))
+            sig = p_value < 0.05,
+            # Get the base label (without asterisk)
+            term_label_base = {
+                idx <- match(term, names(.term_labels))
+                ifelse(is.na(idx), term, .term_labels[idx])
+            }
+        ) |>
+        # Create the factor with proper ordering FIRST
+        dplyr::mutate(
+            # Define the order based on .term_labels
+            term_order = factor(
+                term_label_base,
+                levels = rev(c(
+                    unname(.term_labels),  # Named terms in original order
+                    sort(unique(term_label_base[!(term %in% names(.term_labels))]))  # Additional terms
+                ))
+            )
+        ) |>
+        # Then add the asterisk for display (but keep the ordering factor)
+        dplyr::mutate(
+            term_label_display = dplyr::case_when(
+                sig ~ paste0(term_label_base, " *"),
+                TRUE ~ term_label_base
+            ),
+            # Use the ordered factor for the y-axis, but display the asterisk version
+            term_label = term_order
         )
-
+    
     p_coef <- ggplot2::ggplot(
         plot_df,
-        ggplot2::aes(x = estimate, y = term,
+        ggplot2::aes(x = estimate, y = term_label,
                      xmin = conf_low, xmax = conf_high,
                      colour = sig)
     ) +
         ggplot2::geom_vline(xintercept = 0, linetype = "dashed",
                             colour = "grey60") +
-        ggplot2::geom_errorbarh(height = 0.3, linewidth = 0.7) +
-        ggplot2::geom_point(size = 2.5) +
+        ggplot2::geom_errorbarh(height = 0.3, linewidth = 1) +
+        ggplot2::geom_point(size = 1.8) +
         ggplot2::scale_colour_manual(
-            values = c(`TRUE` = .pal[9], `FALSE` = .pal[5]),
+            values = c(`TRUE` = "#92D050", `FALSE` = "#FF6666"),
             guide  = "none"
         ) +
-        ggplot2::labs(x = "Estimate (95 % CI)", y = NULL, title = title) +
-        .theme_report()
-
+        ggplot2::scale_y_discrete(
+            expand = ggplot2::expansion(add = 0.1),
+            labels = setNames(plot_df$term_label_display, plot_df$term_label_base)
+        ) +
+        ggplot2::labs(
+            x = "Estimate (95 % CI)", 
+            y = NULL, 
+            title = title,
+            caption = "* p < 0.05"
+        ) +
+        .theme_report() +
+        ggplot2::theme(
+            axis.text.y = ggplot2::element_text(size = 14),
+            axis.text.x = ggplot2::element_text(size = 9),
+            plot.margin = ggplot2::margin(2, 2, 2, 2)
+        )
+    
+    # Fix panel height so rows are compact regardless of page size
+    n_terms    <- nlevels(plot_df$term_label)
+    coef_grob  <- ggplot2::ggplotGrob(p_coef)
+    panel_row  <- which(coef_grob$layout$name == "panel")
+    coef_grob$heights[coef_grob$layout$t[panel_row]] <-
+        grid::unit(n_terms * 0.18, "in")
+    
     # ── Numeric table ---------------------------------------------------------
     tbl_grob <- gridExtra::tableGrob(
         disp,
@@ -349,8 +426,8 @@ fit_pooled_lmm <- function(
                                                 x = 0.05))
         )
     )
-
-    gridExtra::grid.arrange(p_coef, tbl_grob, ncol = 2, widths = c(1.2, 1.8))
+    
+    gridExtra::grid.arrange(coef_grob, tbl_grob, ncol = 2, widths = c(1.2, 1.8))
 }
 
 
@@ -367,7 +444,7 @@ fit_pooled_lmm <- function(
         ggplot2::geom_point(colour = .pal[8], alpha = 0.45, size = 1.2) +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed",
                             colour = .pal[1]) +
-        ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
+        ggplot2::geom_smooth(method = "lm", se = TRUE, colour = .pal[1],
                              fill = .pal[4], alpha = 0.2, linewidth = 0.7) +
         ggplot2::labs(x = "Fitted", y = "Residuals",
                       title = paste("A  Residuals vs Fitted", label)) +
@@ -375,7 +452,7 @@ fit_pooled_lmm <- function(
 
     p_sl <- ggplot2::ggplot(df_d, ggplot2::aes(fitted, sqrt_abs)) +
         ggplot2::geom_point(colour = .pal[8], alpha = 0.45, size = 1.2) +
-        ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
+        ggplot2::geom_smooth(method = "lm", se = TRUE, colour = .pal[1],
                              fill = .pal[3], alpha = 0.2, linewidth = 0.7) +
         ggplot2::labs(x = "Fitted", y = expression(sqrt("|Residuals|")),
                       title = "B  Scale-Location") +
@@ -447,7 +524,7 @@ run_lmm_report <- function(
     covariate_sets = list(
         minimal = c("age_decades", "BMI_category", "education_level",
                     "smoking_status", "pa_levels_tertile_f1",
-                    "diabetes_status", "sumtot1_hundreds")
+                    "diabetes_status", "sumtot1_scaled")
     ),
     random_slope   = TRUE,
     interaction    = FALSE,
