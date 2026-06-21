@@ -225,18 +225,16 @@ print(summary(calories_check$sum_calories_within))
 # Model 1: WITH random slope (your full model)
 mod_with_slope <- lmerTest::lmer(
   HGS_MAX ~ 
-    time_point +
+    time_since_baseline +
     age_at_baseline +
     dairy_100g + 
     sumtot1_scaled_mean + 
-    sumtot1_scaled_within +
-    BMI_scale_mean + 
-    BMI_scale_within +
+    BMI_category +
     education_level + 
     smoking_status + 
     pa_levels_tertile_f1 + 
     diabetes_status +
-    (1 | pt),
+    (1 | pt + time_since_baseline),
   data = df_stans_scaled_hgs, 
   REML = FALSE,
   control = lmerControl(
@@ -249,6 +247,16 @@ mod_with_slope <- lmerTest::lmer(
 
 cor(fitted(mod_with_slope), resid(mod_with_slope))
 summary(lm(resid(mod_with_slope) ~ fitted(mod_with_slope)))
+actual <- df_stans_scaled_hgs$HGS_MAX
+fitted <- fitted(mod_with_slope)
+
+cor_actual_fitted <- cor(actual, fitted)
+print(paste("Correlation between actual and fitted values:", round(cor_actual_fitted, 4)))
+
+# Also get R-squared (which is correlation squared)
+r_squared <- cor_actual_fitted^2
+print(paste("R-squared:", round(r_squared, 4)))
+
 
 
 fit_hetero <- lme(
@@ -279,25 +287,143 @@ fit_hetero <- lme(
   )
 )
 
-
-
-
-
-mod_gam <- gam(
-  HGS_MAX ~ 
-    s(age_at_baseline_scaled, k = 5) + 
-    s(dairy_100g, k = 5) +
-    s(sumtot1_scaled, k = 5) +
-    s(time_since_baseline, k = 5) +
+mod_gamm <- gamm(
+  HGS_MAX ~ dairy_100g +
+    s(age_at_baseline_scaled, k = 5) +  # Very low k!
+    sumtot1_scaled_within +
+    s(time_since_baseline, k = 5) +      # Very low k!
     BMI_category + 
     education_level + 
     smoking_status + 
     pa_levels_tertile_f1 + 
     diabetes_status,
+  random = list(pt = ~ 1),
   data = df_stans_scaled_hgs,
-  method = "REML"
+  method = "ML"
 )
 
+
+library(mgcv)
+library(ggplot2)
+library(gridExtra)
+library(lme4)
+library(nlme)
+
+# Comprehensive GAMM diagnostics function
+diagnose_gamm <- function(gamm_model, data, subject_id = "participant_id") {
+  
+  # Extract components
+  gam_part <- gamm_model$gam
+  lme_part <- gamm_model$lme
+  
+  cat("========== GAMM DIAGNOSTICS ==========\n\n")
+  
+  # 1. GAM Summary
+  cat("1. GAM SUMMARY:\n")
+  print(summary(gam_part))
+  cat("\n")
+  
+  # 2. LME Summary (Random Effects)
+  cat("2. LME SUMMARY (Random Effects):\n")
+  print(summary(lme_part))
+  cat("\n")
+  
+  # 3. Smooth Term Checks
+  cat("3. SMOOTH TERM CHECKS:\n")
+  gam.check(gam_part)
+  cat("\n")
+  
+  # 4. Concurvity
+  cat("4. CONCURRITY:\n")
+  print(concurvity(gam_part, full = TRUE))
+  cat("\n")
+  
+  # 5. Random Effects Diagnostics
+  cat("5. RANDOM EFFECTS DIAGNOSTICS:\n")
+  ranef_vals <- ranef(lme_part)
+  print(head(ranef_vals[[1]]))
+  cat("\n")
+  
+  # 6. Residual Diagnostics
+  residuals_gam <- residuals(gam_part, type = "pearson")
+  fitted_gam <- fitted(gam_part)
+  residuals_lme <- residuals(lme_part, type = "pearson")
+  
+  # 7. Autocorrelation Check
+  cat("6. AUTOCORRELATION:\n")
+  # Check by subject
+  subjects <- unique(data[[subject_id]])
+  acf_list <- list()
+  for (subj in subjects[1:min(10, length(subjects))]) {
+    subj_data <- data[data[[subject_id]] == subj, ]
+    subj_resid <- residuals_gam[data[[subject_id]] == subj]
+    if (length(subj_resid) > 1) {
+      acf_list[[as.character(subj)]] <- acf(subj_resid, plot = FALSE, lag.max = 2)
+    }
+  }
+  cat("ACF results for first 10 subjects (checking autocorrelation):\n")
+  print(sapply(acf_list, function(x) x$acf[2]))
+  cat("\n")
+  
+  # Return diagnostics
+  return(list(
+    gam_summary = summary(gam_part),
+    lme_summary = summary(lme_part),
+    gam_check = gam.check(gam_part, silent = TRUE),
+    concurvity = concurvity(gam_part, full = TRUE),
+    random_effects = ranef_vals,
+    residuals_gam = residuals_gam,
+    residuals_lme = residuals_lme,
+    fitted = fitted_gam
+  ))
+}
+
+diagnose_gamm(mod_gamm, df_stans_scaled_hgs, "pt")
+
+
+#------
+
+
+
+library(performance)
+library(DHARMa)
+
+# Comprehensive diagnostics
+check_model(mod_glmm)
+
+# DHARMa for residual diagnostics
+simulation_output <- simulateResiduals(mod_glmm)
+plot(simulation_output)
+
+# Specific checks
+# 1. Residuals vs fitted
+plot(fitted(mod_glmm), residuals(mod_glmm, type = "pearson"))
+abline(h = 0, col = "red")
+
+# 2. Q-Q plot
+qqnorm(residuals(mod_glmm))
+qqline(residuals(mod_glmm), col = "red")
+
+# 3. Check random effects
+ranef_vals <- ranef(mod_glmm)$participant_id[,1]
+qqnorm(ranef_vals)
+qqline(ranef_vals, col = "red")
+
+# 4. Check for heteroscedasticity
+library(car)
+ncvTest(mod_glmm)
+
+# 5. Check for influential observations
+influence_glmm <- influence(mod_glmm)
+plot(influence_glmm)
+
+# 6. Check for outliers
+library(performance)
+check_outliers(mod_glmm)
+
+# 7. Check collinearity
+check_collinearity(mod_glmm)
+#--------
 
 
 mod_with_ar1 <- lme(
@@ -414,6 +540,7 @@ if (abs(slope_long) > max(abs(c(slope_T1, slope_T2, slope_T3))) * 2) {
 plot_diagnostics(lm_baseline, "HGS LMM - lm baseline")
 plot_diagnostics(mod_with_slope, "HGS LMM - Slope")
 plot_diagnostics(mod_within_between, "HGS LMM - within eff")
+
 
 
 #----
@@ -781,7 +908,7 @@ plot_diagnostics <- function(model, model_name = "Model") {
   # A. Scale-Location plot
   p_sl <- ggplot(df, aes(x = fitted, y = sqrt_abs_resid)) +
     geom_point(color = palette[9], alpha = 0.6, size = 1.8) +
-    geom_smooth(method = "lm", se = TRUE,
+    geom_smooth(method = "loess", se = TRUE,
                 color = palette[1], fill = palette[3], alpha = 0.2) +
     labs(
       x = "Fitted values",
@@ -801,7 +928,7 @@ plot_diagnostics <- function(model, model_name = "Model") {
   p_rd <- ggplot(df, aes(x = fitted, y = residuals)) +
     geom_point(color = palette[9], alpha = 0.6, size = 1.8) +
     geom_hline(yintercept = 0, linetype = "dashed", color = palette[1]) +
-    geom_smooth(method = "lm", se = TRUE,
+    geom_smooth(method = "loess", se = TRUE,
                 color = palette[1], fill = palette[4], alpha = 0.2) +
     labs(
       x = "Fitted values",
@@ -860,6 +987,125 @@ plot_diagnostics <- function(model, model_name = "Model") {
 
 
 
+# Load required packages
+library(lme4)
+library(ggplot2)
+library(dplyr)
+
+# Calculate shrinkage for your model
+calculate_shrinkage <- function(model) {
+  # Get random effects
+  ranef_vals <- ranef(model)$pt[,1]
+  
+  # Get variance components
+  var_components <- as.data.frame(VarCorr(model))
+  var_random <- var_components[var_components$grp == "pt", "vcov"]
+  var_residual <- var_components[var_components$grp == "Residual", "vcov"]
+  
+  # Calculate shrinkage (also called "empirical Bayes shrinkage")
+  # Formula: Shrinkage = 1 - (Var(random) / (Var(random) + Var(residual)/n_obs_per_subject))
+  
+  # Calculate per subject shrinkage
+  n_per_subject <- table(model@frame$pt)
+  shrinkage <- 1 - (var_random / (var_random + var_residual/n_per_subject))
+  
+  # Calculate η-shrinkage (as defined in Savic & Karlsson 2009)
+  eta_shrinkage <- 1 - (sd(ranef_vals) / sqrt(var_random))
+  
+  return(list(
+    shrinkage_per_subject = shrinkage,
+    eta_shrinkage = eta_shrinkage,
+    mean_shrinkage = mean(shrinkage),
+    sd_shrinkage = sd(shrinkage),
+    var_random = var_random,
+    var_residual = var_residual
+  ))
+}
+
+# Apply to your model
+shrinkage_results <- calculate_shrinkage(mod_with_slope)
+print(paste("Mean shrinkage:", round(shrinkage_results$mean_shrinkage, 3)))
+print(paste("η-shrinkage (Savic & Karlsson):", round(shrinkage_results$eta_shrinkage, 3)))
+
+# Classification based on Savic & Karlsson (2009)
+eta_shrinkage <- shrinkage_results$eta_shrinkage
+if (eta_shrinkage > 0.30) {
+  print("⚠️ SUBSTANTIAL SHRINKAGE (>30%): Diagnostic interpretation should be cautious")
+  print("   - Covariate relationships may be masked")
+  print("   - Empirical Bayes estimates are distorted")
+} else if (eta_shrinkage > 0.20) {
+  print("⚠️ MODERATE SHRINKAGE (20-30%): Some caution needed")
+} else {
+  print("✅ ACCEPTABLE SHRINKAGE (<20%): Diagnostics are reliable")
+}
+
+# Visualize shrinkage across subjects
+shrinkage_df <- data.frame(
+  Participant = names(shrinkage_results$shrinkage_per_subject),
+  Shrinkage = as.numeric(shrinkage_results$shrinkage_per_subject),
+  N_Observations = as.numeric(table(mod_with_slope@frame$pt))
+)
+
+# Plot shrinkage by number of observations
+ggplot(shrinkage_df, aes(x = N_Observations, y = Shrinkage)) +
+  geom_point(alpha = 0.6, size = 3, color = "steelblue") +
+  geom_hline(yintercept = 0.30, linetype = "dashed", color = "red", size = 1) +
+  geom_hline(yintercept = 0.20, linetype = "dashed", color = "orange", size = 0.8) +
+  geom_smooth(method = "loess", se = TRUE, color = "darkblue") +
+  labs(
+    title = "Shrinkage by Number of Observations per Subject",
+    subtitle = paste("η-shrinkage =", round(shrinkage_results$eta_shrinkage, 3)),
+    x = "Number of Observations per Subject",
+    y = "Shrinkage (η-shrinkage)"
+  ) +
+  annotate("text", x = max(shrinkage_df$N_Observations)*0.8, 
+           y = 0.32, label = "Severe >30%", color = "red") +
+  annotate("text", x = max(shrinkage_df$N_Observations)*0.8, 
+           y = 0.22, label = "Moderate 20-30%", color = "orange") +
+  theme_minimal()
+
+# Histogram of shrinkage
+ggplot(shrinkage_df, aes(x = Shrinkage)) +
+  geom_histogram(bins = 20, fill = "steelblue", alpha = 0.6) +
+  geom_vline(xintercept = 0.30, linetype = "dashed", color = "red", size = 1) +
+  geom_vline(xintercept = 0.20, linetype = "dashed", color = "orange", size = 0.8) +
+  labs(
+    title = "Distribution of Shrinkage Across Subjects",
+    x = "Shrinkage",
+    y = "Count"
+  ) +
+  theme_minimal()
+
+# Diagnostic approach with caution
+diagnose_with_shrinkage <- function(model, shrinkage_results) {
+  
+  eta_shrinkage <- shrinkage_results$eta_shrinkage
+  
+  cat("========== SAVIC & KARLSSON (2009) DIAGNOSTIC APPROACH ==========\n\n")
+  
+  if (eta_shrinkage > 0.30) {
+    cat("⚠️ SUBSTANTIAL η-SHRINKAGE DETECTED (>30%)\n")
+    cat("RECOMMENDATIONS:\n")
+    cat("1. Interpret covariate relationships with caution\n")
+    cat("2. Do NOT rely solely on empirical Bayes estimates\n")
+    cat("3. Consider using fixed effects for primary inference\n")
+    cat("4. Use bootstrap or simulation for uncertainty quantification\n\n")
+    
+    # Bootstrap to assess uncertainty
+    cat("IMPLEMENTING BOOTSTRAP FOR UNCERTAINTY QUANTIFICATION:\n")
+    
+  } else if (eta_shrinkage > 0.20) {
+    cat("⚠️ MODERATE η-SHRINKAGE (20-30%)\n")
+    cat("RECOMMENDATIONS:\n")
+    cat("1. Interpret diagnostics with some caution\n")
+    cat("2. Consider sensitivity analyses\n")
+  } else {
+    cat("✅ ACCEPTABLE η-SHRINKAGE (<20%)\n")
+    cat("Diagnostics can be interpreted with confidence\n")
+  }
+}
+
+diagnose_with_shrinkage(mod_with_slope, shrinkage_results)
 
 
 

@@ -249,6 +249,7 @@ fit_pooled_lmm <- function(
 
     list(
         pooled_tidy = pooled_tidy,
+        models      = models,          # all imputations — needed for sandwich
         first_model = models[[1]],
         formula     = formula,
         n_imp       = m
@@ -257,7 +258,101 @@ fit_pooled_lmm <- function(
 
 
 # ---------------------------------------------------------------------------
-# 4.  PDF HELPERS
+# 4.  POOLED SANDWICH ESTIMATOR  (clubSandwich + Rubin's rules)
+# ---------------------------------------------------------------------------
+
+#' Pool cluster-robust (sandwich) SEs across imputations via Rubin's rules.
+#'
+#' For each imputation: fits the same lmer, computes a CR2 sandwich vcov via
+#' `clubSandwich::vcovCR()`, extracts coefficients and their robust variances.
+#' Rubin's rules are then applied to obtain pooled estimates, robust SEs,
+#' and Barnard-Rubin degrees of freedom.
+#'
+#' @param models     List of fitted lmer objects (one per imputation), already
+#'                   stored in `fit$models` from `fit_pooled_lmm()`.
+#' @param id_var     Cluster variable name (passed to `clubSandwich::vcovCR()`).
+#' @param cr_type    Sandwich type — `"CR2"` (default, small-sample corrected)
+#'                   or any type accepted by clubSandwich.
+#' @return A tibble with columns `term`, `estimate`, `std_error`, `statistic`,
+#'   `df`, `p_value`, `conf_low`, `conf_high`.
+
+pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
+
+    m <- length(models)
+
+    # Per-imputation: coefficients and diagonal of robust vcov
+    coef_list <- vector("list", m)
+    var_list  <- vector("list", m)
+
+    for (i in seq_len(m)) {
+        mod   <- models[[i]]
+        cluster_vec <- lme4::getME(mod, "flist")[[id_var]]
+
+        vcov_cr <- tryCatch(
+            clubSandwich::vcovCR(mod, cluster = cluster_vec, type = cr_type),
+            error = function(e) NULL
+        )
+        if (is.null(vcov_cr)) {
+            warning("clubSandwich failed for imputation ", i, "; skipping.")
+            next
+        }
+
+        coef_list[[i]] <- lme4::fixef(mod)
+        var_list[[i]]  <- diag(as.matrix(vcov_cr))
+    }
+
+    # Drop any failed imputations
+    ok        <- !vapply(coef_list, is.null, logical(1))
+    coef_list <- coef_list[ok]
+    var_list  <- var_list[ok]
+    m_ok      <- sum(ok)
+
+    if (m_ok == 0L)
+        stop("clubSandwich failed for all imputations.")
+
+    terms  <- names(coef_list[[1]])
+    n_par  <- length(terms)
+
+    # Rubin's rules (univariate, per-parameter)
+    Q_mat <- do.call(rbind, coef_list)          # m_ok × n_par
+    U_mat <- do.call(rbind, var_list)            # m_ok × n_par — within-imp var
+
+    Q_bar <- colMeans(Q_mat)                     # pooled estimate
+    U_bar <- colMeans(U_mat)                     # mean within-imp variance
+    B     <- apply(Q_mat, 2, stats::var)         # between-imp variance
+
+    T_var <- U_bar + (1 + 1 / m_ok) * B         # total variance
+    se    <- sqrt(T_var)
+
+    # Barnard-Rubin df
+    r_L  <- (1 + 1 / m_ok) * B / U_bar          # relative increase in variance
+    df_old <- (m_ok - 1) / r_L^2                # old df
+    # Approximate complete-data df from first model (conservative)
+    df_com <- nrow(lme4::getME(models[[which(ok)[1]]], "X")) - n_par
+    df_adj <- df_old * df_com / (df_old + df_com)
+
+    t_stat  <- Q_bar / se
+    p_val   <- 2 * stats::pt(abs(t_stat), df = df_adj, lower.tail = FALSE)
+    alpha   <- 0.05
+    t_crit  <- stats::qt(1 - alpha / 2, df = df_adj)
+    ci_lo   <- Q_bar - t_crit * se
+    ci_hi   <- Q_bar + t_crit * se
+
+    tibble::tibble(
+        term      = terms,
+        estimate  = Q_bar,
+        std_error = se,
+        statistic = t_stat,
+        df        = df_adj,
+        p_value   = p_val,
+        conf_low  = ci_lo,
+        conf_high = ci_hi
+    )
+}
+
+
+# ---------------------------------------------------------------------------
+# 5.  PDF HELPERS
 # ---------------------------------------------------------------------------
 
 .pal <- c("#E76254FF","#EF8A47FF","#F7AA58FF","#FFD06FFF",
@@ -428,6 +523,112 @@ fit_pooled_lmm <- function(
     )
     
     gridExtra::grid.arrange(coef_grob, tbl_grob, ncol = 2, widths = c(1.2, 1.8))
+}
+
+
+# ── Sandwich vs standard comparison page ------------------------------------
+
+.sandwich_comparison_page <- function(std_tidy, sand_tidy, title) {
+
+    # Combine, exclude intercept
+    combined <- dplyr::bind_rows(
+        dplyr::mutate(std_tidy,  estimator = "Standard LMM"),
+        dplyr::mutate(sand_tidy, estimator = "Sandwich (CR2)")
+    ) |>
+        dplyr::filter(term != "(Intercept)") |>
+        dplyr::mutate(
+            sig = p_value < 0.05,
+            term_label = {
+                idx <- match(term, names(.term_labels))
+                ifelse(is.na(idx), term, .term_labels[idx])
+            },
+            term_label = factor(term_label,
+                                levels = rev(unique(term_label))),
+            estimator  = factor(estimator,
+                                levels = c("Standard LMM", "Sandwich (CR2)"))
+        )
+
+    colours <- c("Standard LMM"   = .pal[8],
+                 "Sandwich (CR2)" = .pal[2])
+    shapes  <- c("Standard LMM"   = 16L,
+                 "Sandwich (CR2)" = 17L)
+
+    p <- ggplot2::ggplot(
+        combined,
+        ggplot2::aes(x      = estimate,
+                     y      = term_label,
+                     xmin   = conf_low,
+                     xmax   = conf_high,
+                     colour = estimator,
+                     shape  = estimator)
+    ) +
+        ggplot2::geom_vline(xintercept = 0, linetype = "dashed",
+                            colour = "grey60") +
+        ggplot2::geom_errorbarh(
+            ggplot2::aes(height = 0),
+            linewidth = 0.8,
+            position  = ggplot2::position_dodge(width = 0.5)
+        ) +
+        ggplot2::geom_point(
+            size     = 2.5,
+            position = ggplot2::position_dodge(width = 0.5)
+        ) +
+        ggplot2::scale_colour_manual(values = colours, name = "Estimator") +
+        ggplot2::scale_shape_manual(values  = shapes,  name = "Estimator") +
+        ggplot2::labs(
+            x       = "Estimate (95 % CI)",
+            y       = NULL,
+            title   = paste("Robustness Check — Sandwich vs Standard:", title),
+            caption = "CR2: cluster-robust (clubSandwich); clusters = subject ID"
+        ) +
+        .theme_report() +
+        ggplot2::theme(
+            legend.position = "bottom",
+            axis.text.y     = ggplot2::element_text(size = 11)
+        )
+
+    # Numeric comparison table (delta SE, delta p)
+    comp_tbl <- dplyr::inner_join(
+        std_tidy  |> dplyr::select(term, estimate,
+                                    std_error_std  = std_error,
+                                    p_std          = p_value),
+        sand_tidy |> dplyr::select(term,
+                                    std_error_sand = std_error,
+                                    p_sand         = p_value),
+        by = "term"
+    ) |>
+        dplyr::mutate(
+            estimate       = round(estimate, 3),
+            std_error_std  = round(std_error_std,  3),
+            std_error_sand = round(std_error_sand, 3),
+            delta_se       = round(std_error_sand - std_error_std, 4),
+            p_std  = dplyr::if_else(p_std  < 0.001, "<0.001",
+                                    as.character(round(p_std,  3))),
+            p_sand = dplyr::if_else(p_sand < 0.001, "<0.001",
+                                    as.character(round(p_sand, 3)))
+        ) |>
+        dplyr::rename(
+            Term        = term,
+            Beta        = estimate,
+            SE_std      = std_error_std,
+            SE_sandwich = std_error_sand,
+            `ΔSE`       = delta_se,
+            p_std       = p_std,
+            p_sandwich  = p_sand
+        )
+
+    tbl_grob <- gridExtra::tableGrob(
+        comp_tbl,
+        rows  = NULL,
+        theme = gridExtra::ttheme_minimal(
+            base_size = 7,
+            core      = list(fg_params = list(hjust = 0, x = 0.05)),
+            colhead   = list(fg_params = list(fontface = "bold",
+                                              hjust = 0, x = 0.05))
+        )
+    )
+
+    gridExtra::grid.arrange(p, tbl_grob, ncol = 2, widths = c(1.4, 1.6))
 }
 
 
@@ -630,7 +831,7 @@ run_lmm_report <- function(
                 interaction  = interaction
             )
 
-                    # ── Fit ----------------------------------------------------------
+            # ── Fit ----------------------------------------------------------
             fit <- tryCatch(
                 fit_pooled_lmm(
                     mids_object  = mids_object,
@@ -666,6 +867,22 @@ run_lmm_report <- function(
 
             # ── Results: coefficient plot + table ----------------------------
             .results_page(fit$pooled_tidy, title = model_tag)
+
+            # ── Sandwich robustness check ------------------------------------
+            sand_tidy <- tryCatch(
+                pool_sandwich_lmm(fit$models, id_var = id_var, cr_type = "CR2"),
+                error = function(e) {
+                    .text_page(
+                        c(paste("Sandwich estimator failed:", conditionMessage(e))),
+                        title = paste("Sandwich FAILED —", model_tag)
+                    )
+                    NULL
+                }
+            )
+            if (!is.null(sand_tidy)) {
+                .sandwich_comparison_page(fit$pooled_tidy, sand_tidy,
+                                          title = model_tag)
+            }
 
             # ── Diagnostics (imputation 1) -----------------------------------
             p_diag <- tryCatch(

@@ -18,7 +18,7 @@ tar_option_set(
         "mice", "here",
         "gtsummary", "ggplot2", "patchwork", "gridExtra", "scales", "ggridges", "ggalluvial",
         "RColorBrewer",
-        "lme4", "lmerTest", "broom.mixed", "broom", "rms", "splines",
+        "lme4", "lmerTest", "broom.mixed", "broom", "rms", "splines", "clubSandwich",
         "survival", "survminer", "gt", "survey",
         "mgcv", "car",
         "sessioninfo",
@@ -191,7 +191,7 @@ cc_exclusion <- tar_target(
             min_visit  = 2L,
             pt_col     = "pt",
             visit_col  = "time_point",
-            exposure   = "dairy_total_gday"
+            exposure   = "dairy_total_gday_cumavg"
         )
         # $data and $mids aliases keep downstream targets unchanged.
         # For the CC route $data_outcome holds plain data frames; mids is NULL.
@@ -289,7 +289,7 @@ mice_exclusion <- tar_target(
             min_visit  = 2L,
             pt_col     = "pt",
             visit_col  = "time_point",
-            exposure   = "dairy_total_gday"
+            exposure   = "dairy_total_gday_cumavg"
         )
         # $data_outcome holds mids objects for the MICE route.
         # $data and $mids aliases keep all downstream targets unchanged.
@@ -330,11 +330,11 @@ covariate_sets_alm <- list(
 
 covariate_sets_gait <- list(
     main = c(
-        "age_at_baseline_scaled_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "age_at_baseline_scaled", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
         "pa_levels_tertile_f1_lag", "diabetes_status_lag"
     ),
     other_PA = c(
-        "age_at_baseline_scaled_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "age_at_baseline_scaled", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
         "pa_levels_who_f1_lag", "diabetes_status_lag"
     )
 )
@@ -535,7 +535,7 @@ cox_targets <- list(
         run_cox_sarcopenia(
             data           = cc_analysis$data$ewgsop2_sarcopenia_stage,
             sarcopenia_def = "ewgsop2",
-            covariate_type = "time_dependent",
+            covariate_type = "fixed",
             dairy_type     = "continuous",
             dairy_col      = "dairy_total_gday_cumavg",
             analysis_route = "cc"
@@ -550,7 +550,7 @@ cox_targets <- list(
         run_cox_sarcopenia(
             data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
             sarcopenia_def = "ewgsop2",
-            covariate_type = "time_dependent",
+            covariate_type = "fixed",
             dairy_type     = "continuous",
             dairy_cat_col  = "dairy_total_gday_cumavg",
             analysis_route = "mice"
@@ -620,18 +620,18 @@ c(
     cc_prep_targets,
     cc_exclusion,
     # cc_descriptives,
-    # table_one,
+   
     
     # ── MICE route ────────────────────────────────────────────────────────────
     mice_prep_targets,
     mice_exclusion,
-    # mice_table_one,
+    
     
     # ── Models ────────────────────────────────────────────────────────────────
-    # LMM_targets_HGS,
-    #LMM_targets_ALM,
-    #LMM_targets_gait
-    #cox_targets
+    LMM_targets_HGS,
+    # LMM_targets_ALM
+    LMM_targets_gait,
+    cox_targets,
     
     # ── Descriptives ──────────────────────────────────────────────────────────
     # consort

@@ -87,6 +87,9 @@ run_exclusions <- function(
   # out-of-range visit-rows identified in the observed data. These are row-level
   # drops that keep_ids alone cannot express.
   long_shared <- dplyr::filter(long, .data[[pt_col]] %in% keep_ids_shared)
+  if (nrow(shared$bad_dairy_keys) > 0L)
+    long_shared <- dplyr::anti_join(long_shared, shared$bad_dairy_keys,
+                                    by = c(pt_col, visit_col))
   if (nrow(shared$bad_sumtot1_keys) > 0L)
     long_shared <- dplyr::anti_join(long_shared, shared$bad_sumtot1_keys,
                                     by = c(pt_col, visit_col))
@@ -220,11 +223,13 @@ run_exclusions <- function(
                            n_remaining = dplyr::n_distinct(obs[[pt_col]]))
 
   # Stage 2a — drop rows where exposure is NA, except at T4 (no FFQ at T4)
-  pts_before_exp <- unique(obs[[pt_col]])
-  obs <- dplyr::filter(
+  pts_before_exp  <- unique(obs[[pt_col]])
+  bad_dairy_keys  <- dplyr::filter(
     obs,
-    !(.data[[visit_col]] != "T4" & is.na(.data[[exposure]]))
-  )
+    .data[[visit_col]] != "T4" & is.na(.data[[exposure]])
+  ) |>
+    dplyr::distinct(.data[[pt_col]], .data[[visit_col]])
+  obs <- dplyr::anti_join(obs, bad_dairy_keys, by = c(pt_col, visit_col))
   lost_exp <- setdiff(pts_before_exp, unique(obs[[pt_col]]))
   audit <- .record_excl(audit, lost_exp, "shared", "exposure_missing_lost_all_visits",
                          n_remaining = dplyr::n_distinct(obs[[pt_col]]))
@@ -258,6 +263,7 @@ run_exclusions <- function(
   
   list(
     keep_ids         = unique(obs[[pt_col]]),
+    bad_dairy_keys   = bad_dairy_keys,
     bad_sumtot1_keys = bad_sumtot1_keys,
     audit            = audit
   )

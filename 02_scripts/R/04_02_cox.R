@@ -681,6 +681,18 @@ run_cox_sarcopenia <- function(
         label          = "cc"
     )
 
+    # ── Adjusted scenario curves (time-dependent only) ─────────────────────
+    scenario_plot_cc <- if (covariate_type == "time_dependent") {
+        .plot_scenario_survival(
+            fit        = fit_adj,
+            surv_data  = surv_data,
+            dairy_col  = dairy_col,
+            covariates = covariates,
+            out_dir    = out_dir,
+            label      = "cc"
+        )
+    } else NULL
+
     # ── Fine-Gray sensitivity analysis (competing risk of death) ──────────────
     fg_cc <- if (!is.null(death_col)) {
         .fit_finegray_cc(
@@ -714,6 +726,7 @@ run_cox_sarcopenia <- function(
         dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,
         cox_snell_plot      = assumptions$cox_snell_plot,
         km_plot             = km_plot,
+        scenario_plot       = scenario_plot_cc,
         fg_results          = fg_cc$results,
         fg_fit              = fg_cc$fit,
         cif_plot            = fg_cc$cif_plot
@@ -831,6 +844,18 @@ run_cox_sarcopenia <- function(
         label          = "mice_imp1"
     )
 
+    # ── Adjusted scenario curves (time-dependent only, on imp = 1) ────────────
+    scenario_plot_mice <- if (covariate_type == "time_dependent") {
+        .plot_scenario_survival(
+            fit        = fits_adj[[1L]],
+            surv_data  = surv_data_list[[1L]],
+            dairy_col  = dairy_col,
+            covariates = covariates,
+            out_dir    = out_dir,
+            label      = "mice_imp1"
+        )
+    } else NULL
+
     # ── Fine-Gray sensitivity analysis across imputations ─────────────────────
     fg_mice <- if (!is.null(death_col)) {
         .fit_finegray_mice(
@@ -864,6 +889,7 @@ run_cox_sarcopenia <- function(
         dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,
         cox_snell_plot      = assumptions$cox_snell_plot,
         km_plot             = km_plot,
+        scenario_plot       = scenario_plot_mice,
         fg_results          = fg_mice$results,
         fg_fit              = fg_mice$fit,
         cif_plot            = fg_mice$cif_plot
@@ -1693,6 +1719,176 @@ run_cox_sarcopenia <- function(
 
     km_plot
 }
+
+# =============================================================================
+# SECTION 8B — Adjusted scenario survival curves (time-dependent route)
+# =============================================================================
+#
+# For a time-dependent Cox model, standard KM is not appropriate for showing
+# the exposure effect. Instead we predict survival for two hypothetical
+# covariate trajectories using survfit(fit, newdata, id):
+#
+#   "Always low dairy"  — exposure fixed at the median of Q1 throughout
+#   "Always high dairy" — exposure fixed at the median of Q4 throughout
+#
+# All other covariates are held at their reference values (mean for continuous,
+# modal level for factors). This is analogous to the Simon-Makuch approach but
+# model-based, so it is adjusted for all covariates simultaneously.
+#
+# Only runs when covariate_type == "time_dependent".
+# =============================================================================
+
+#' Compute reference (mean/mode) values for all adjustment covariates.
+#' @keywords internal
+.reference_covariates <- function(surv_data, covariates) {
+    ref <- list()
+    for (cv in covariates) {
+        if (!cv %in% names(surv_data)) next
+        x <- surv_data[[cv]]
+        if (is.numeric(x)) {
+            ref[[cv]] <- mean(x, na.rm = TRUE)
+        } else {
+            tbl <- sort(table(x), decreasing = TRUE)
+            ref[[cv]] <- names(tbl)[1L]
+            # Restore original class (factor levels must match)
+            if (is.factor(x)) ref[[cv]] <- factor(ref[[cv]], levels = levels(x))
+        }
+    }
+    ref
+}
+
+
+#' Predict adjusted survival curves for fixed dairy exposure scenarios.
+#'
+#' Creates hypothetical counting-process datasets for Q1 and Q4 dairy
+#' trajectories (all other covariates at reference), then calls
+#' \code{survfit(fit, newdata, id)} to obtain adjusted survival curves.
+#'
+#' Only meaningful when \code{covariate_type == "time_dependent"}.
+#'
+#' @param fit          Fitted \code{coxph} object (adjusted, with \code{x = TRUE}).
+#' @param surv_data    The survival dataset used to fit the model.
+#' @param dairy_col    Character. Continuous dairy column name.
+#' @param covariates   Character vector of adjustment covariates.
+#' @param out_dir      Output directory or NULL.
+#' @param label        String label for file names.
+#' @return A ggplot, or NULL on failure.
+#' @keywords internal
+.plot_scenario_survival <- function(fit, surv_data, dairy_col, covariates,
+                                    out_dir, label) {
+
+    cli::cli_h3("Adjusted scenario survival curves (time-dependent) [{label}]")
+
+    tryCatch({
+
+        if (!all(c("age_start", "age_stop", "event") %in% names(surv_data)))
+            cli::cli_abort("surv_data must have age_start, age_stop, event columns.")
+
+        # ── Reference covariate values ──────────────────────────────────────
+        ref <- .reference_covariates(surv_data, covariates)
+
+        # ── Dairy scenario values: median of Q1 and Q4 ──────────────────────
+        q_breaks <- stats::quantile(surv_data[[dairy_col]],
+                                    probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE)
+        dairy_low  <- stats::median(
+            surv_data[[dairy_col]][surv_data[[dairy_col]] <= q_breaks[2L]], na.rm = TRUE)
+        dairy_high <- stats::median(
+            surv_data[[dairy_col]][surv_data[[dairy_col]] >= q_breaks[4L]], na.rm = TRUE)
+
+        cli::cli_inform(c(
+            "i" = "Scenario dairy values: low = {round(dairy_low,1)} g/day (Q1 median),",
+            "i" = "                       high = {round(dairy_high,1)} g/day (Q4 median)."
+        ))
+
+        # ── Build newdata: one row per scenario (constant trajectory) ────────
+        # For a constant dairy exposure throughout follow-up, a single interval
+        # spanning the observed age range is sufficient. survfit.coxph with id
+        # evaluates the covariate at each event time against the baseline hazard.
+        age_min <- min(surv_data$age_start, na.rm = TRUE)
+        age_max <- max(surv_data$age_stop,  na.rm = TRUE)
+
+        .make_scenario_row <- function(dairy_val, scenario_id) {
+            df <- data.frame(
+                .id       = scenario_id,
+                age_start = age_min,
+                age_stop  = age_max,
+                event     = 0L
+            )
+            df$dairy_exposure <- dairy_val
+            for (cv in names(ref)) df[[cv]] <- ref[[cv]]
+            df
+        }
+
+        nd <- dplyr::bind_rows(
+            .make_scenario_row(dairy_low,  1L),
+            .make_scenario_row(dairy_high, 2L)
+        )
+
+        # ── Predict survival via survfit(fit, newdata, id) ───────────────────
+        # id must be passed as a vector (nd$.id), not a bare symbol.
+        sf <- survival::survfit(fit, newdata = nd, id = nd$.id)
+
+        # ── Tidy into a plottable data frame ─────────────────────────────────
+        scenario_labels <- c(
+            glue::glue("Always low  (Q1 median: {round(dairy_low,1)} g/day)"),
+            glue::glue("Always high (Q4 median: {round(dairy_high,1)} g/day)")
+        )
+        strata_lengths <- as.integer(sf$strata)
+        sf_df <- data.frame(
+            time     = sf$time,
+            surv     = sf$surv,
+            upper    = sf$upper,
+            lower    = sf$lower,
+            scenario = rep(scenario_labels, times = strata_lengths)
+        )
+
+        # ── Plot ──────────────────────────────────────────────────────────────
+        p <- ggplot2::ggplot(sf_df, ggplot2::aes(
+                x = time, y = surv,
+                colour = scenario, fill = scenario)) +
+            ggplot2::geom_step(linewidth = 0.9) +
+            ggplot2::geom_ribbon(
+                ggplot2::aes(ymin = lower, ymax = upper),
+                alpha = 0.15, colour = NA
+            ) +
+            ggplot2::scale_colour_manual(
+                values = c("#E76254FF", "#72BCD5FF"),
+                name   = "Dairy trajectory"
+            ) +
+            ggplot2::scale_fill_manual(
+                values = c("#E76254FF", "#72BCD5FF"),
+                name   = "Dairy trajectory"
+            ) +
+            ggplot2::scale_y_continuous(limits = c(0, 1), labels = scales::percent) +
+            ggplot2::scale_x_continuous(limits = c(50, NA)) +
+            ggplot2::labs(
+                title    = glue::glue("Adjusted survival curves — dairy scenarios [{label}]"),
+                subtitle = glue::glue(
+                    "Covariates held at reference values. ",
+                    "Low: {round(dairy_low,1)} g/day | High: {round(dairy_high,1)} g/day."
+                ),
+                x = "Age (years)",
+                y = "Sarcopenia-free probability"
+            ) +
+            ggplot2::theme_bw() +
+            ggplot2::theme(legend.position = "bottom")
+
+        if (!is.null(out_dir)) {
+            ggplot2::ggsave(
+                file.path(out_dir, glue::glue("{label}_scenario_survival.png")),
+                p, width = 8, height = 6, dpi = 150
+            )
+            cli::cli_inform("Scenario survival plot saved to {.path {out_dir}}")
+        }
+
+        p
+
+    }, error = function(e) {
+        cli::cli_warn("Scenario survival plot failed: {conditionMessage(e)}")
+        NULL
+    })
+}
+
 
 # =============================================================================
 # SECTION 9 — Interaction results helper
