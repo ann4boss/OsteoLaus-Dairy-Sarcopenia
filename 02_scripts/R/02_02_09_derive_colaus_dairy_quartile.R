@@ -1,18 +1,18 @@
 # =============================================================================
 # R/derive_colaus_dairy_quartile.R
 # =============================================================================
-# Derives two quartile variables from dairy_total_gday:
+# Derives two quartile variables from dairy_total_gday_cumavg:
 #
 #   dairy_quartile_baseline
 #     Quartile boundaries are computed from the F1 distribution (first measurement time point) of
-#     dairy_total_gday across all participants. The same cut-points are then
+#     dairy_total_gday_cumavg across all participants. The same cut-points are then
 #     applied to every visit, so each participant's intake at F1–F3 is placed
 #     into the quartile defined by the Baseline population distribution.
 #     This is the primary variable for analysis (avoids reverse causation from
 #     using later visits to define the reference distribution).
 #
 #   dairy_quartile_overall
-#     Quartile boundaries are computed from dairy_total_gday pooled across
+#     Quartile boundaries are computed from dairy_total_gday_cumavg pooled across
 #     all visits and all participants. Each row is then classified into one
 #     of these pooled quartiles.
 #     Intended as a sensitivity variable.
@@ -20,19 +20,19 @@
 # Both variables are ordered factors:
 #   Q1 (lowest) < Q2 < Q3 < Q4 (highest)
 #
-# Requires dairy_total_gday to be present (output of derive_dairy()).
+# Requires dairy_total_gday_cumavg to be present (output of derive_dairy()).
 # =============================================================================
 
 #' Derive dairy intake quartile variables for a CoLaus long tibble.
 #'
 #' @param df CoLaus long tibble after derive_dairy() has been applied.
-#'   Must contain dairy_total_gday, pt, and .visit.
+#'   Must contain dairy_total_gday_cumavg, pt, and .visit.
 #' @return df with dairy_quartile_baseline and dairy_quartile_overall
 #'   (both ordered factors Q1–Q4) added.
 derive_dairy_quartile <- function(df) {
     
     # ── Check required columns -----------------------------------------------
-    required_cols <- c("pt", ".visit", "dairy_total_gday")
+    required_cols <- c("pt", ".visit", "dairy_total_gday_cumavg")
     missing_cols  <- setdiff(required_cols, names(df))
     if (length(missing_cols) > 0) {
         cli::cli_warn(
@@ -58,8 +58,8 @@ derive_dairy_quartile <- function(df) {
     # ── Baseline quartile ---------------------------------------------------
     # Compute cut-points from Baseline rows only, then apply to all visits.
     baseline_values <- df |>
-        dplyr::filter(.visit == "F1", !is.na(dairy_total_gday)) |>
-        dplyr::pull(dairy_total_gday)
+        dplyr::filter(.visit == "F1", !is.na(dairy_total_gday_cumavg)) |>
+        dplyr::pull(dairy_total_gday_cumavg)
     
     if (length(baseline_values) < 4) {
         cli::cli_warn(
@@ -76,13 +76,13 @@ derive_dairy_quartile <- function(df) {
         
         df <- df |>
             dplyr::mutate(
-                dairy_quartile_baseline = .to_quartile(dairy_total_gday, baseline_breaks)
+                dairy_quartile_baseline = .to_quartile(dairy_total_gday_cumavg, baseline_breaks)
             )
     }
     
     # ── Overall quartile ----------------------------------------------------
     # Compute cut-points pooled across all visits and participants.
-    overall_values <- df$dairy_total_gday[!is.na(df$dairy_total_gday)]
+    overall_values <- df$dairy_total_gday_cumavg[!is.na(df$dairy_total_gday_cumavg)]
     
     if (length(overall_values) < 4) {
         cli::cli_warn(
@@ -99,7 +99,7 @@ derive_dairy_quartile <- function(df) {
         
         df <- df |>
             dplyr::mutate(
-                dairy_quartile_overall = .to_quartile(dairy_total_gday, overall_breaks)
+                dairy_quartile_overall = .to_quartile(dairy_total_gday_cumavg, overall_breaks)
             )
     }
     

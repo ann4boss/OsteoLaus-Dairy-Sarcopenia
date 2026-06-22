@@ -693,6 +693,18 @@ make_table_one <- function(analysis_long,
 #'
 #' @param by Grouping / exposure variable name.
 #' @inheritParams make_table_one
+.add_no_t1_level <- function(df, by_col) {
+    col <- df[[by_col]]
+    if (!anyNA(col)) return(df)
+    no_t1_label <- "No T1 exposure"
+    if (is.factor(col)) {
+        df[[by_col]] <- forcats::fct_na_value_to_level(col, level = no_t1_label)
+    } else {
+        df[[by_col]][is.na(col)] <- no_t1_label
+    }
+    df
+}
+
 make_table_one_by_exposure <- function(analysis_long,
                                        by            = "baseline_dairy_quartile",
                                        baseline_data = NULL,
@@ -732,6 +744,8 @@ make_table_one_by_exposure <- function(analysis_long,
             return(NULL)
         }
 
+        baseline <- .add_no_t1_level(baseline, by)
+
         return(.manual_table_one(
             baseline,
             by              = by,
@@ -752,6 +766,8 @@ make_table_one_by_exposure <- function(analysis_long,
         warning("Grouping variable `", by, "` absent or all-missing.")
         return(NULL)
     }
+
+    baseline <- .add_no_t1_level(baseline, by)
 
     .build_tbl_summary(
         baseline,

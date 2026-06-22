@@ -672,7 +672,7 @@ run_cox_sarcopenia <- function(
     )
     
     # ── KM plot — always produced; tertiles used when dairy is continuous ───────
-    km_plot <- .km_plot_dairy(
+    km_out <- .km_plot_dairy(
         surv_data      = surv_data,
         covariate_type = covariate_type,
         dairy_type     = dairy_type,
@@ -680,6 +680,8 @@ run_cox_sarcopenia <- function(
         out_dir        = out_dir,
         label          = "cc"
     )
+    km_plot    <- km_out$plot
+    km_logrank <- km_out$logrank_p
 
     # ── Adjusted scenario curves (time-dependent only) ─────────────────────
     scenario_plot_cc <- if (covariate_type == "time_dependent") {
@@ -726,6 +728,7 @@ run_cox_sarcopenia <- function(
         dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,
         cox_snell_plot      = assumptions$cox_snell_plot,
         km_plot             = km_plot,
+        km_logrank_p        = km_logrank,
         scenario_plot       = scenario_plot_cc,
         fg_results          = fg_cc$results,
         fg_fit              = fg_cc$fit,
@@ -835,7 +838,7 @@ run_cox_sarcopenia <- function(
     )
 
     # ── KM plot on imp = 1 (representative dataset) — always produced ──────
-    km_plot <- .km_plot_dairy(
+    km_out <- .km_plot_dairy(
         surv_data      = surv_data_list[[1L]],   # imp = 1
         covariate_type = covariate_type,
         dairy_type     = dairy_type,
@@ -843,6 +846,8 @@ run_cox_sarcopenia <- function(
         out_dir        = out_dir,
         label          = "mice_imp1"
     )
+    km_plot    <- km_out$plot
+    km_logrank <- km_out$logrank_p
 
     # ── Adjusted scenario curves (time-dependent only, on imp = 1) ────────────
     scenario_plot_mice <- if (covariate_type == "time_dependent") {
@@ -889,6 +894,7 @@ run_cox_sarcopenia <- function(
         dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,
         cox_snell_plot      = assumptions$cox_snell_plot,
         km_plot             = km_plot,
+        km_logrank_p        = km_logrank,
         scenario_plot       = scenario_plot_mice,
         fg_results          = fg_mice$results,
         fg_fit              = fg_mice$fit,
@@ -1695,29 +1701,94 @@ run_cox_sarcopenia <- function(
     # without needing any local variable in scope.
     km_fit <- survival::survfit(survival::Surv(time, event) ~ km_group, data = surv_data)
 
-    km_plot <- survminer::ggsurvplot(
-        fit          = km_fit,
-        data         = surv_data,
-        pval         = TRUE,
-        conf.int     = TRUE,
-        risk.table   = TRUE,
-        xlim         = c(50, NA),
-        xlab         = "Age (years)",
-        ylab         = "Sarcopenia-free probability",
-        legend.title = legend_title,
-        palette      = c("#E76254FF", "#FFD06FFF", "#72BCD5FF", "#92D050"),
-        ggtheme      = ggplot2::theme_bw()
-    )$plot
+    # ── Quartile range caption (placed below x-axis) ──────────────────────────
+    if (dairy_type == "continuous") {
+        quartile_caption <- glue::glue(
+            "Q1 ≤{round(breaks[2],1)} g/day  |  ",
+            "Q2 ≤{round(breaks[3],1)} g/day  |  ",
+            "Q3 ≤{round(breaks[4],1)} g/day  |  ",
+            "Q4 >{round(breaks[4],1)} g/day"
+        )
+    } else {
+        quartile_caption <- NULL
+    }
+
+    # ── Helvetica theme ───────────────────────────────────────────────────────
+    km_theme <- ggplot2::theme_bw(base_family = "Helvetica") +
+        ggplot2::theme(
+            # Axis text
+            axis.text.x  = ggplot2::element_text(size = 14),
+            axis.text.y  = ggplot2::element_text(size = 14),
+            # Axis titles
+            axis.title.x = ggplot2::element_text(size = 20, margin = ggplot2::margin(t = 6)),
+            axis.title.y = ggplot2::element_text(size = 20, margin = ggplot2::margin(r = 6)),
+            # Legend
+            legend.title = ggplot2::element_text(size = 20),
+            legend.text  = ggplot2::element_text(size = 20),
+            legend.position = "right",
+            # Caption for quartile ranges
+            plot.caption = ggplot2::element_text(size = 11, hjust = 0.5,
+                                                  family = "Helvetica")
+        )
+
+    km_obj <- survminer::ggsurvplot(
+        fit              = km_fit,
+        data             = surv_data,
+        pval             = TRUE,
+        pval.method      = FALSE,          # show p-value only, not method label
+        conf.int         = TRUE,
+        censor           = FALSE,          # remove censor marks
+        risk.table       = TRUE,
+        risk.table.y.text = FALSE,         # coloured bars instead of text labels
+        risk.table.fontsize = 4,
+        tables.theme     = ggplot2::theme_bw(base_family = "Helvetica") +
+            ggplot2::theme(
+                axis.text.x  = ggplot2::element_text(size = 14),
+                axis.text.y  = ggplot2::element_text(size = 12),
+                axis.title.y = ggplot2::element_text(size = 14)
+            ),
+        xlim             = c(50, 90),
+        break.x.by      = 5,              # 5-year steps: 50, 55, 60 … 90
+        ylim             = c(0, 1),
+        break.y.by      = 0.2,            # 20% steps: 0, 0.2 … 1.0
+        xlab             = "Age (years)",
+        ylab             = "Sarcopenia-free probability",
+        legend.title     = "Dairy quartile",
+        legend.labs      = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
+        palette          = c("#E76254FF", "#FFD06FFF", "#72BCD5FF", "#92D050"),
+        ggtheme          = km_theme,
+        # Line thickness
+        size             = 1.2
+    )
+
+    # ── Add quartile-range caption below x-axis ───────────────────────────────
+    if (!is.null(quartile_caption)) {
+        km_obj$plot <- km_obj$plot +
+            ggplot2::labs(caption = quartile_caption)
+    }
+
+    # ── Combine plot + risk table ─────────────────────────────────────────────
+    km_combined <- survminer::arrange_ggsurvplots(
+        list(km_obj),
+        print = FALSE,
+        ncol  = 1, nrow = 1
+    )
+
+    # ── Log-rank test p-value (returned separately) ───────────────────────────
+    logrank     <- survival::survdiff(survival::Surv(time, event) ~ km_group,
+                                      data = surv_data)
+    logrank_p   <- 1 - stats::pchisq(logrank$chisq, df = length(logrank$n) - 1L)
+    cli::cli_inform(c("i" = "Log-rank p-value: {signif(logrank_p, 3)}"))
 
     if (!is.null(out_dir)) {
         ggplot2::ggsave(
             file.path(out_dir, glue::glue("{label}_km_dairy.png")),
-            km_plot, width = 10, height = 7, dpi = 150
+            km_combined, width = 12, height = 9, dpi = 150
         )
         cli::cli_inform("KM plot saved to {.path {out_dir}}")
     }
 
-    km_plot
+    list(plot = km_obj, logrank_p = logrank_p)
 }
 
 # =============================================================================

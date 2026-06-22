@@ -114,24 +114,20 @@ prep_core <- tar_target(
 
 .COVARIATES <- list(
     HGS_MAX = c(
-        "Age", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_tertile_f1", "diabetes_status", "sumtot1"
+        "sumtot1"
     ),
     gait_speed = c(
         "Age_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
         "pa_levels_tertile_f1_lag", "diabetes_status_lag"
     ),
     ALM_HT2_harmonised = c(
-        "Age", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_tertile_f1", "diabetes_status", "sumtot1"
+        "sumtot1"
     ),
     ewgsop2_sarcopenia_stage = c(
-        "Age", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_tertile_f1", "diabetes_status"
+        
     ),
     fnih_sarcopenia = c(
-        "Age", "BMI_category", "education_level", "smoking_status",
-        "pa_levels_tertile_f1", "diabetes_status"
+        
     )
 )
 
@@ -188,6 +184,8 @@ cc_exclusion <- tar_target(
             qc_tbl     = core$qc_tbl,
             outcomes   = .OUTCOMES,
             covariates = .COVARIATES,
+            shared_covariates = c("Age", "BMI_category", "education_level", "smoking_status",
+                                  "pa_levels_tertile_f1", "diabetes_status"),
             min_visit  = 2L,
             pt_col     = "pt",
             visit_col  = "time_point",
@@ -286,6 +284,8 @@ mice_exclusion <- tar_target(
             qc_tbl     = core$qc_tbl,
             outcomes   = .OUTCOMES,
             covariates = .COVARIATES,
+            shared_covariates = c("Age", "BMI_category", "education_level", "smoking_status",
+                                  "pa_levels_tertile_f1", "diabetes_status"),
             min_visit  = 2L,
             pt_col     = "pt",
             visit_col  = "time_point",
@@ -330,11 +330,11 @@ covariate_sets_alm <- list(
 
 covariate_sets_gait <- list(
     main = c(
-        "age_at_baseline_scaled", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "age_at_baseline_scaled_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
         "pa_levels_tertile_f1_lag", "diabetes_status_lag"
     ),
     other_PA = c(
-        "age_at_baseline_scaled", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
+        "age_at_baseline_scaled_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
         "pa_levels_who_f1_lag", "diabetes_status_lag"
     )
 )
@@ -570,8 +570,7 @@ cox_targets <- list(
 
 tableOne_targets_1 <-
     tar_target(tableOne_quartile,
-        make_table_one_by_exposure(
-            mids_to_long(mice_analysis$data_shared),
+        make_table_one_by_exposure(mids_to_long(mice_analysis$data_shared),
             by    = "dairy_quartile_baseline",
             visit = "time_point"
         )
@@ -593,6 +592,15 @@ tableOne_targets_2 <- tar_target(tableOne_datasets,
         )
     )
 
+tableOne_targets_3 <- tar_target(tableOne_datasets_excluded,
+                                 make_table_one_by_dataset(
+                                     list(
+                                         Shared       = cc_analysis$data_shared,
+                                         Excluded    = cc_analysis$data_excluded_shared
+                                     ),
+                                     visit = "time_point"
+                                 )
+)
 tableOne_save <- list(
     tar_target(
         tableOne_quartile_files,
@@ -602,6 +610,11 @@ tableOne_save <- list(
     tar_target(
         tableOne_datasets_files,
         save_gtsummary_table(tableOne_datasets, "03_outputs/TableOne/mice/datasets"),
+        format = "file"
+    ),
+    tar_target(
+        tableOne_datasets_files_excluded,
+        save_gtsummary_table(tableOne_datasets_excluded, "03_outputs/TableOne/cc/datasets"),
         format = "file"
     )
 )
@@ -628,14 +641,15 @@ c(
     
     
     # ── Models ────────────────────────────────────────────────────────────────
-    LMM_targets_HGS,
-    # LMM_targets_ALM
-    LMM_targets_gait,
-    cox_targets,
-    
+    # LMM_targets_HGS,
+    # LMM_targets_ALM,
+    # LMM_targets_gait
+    cox_targets
+    # 
     # ── Descriptives ──────────────────────────────────────────────────────────
     # consort
-    tableOne_targets_1,
-    tableOne_targets_2,
-    tableOne_save
+    # tableOne_targets_1,
+    # tableOne_targets_2,
+    # tableOne_targets_3,
+    # tableOne_save
 )

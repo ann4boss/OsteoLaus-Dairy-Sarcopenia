@@ -48,11 +48,12 @@ run_exclusions <- function(
     data,
     qc_tbl,
     outcomes,
-    covariates = list(),
-    exposure   = "dairy_total_gday_cumavg",
-    pt_col     = "pt",
-    visit_col  = "time_point",
-    min_visit  = 2L
+    covariates         = list(),
+    shared_covariates  = character(0L),
+    exposure           = "dairy_total_gday_cumavg",
+    pt_col             = "pt",
+    visit_col          = "time_point",
+    min_visit          = 2L
 ) {
   stopifnot(is.character(outcomes), length(outcomes) >= 1L)
 
@@ -94,6 +95,40 @@ run_exclusions <- function(
     long_shared <- dplyr::anti_join(long_shared, shared$bad_sumtot1_keys,
                                     by = c(pt_col, visit_col))
 
+  # ── 2b. Shared covariate exclusion ────────────────────────────────────────────
+  # For mids: use .imp == 1 (imputed — post-mice NAs are structural, not random).
+  # For CC:   use the plain data (no .imp grouping).
+  # Bad visit-rows are removed from ALL .imp so every slice stays consistent.
+  if (length(shared_covariates) > 0L) {
+    ref_slice    <- if (is_mids) dplyr::filter(long_shared, .imp == 1L) else long_shared
+    present_covs <- intersect(shared_covariates, names(ref_slice))
+    if (length(present_covs) > 0L) {
+      bad_cov_keys <- ref_slice[
+        ref_slice[[visit_col]] != "T4" & rowSums(is.na(ref_slice[present_covs])) > 0L, ] |>
+        dplyr::distinct(.data[[pt_col]], .data[[visit_col]])
+      if (nrow(bad_cov_keys) > 0L) {
+        pts_before  <- unique(ref_slice[[pt_col]])
+        long_shared <- dplyr::anti_join(long_shared, bad_cov_keys, by = c(pt_col, visit_col))
+        ref_after   <- if (is_mids) dplyr::filter(long_shared, .imp == 1L) else long_shared
+        lost_cov    <- setdiff(pts_before, unique(ref_after[[pt_col]]))
+        audit       <- .record_excl(audit, lost_cov, "shared",
+                                    "shared_covariate_missing_lost_all_visits", pt_col)
+      }
+    }
+  }
+
+  # ── 2c. min_visit check — applied once after all shared row-level exclusions ──
+  ref_final    <- if (is_mids) dplyr::filter(long_shared, .imp == 1L) else long_shared
+  visit_counts <- ref_final |>
+    dplyr::distinct(.data[[pt_col]], .data[[visit_col]]) |>
+    dplyr::count(.data[[pt_col]], name = "n_visits")
+  too_few <- dplyr::filter(visit_counts, n_visits < min_visit) |>
+    dplyr::pull(.data[[pt_col]])
+  if (length(too_few) > 0L) {
+    long_shared <- dplyr::filter(long_shared, !(.data[[pt_col]] %in% too_few))
+    audit <- .record_excl(audit, too_few, "shared", "too_few_visits", pt_col)
+  }
+
   # All rows of pts excluded at shared stages (observed data only).
   data_excluded_shared <- dplyr::filter(obs, !(.data[[pt_col]] %in% keep_ids_shared))
 
@@ -131,11 +166,10 @@ run_exclusions <- function(
 
       if (oc == "gait_speed") {
         # Lagging adds new columns and drops T1, so the column structure differs
-        # from data_shared_out. Build the mids directly from lagged long format:
-        # lag all .imp (0..m), run exclusions on 1..m to get common_keys, then
-        # semi-join every .imp (including 0) to common_keys so all slices have
-        # identical rows — as.mids() succeeds because .imp == 0 is present and
-        # row counts match.
+        # from data_shared_out. Build mids directly from the lagged long format.
+        # Use long_shared (from mice::complete(data,"long",include=TRUE)) so that
+        # imputed values of gait_speed are present in .imp 1..m. The .imp==0 slice
+        # carries the original observed data (NAs intact), which as.mids() needs.
         lagged <- lapply(0:m, function(i) {
           .create_lags(dplyr::filter(long_shared, .imp == i), pt_col, visit_col) |>
             dplyr::mutate(.imp = i)
@@ -143,7 +177,7 @@ run_exclusions <- function(
 
         imp_keep <- lapply(seq_len(m), function(i) {
           .outcome_exclusions(lagged[[i + 1L]], oc, covars, pt_col, visit_col,
-                              min_visit, prevalent_ids = prevalent_ids)
+                              min_visit = 1L, prevalent_ids = prevalent_ids)
         })
         audit <- dplyr::bind_rows(audit, imp_keep[[1L]]$audit)
 
@@ -162,7 +196,7 @@ run_exclusions <- function(
           dplyr::mutate(.id = dplyr::row_number()) |>
           dplyr::ungroup()
 
-        outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
+outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
         outcome_long[[oc]] <- dplyr::filter(oc_long_all, .imp > 0L)
 
       } else {
@@ -248,19 +282,6 @@ run_exclusions <- function(
                            n_remaining = dplyr::n_distinct(obs[[pt_col]]))
   }
 
-  # Stage 3 — fewer than min_visit visits
-  visit_counts <- obs |>
-    dplyr::distinct(.data[[pt_col]], .data[[visit_col]]) |>
-    dplyr::count(.data[[pt_col]], name = "n_visits")
-
-  too_few <- visit_counts |>
-    dplyr::filter(n_visits < min_visit) |>
-    dplyr::pull(.data[[pt_col]])
-  obs   <- dplyr::filter(obs, !(.data[[pt_col]] %in% too_few))
-  audit <- .record_excl(audit, too_few, "shared", "too_few_visits",
-                         n_remaining = dplyr::n_distinct(obs[[pt_col]]))
-
-  
   list(
     keep_ids         = unique(obs[[pt_col]]),
     bad_dairy_keys   = bad_dairy_keys,
