@@ -22,9 +22,13 @@ tar_option_set(
         "survival", "survminer", "gt", "survey",
         "mgcv", "car",
         "sessioninfo",
-        "WeightIt", "cobalt", "geepack"
+        "WeightIt", "cobalt", "geepack",
+        "DiagrammeR", "DiagrammeRsvg", "rsvg"
+        
     )
 )
+
+
 
 tar_source("02_scripts/R")
 
@@ -114,21 +118,24 @@ prep_core <- tar_target(
 
 .COVARIATES <- list(
     HGS_MAX = c(
-        "sumtot1"
+        "Age", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_tertile_f1", "diabetes_status", "sumtot1"
     ),
     gait_speed = c(
         "Age_lag", "BMI_category_lag", "education_level_lag", "smoking_status_lag",
         "pa_levels_tertile_f1_lag", "diabetes_status_lag"
     ),
     ALM_HT2_harmonised = c(
-        "sumtot1"
+        "Age", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_tertile_f1", "diabetes_status","sumtot1"
     ),
     ewgsop2_sarcopenia_stage = c(
-        
+        "Age", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_tertile_f1", "diabetes_status"
     ),
     fnih_sarcopenia = c(
-        
-    )
+        "Age", "BMI_category", "education_level", "smoking_status",
+        "pa_levels_tertile_f1", "diabetes_status")
 )
 
 
@@ -144,35 +151,38 @@ prep_core <- tar_target(
 # Stage 6 → cc_analysis                           [apply_exclusions()]
 
 cc_prep_targets <- list(
-    
+
     tar_target(
         cc_colaus_derived,
-        derive(core$colaus_long)
+        derive(core$colaus_long,
+               log_pdf = "03_outputs/logs/derive_cc_colaus.pdf")
     ),
-    
+
     tar_target(
         cc_osteo_derived,
-        derive(core$osteo_long)
+        derive(core$osteo_long,
+               log_pdf = "03_outputs/logs/derive_cc_osteo.pdf")
     ),
-    
+
     tar_target(
         cc_colaus_selected,
         select_analysis_columns(cc_colaus_derived)
     ),
-    
+
     tar_target(
         cc_osteo_selected,
         select_analysis_columns(cc_osteo_derived)
     ),
-    
+
     tar_target(
         cc_merged,
         merge_visit_pairs(cc_colaus_selected, cc_osteo_selected)
     ),
-    
+
     tar_target(
         cc_merged_derived,
-        derive_combined(cc_merged$data)
+        derive_combined(cc_merged$data,
+                        log_pdf = "03_outputs/logs/derive_combined_cc.pdf")
     )
 )
 
@@ -241,12 +251,14 @@ mice_prep_targets <- list(
     # derive() accepts a mids and returns a mids with derived columns.
     tar_target(
         mice_colaus_derived,
-        derive(mice_colaus_imp$mids)
+        derive(mice_colaus_imp$mids,
+               log_pdf = "03_outputs/logs/derive_mice_colaus.pdf")
     ),
-    
+
     tar_target(
         mice_osteo_derived,
-        derive(mice_osteo_imp$mids)
+        derive(mice_osteo_imp$mids,
+               log_pdf = "03_outputs/logs/derive_mice_osteo.pdf")
     ),
     
     # ── Stage 4: Select analysis columns ─────────────────────────────────────
@@ -272,7 +284,8 @@ mice_prep_targets <- list(
     # derive_combined() accepts a mids and returns a mids.
     tar_target(
         mice_merged_derived,
-        derive_combined(mice_merged$mids)
+        derive_combined(mice_merged$mids,
+                        log_pdf = "03_outputs/logs/derive_combined_mice.pdf")
     )
 )
 
@@ -559,13 +572,41 @@ cox_targets <- list(
     tar_target(cox_outliers_mice_cat,    mice_ewgsop2_fixed_cat$outlier_flagged),
     tar_target(cox_influential_mice_cat, mice_ewgsop2_fixed_cat$dfbeta_flag_detail),
     tar_target(cox_results_mice_cat,     mice_ewgsop2_fixed_cat$results_adj),
-    tar_target(cox_km_mice_cat,          mice_ewgsop2_fixed_cat$km_plot)
+    tar_target(cox_km_mice_cat,          mice_ewgsop2_fixed_cat$km_plot),
+    
+    tar_target(
+        mice_ewgsop2_fixed_cat_2,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
+            sarcopenia_def = "ewgsop2",
+            covariate_type = "fixed",
+            dairy_type     = "categorical",
+            dairy_cat_col  = "dairy_quartile_baseline",
+            analysis_route = "mice"
+        )
+    ),
+    tar_target(
+        mice_ewgsop2_timedep,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
+            sarcopenia_def = "ewgsop2",
+            covariate_type = "time_dependent",
+            dairy_type     = "categorical",
+            dairy_cat_col  = "dairy_quartile_baseline",
+            analysis_route = "mice"
+        )
+    )
 )
 
 
 # =============================================================================
 # Descriptive
 # =============================================================================
+
+consort <- tar_target(consort_flowchart, create_consort_flowchart())
+
+
+#------------------------------------------------------------------------------
 
 
 tableOne_targets_1 <-
@@ -619,6 +660,268 @@ tableOne_save <- list(
     )
 )
 
+#------------------------------------------------------------------------------
+# VISIT DESCRIPTIVES
+
+
+visit_descriptives_targets <- list(
+    
+    # ── Visit structure counts ─────────────────────────────────────────────────
+    tar_target(
+        visit_structure_cc,
+        analyze_visits_structure(cc_analysis$data_shared)
+    ),
+    
+    tar_target(
+        visit_structure_mice,
+        analyze_visits_structure(mice_analysis$data_shared)
+    ),
+    
+    # ── Timing violin ────────────────────────────────────────────
+    tar_target(
+        violin_timing_cc,
+        {
+            out <- plot_timing_violin(cc_analysis$data_shared, timing_var = "days_colaus_minus_osteo")
+            dir.create("03_outputs/descriptives/visits", recursive = TRUE, showWarnings = FALSE)
+            f_png <- "03_outputs/descriptives/visits/cc_timing_violin.png"
+            f_csv <- "03_outputs/descriptives/visits/cc_timing_summary.csv"
+            ggplot2::ggsave(f_png, out$plot, width = 8, height = 5, dpi = 180)
+            readr::write_csv(out$summary, f_csv)
+            c(f_png, f_csv)
+        },
+        format = "file"
+    ),
+    
+    tar_target(
+        violin_timing_mice,
+        {
+            out <- plot_timing_violin(mice_analysis$data_shared, timing_var = "days_colaus_minus_osteo")
+            dir.create("03_outputs/descriptives/visits", recursive = TRUE, showWarnings = FALSE)
+            f_png <- "03_outputs/descriptives/visits/mice_timing_violin.png"
+            f_csv <- "03_outputs/descriptives/visits/mice_timing_summary.csv"
+            ggplot2::ggsave(f_png, out$plot, width = 8, height = 5, dpi = 180)
+            readr::write_csv(out$summary, f_csv)
+            c(f_png, f_csv)
+        },
+        format = "file"
+    ),
+    
+    # ── Patient coverage bar chart ─────────────────────────────────────────────
+    tar_target(
+        coverage_by_outcome,
+        {
+            f <- "03_outputs/descriptives/visits/coverage_by_outcome.png"
+            dir.create(dirname(f), recursive = TRUE, showWarnings = FALSE)
+            ggplot2::ggsave(f,
+                            plot_patient_coverage(
+                                datasets_list = list(
+                                    "HGS"        = mice_analysis$mids$HGS_MAX,
+                                    "ALMI"       = mice_analysis$mids$ALM_HT2_harmonised,
+                                    "Gait speed" = mice_analysis$mids$gait_speed
+                                )
+                            )$plot,
+                            width = 8, height = 5, dpi = 180)
+            f
+        },
+        format = "file"
+    )
+)
+
+#------------------------------------------------------------------------------
+# VARIABLE DESCRIPTIVES
+
+variable_descriptives_target <- tar_target(
+    variable_descriptives,
+    {
+        out_dir <- "03_outputs/descriptives/variables/mice"
+        describe_variables(
+            data             = mice_analysis$data_shared,
+            time_col         = "time_point",
+            continuous_vars  = CONTINUOUS_VARS,
+            categorical_vars = CATEGORICAL_VARS,
+            scatter_pairs    = list(
+                hgs = list(
+                    data = mice_analysis$mids$HGS_MAX,
+                    x    = c("dairy_total_gday_cumavg", "dairy_fermented_gday_cumavg",
+                             "dairy_non_fermented_gday_cumavg", "dairy_highfat_gday_cumavg",
+                             "dairy_lowfat_gday_cumavg"),
+                    y    = "HGS_MAX"
+                ),
+                alm = list(
+                    data = mice_analysis$mids$ALM_HT2_harmonised,
+                    x    = c("dairy_total_gday_cumavg", "dairy_fermented_gday_cumavg",
+                             "dairy_non_fermented_gday_cumavg", "dairy_highfat_gday_cumavg",
+                             "dairy_lowfat_gday_cumavg"),
+                    y    = "ALM_HT2_harmonised"
+                ),
+                gait = list(
+                    data = mice_analysis$mids$gait_speed,
+                    x    = c("dairy_total_gday_cumavg_lag", "dairy_fermented_gday_cumavg_lag",
+                             "dairy_non_fermented_gday_cumavg_lag", "dairy_highfat_gday_cumavg_lag",
+                             "dairy_lowfat_gday_cumavg_lag"),
+                    y    = "gait_speed"
+                )
+            ),
+            loess_span       = 0.75,
+            out_dir          = out_dir,
+            width            = 8,
+            height           = 5,
+            dpi              = 180
+        )
+        list.files(out_dir, full.names = TRUE)
+    },
+    format = "file"
+)
+
+age_trajectories_target <- tar_target(
+    age_trajectories,
+    {
+        out_dir <- "03_outputs/descriptives/age_trajectories/mice"
+        plot_age_trajectories(mice_analysis, out_dir = out_dir)
+        list.files(out_dir, full.names = TRUE)
+    },
+    format = "file"
+)
+
+age_trajectories_target_cc <- tar_target(
+    age_trajectories_cc,
+    {
+        out_dir <- "03_outputs/descriptives/age_trajectories/cc"
+        plot_age_trajectories(cc_analysis, out_dir = out_dir)
+        list.files(out_dir, full.names = TRUE)
+    },
+    format = "file"
+)
+
+
+
+# FOLLOW-UP TIME
+# ----------
+
+followup_targets <- list(
+
+    # ── MICE ──────────────────────────────────────────────────────────────────
+    tar_target(
+        followup_mice_shared,
+        summarise_followup(mice_analysis$data_shared)
+    ),
+    tar_target(
+        followup_mice_HGS,
+        summarise_followup(mice_analysis$data$HGS_MAX)
+    ),
+    tar_target(
+        followup_mice_ALM,
+        summarise_followup(mice_analysis$data$ALM_HT2_harmonised)
+    ),
+    tar_target(
+        followup_mice_gait,
+        summarise_followup(mice_analysis$data$gait_speed)
+    ),
+    tar_target(
+        followup_mice_sarcopenia,
+        summarise_followup(mice_analysis$data$ewgsop2_sarcopenia_stage)
+    ),
+
+    # ── CC ────────────────────────────────────────────────────────────────────
+    tar_target(
+        followup_cc_shared,
+        summarise_followup(cc_analysis$data_shared)
+    ),
+    tar_target(
+        followup_cc_HGS,
+        summarise_followup(cc_analysis$data$HGS_MAX)
+    ),
+    tar_target(
+        followup_cc_ALM,
+        summarise_followup(cc_analysis$data$ALM_HT2_harmonised)
+    ),
+    tar_target(
+        followup_cc_gait,
+        summarise_followup(cc_analysis$data$gait_speed)
+    ),
+
+    # ── Save ──────────────────────────────────────────────────────────────────
+    tar_target(
+        followup_mice_files,
+        {
+            out_dir <- "03_outputs/descriptives/followup"
+            dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+            combined <- dplyr::bind_rows(
+                dplyr::mutate(followup_mice_shared, dataset = "Shared"),
+                dplyr::mutate(followup_mice_HGS,    dataset = "HGS_MAX"),
+                dplyr::mutate(followup_mice_ALM,    dataset = "ALM_HT2_harmonised"),
+                dplyr::mutate(followup_mice_gait,   dataset = "gait_speed"),
+                dplyr::mutate(followup_mice_sarcopenia,   dataset = "Sarcopenia EWGSOP2"),
+            ) |> dplyr::relocate(dataset)
+            f <- file.path(out_dir, "followup_mice.csv")
+            readr::write_csv(combined, f)
+            f
+        },
+        format = "file"
+    ),
+
+    tar_target(
+        followup_cc_files,
+        {
+            out_dir <- "03_outputs/descriptives/followup"
+            dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+            combined <- dplyr::bind_rows(
+                dplyr::mutate(followup_cc_shared, dataset = "Shared"),
+                dplyr::mutate(followup_cc_HGS,    dataset = "HGS_MAX"),
+                dplyr::mutate(followup_cc_ALM,    dataset = "ALM_HT2_harmonised"),
+                dplyr::mutate(followup_cc_gait,   dataset = "gait_speed")
+            ) |> dplyr::relocate(dataset)
+            f <- file.path(out_dir, "followup_cc.csv")
+            readr::write_csv(combined, f)
+            f
+        },
+        format = "file"
+    )
+)
+
+
+variable_descriptives_target_cc <- tar_target(
+    variable_descriptives_cc,
+    {
+        out_dir <- "03_outputs/descriptives/variables/cc"
+        describe_variables(
+            data             = cc_analysis$data_shared,
+            time_col         = "time_point",
+            continuous_vars  = CONTINUOUS_VARS,
+            categorical_vars = CATEGORICAL_VARS,
+            scatter_pairs    = list(
+                hgs = list(
+                    data = cc_analysis$data$HGS_MAX,
+                    x    = c("dairy_total_gday_cumavg", "dairy_fermented_gday_cumavg",
+                             "dairy_non_fermented_gday_cumavg", "dairy_highfat_gday_cumavg",
+                             "dairy_lowfat_gday_cumavg"),
+                    y    = "HGS_MAX"
+                ),
+                alm = list(
+                    data = cc_analysis$data$ALM_HT2_harmonised,
+                    x    = c("dairy_total_gday_cumavg", "dairy_fermented_gday_cumavg",
+                             "dairy_non_fermented_gday_cumavg", "dairy_highfat_gday_cumavg",
+                             "dairy_lowfat_gday_cumavg"),
+                    y    = "ALM_HT2_harmonised"
+                ),
+                gait = list(
+                    data = cc_analysis$data$gait_speed,
+                    x    = c("dairy_total_gday_cumavg_lag", "dairy_fermented_gday_cumavg_lag",
+                             "dairy_non_fermented_gday_cumavg_lag", "dairy_highfat_gday_cumavg_lag",
+                             "dairy_lowfat_gday_cumavg_lag"),
+                    y    = "gait_speed"
+                )
+            ),
+            loess_span       = 0.75,
+            out_dir          = out_dir,
+            width            = 8,
+            height           = 5,
+            dpi              = 180
+        )
+        list.files(out_dir, full.names = TRUE)
+    },
+    format = "file"
+)
 
 # =============================================================================
 # ASSEMBLE
@@ -628,28 +931,32 @@ c(
     # ── Shared ────────────────────────────────────────────────────────────────
     path_targets,
     prep_core,
-    
+
     # ── Complete-case route ───────────────────────────────────────────────────
     cc_prep_targets,
     cc_exclusion,
-    # cc_descriptives,
-   
     
     # ── MICE route ────────────────────────────────────────────────────────────
     mice_prep_targets,
     mice_exclusion,
-    
-    
+
     # ── Models ────────────────────────────────────────────────────────────────
-    # LMM_targets_HGS,
-    # LMM_targets_ALM,
-    # LMM_targets_gait
-    cox_targets
-    # 
+    LMM_targets_HGS,
+    LMM_targets_ALM,
+    LMM_targets_gait
+    # cox_targets,
+    #
     # ── Descriptives ──────────────────────────────────────────────────────────
-    # consort
+    #consort,
     # tableOne_targets_1,
     # tableOne_targets_2,
     # tableOne_targets_3,
-    # tableOne_save
+    # tableOne_save,
+    # visit_descriptives_targets,
+    # variable_descriptives_target,
+    # variable_descriptives_target_cc,
+    # age_trajectories_target,
+    # age_trajectories_target_cc,
+    # followup_targets
+
 )

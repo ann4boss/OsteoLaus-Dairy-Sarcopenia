@@ -426,7 +426,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
 }
 
 # Tidy results as a ggplot table (coefficient plot + numeric table side-by-side)
-.results_page <- function(tidy_df, title) {
+.results_page <- function(tidy_df, title, out_dir = NULL) {
     
     # Round for display
     disp <- tidy_df |>
@@ -445,45 +445,50 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
         dplyr::filter(term != "(Intercept)") |>
         dplyr::mutate(
             sig = p_value < 0.05,
-            # Get the base label (without asterisk)
+            is_dairy = grepl(
+                "^(dairy|fermented|nonfermented|highfat|lowfat)",
+                term
+            ),
+            point_colour = dplyr::case_when(
+                is_dairy &  sig ~ "dairy_sig",
+                is_dairy & !sig ~ "dairy_ns",
+                TRUE            ~ "covariate"
+            ),
             term_label_base = {
                 idx <- match(term, names(.term_labels))
                 ifelse(is.na(idx), term, .term_labels[idx])
             }
         ) |>
-        # Create the factor with proper ordering FIRST
         dplyr::mutate(
-            # Define the order based on .term_labels
             term_order = factor(
                 term_label_base,
                 levels = rev(c(
-                    unname(.term_labels),  # Named terms in original order
-                    sort(unique(term_label_base[!(term %in% names(.term_labels))]))  # Additional terms
+                    unname(.term_labels),
+                    sort(unique(term_label_base[!(term %in% names(.term_labels))]))
                 ))
             )
         ) |>
-        # Then add the asterisk for display (but keep the ordering factor)
         dplyr::mutate(
             term_label_display = dplyr::case_when(
                 sig ~ paste0(term_label_base, " *"),
                 TRUE ~ term_label_base
             ),
-            # Use the ordered factor for the y-axis, but display the asterisk version
             term_label = term_order
         )
-    
+
     p_coef <- ggplot2::ggplot(
         plot_df,
         ggplot2::aes(x = estimate, y = term_label,
                      xmin = conf_low, xmax = conf_high,
-                     colour = sig)
+                     colour = point_colour)
     ) +
         ggplot2::geom_vline(xintercept = 0, linetype = "dashed",
                             colour = "grey60") +
         ggplot2::geom_errorbarh(height = 0.3, linewidth = 1) +
         ggplot2::geom_point(size = 1.8) +
         ggplot2::scale_colour_manual(
-            values = c(`TRUE` = "#92D050", `FALSE` = "#FF6666"),
+            values = c(dairy_sig = "#92D050", dairy_ns = "#FF6666",
+                       covariate = "black"),
             guide  = "none"
         ) +
         ggplot2::scale_y_discrete(
@@ -498,8 +503,8 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
         ) +
         .theme_report() +
         ggplot2::theme(
-            axis.text.y = ggplot2::element_text(size = 14),
-            axis.text.x = ggplot2::element_text(size = 9),
+            axis.text.y = ggplot2::element_text(size = 18),
+            axis.text.x = ggplot2::element_text(size = 14),
             plot.margin = ggplot2::margin(2, 2, 2, 2)
         )
     
@@ -509,7 +514,21 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
     panel_row  <- which(coef_grob$layout$name == "panel")
     coef_grob$heights[coef_grob$layout$t[panel_row]] <-
         grid::unit(n_terms * 0.18, "in")
-    
+
+    # ── Save forest plot as PNG and coefficients as CSV ----------------------
+    if (!is.null(out_dir)) {
+        stem <- gsub("[^A-Za-z0-9_-]", "_", title)
+        ggplot2::ggsave(
+            filename = file.path(out_dir, paste0(stem, "_forest.png")),
+            plot     = p_coef,
+            width    = 10,
+            height   = max(4, n_terms * 0.3),
+            dpi      = 300,
+            bg       = "white"
+        )
+        readr::write_csv(disp, file.path(out_dir, paste0(stem, "_coefs.csv")))
+    }
+
     # ── Numeric table ---------------------------------------------------------
     tbl_grob <- gridExtra::tableGrob(
         disp,
@@ -521,7 +540,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
                                                 x = 0.05))
         )
     )
-    
+
     gridExtra::grid.arrange(coef_grob, tbl_grob, ncol = 2, widths = c(1.2, 1.8))
 }
 
@@ -641,12 +660,20 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
                           residuals = res_v,
                           sqrt_abs  = sqrt(abs(res_v)))
 
+    slope_rd <- round(coef(lm(residuals ~ fitted, data = df_d))[["fitted"]], 4)
+
     p_rd <- ggplot2::ggplot(df_d, ggplot2::aes(fitted, residuals)) +
         ggplot2::geom_point(colour = .pal[8], alpha = 0.45, size = 1.2) +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed",
                             colour = .pal[1]) +
         ggplot2::geom_smooth(method = "lm", se = TRUE, colour = .pal[1],
                              fill = .pal[4], alpha = 0.2, linewidth = 0.7) +
+        ggplot2::annotate("text",
+                          x    = -Inf, y = Inf,
+                          hjust = -0.15, vjust = 1.6,
+                          label = paste0("slope = ", slope_rd),
+                          size  = 3.5, colour = .pal[1],
+                          fontface = "italic") +
         ggplot2::labs(x = "Fitted", y = "Residuals",
                       title = paste("A  Residuals vs Fitted", label)) +
         .theme_report()
@@ -866,7 +893,7 @@ run_lmm_report <- function(
             )
 
             # ── Results: coefficient plot + table ----------------------------
-            .results_page(fit$pooled_tidy, title = model_tag)
+            .results_page(fit$pooled_tidy, title = model_tag, out_dir = out_dir)
 
             # ── Sandwich robustness check ------------------------------------
             sand_tidy <- tryCatch(

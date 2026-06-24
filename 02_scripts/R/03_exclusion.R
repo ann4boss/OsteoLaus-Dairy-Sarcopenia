@@ -177,7 +177,7 @@ run_exclusions <- function(
 
         imp_keep <- lapply(seq_len(m), function(i) {
           .outcome_exclusions(lagged[[i + 1L]], oc, covars, pt_col, visit_col,
-                              min_visit = 1L, prevalent_ids = prevalent_ids)
+                              min_visit = min_visit, prevalent_ids = prevalent_ids)
         })
         audit <- dplyr::bind_rows(audit, imp_keep[[1L]]$audit)
 

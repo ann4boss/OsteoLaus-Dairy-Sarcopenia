@@ -5,6 +5,7 @@ library(splines)
 library(dplyr)
 library(nlme)
 library(mgcv)
+library(rms)
 
 
 imp1_hgs <- mice::complete(mice_analysis$mids$HGS_MAX, action = 1)
@@ -284,6 +285,30 @@ fit_hetero <- lme(
     maxIter = 200,
     msMaxIter = 200,
     opt = "optim"
+  )
+)
+
+
+
+# Create the restricted cubic spline for dairy (with 3 knots by default)
+# You can adjust the number of knots using nk=4 or nk=5
+mod_with_slope_spline <- lmerTest::lmer(
+  HGS_MAX ~ 
+    time_since_baseline +
+    age_at_baseline +
+    rcs(dairy_100g, 3) +  # 3 knots (default) - adjust as needed
+    sumtot1_scaled_mean + 
+    BMI_category +
+    education_level + 
+    smoking_status + 
+    pa_levels_tertile_f1 + 
+    diabetes_status +
+    (1 | pt + time_since_baseline),
+  data = df_stans_scaled_hgs, 
+  REML = FALSE,
+  control = lmerControl(
+    optimizer = "bobyqa",
+    optCtrl = list(maxfun = 20000)
   )
 )
 
@@ -985,7 +1010,7 @@ plot_diagnostics <- function(model, model_name = "Model") {
   return(combined_plot)
 }
 
-
+plot_diagnostics(mod_with_slope_spline)
 
 # Load required packages
 library(lme4)

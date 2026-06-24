@@ -225,7 +225,7 @@ fit_pooled_lmm_gait <- function(
 # 4.  PDF HELPERS (gait-specific: use .term_labels_gait)
 # ---------------------------------------------------------------------------
 
-.results_page_gait <- function(tidy_df, title) {
+.results_page_gait <- function(tidy_df, title, out_dir = NULL) {
 
     disp <- tidy_df |>
         dplyr::mutate(
@@ -239,7 +239,16 @@ fit_pooled_lmm_gait <- function(
     plot_df <- tidy_df |>
         dplyr::filter(term != "(Intercept)") |>
         dplyr::mutate(
-            sig            = p_value < 0.05,
+            sig      = p_value < 0.05,
+            is_dairy = grepl(
+                "^(dairy|fermented|nonfermented|highfat|lowfat)",
+                term
+            ),
+            point_colour = dplyr::case_when(
+                is_dairy &  sig ~ "dairy_sig",
+                is_dairy & !sig ~ "dairy_ns",
+                TRUE            ~ "covariate"
+            ),
             term_label_base = {
                 idx <- match(term, names(.term_labels_gait))
                 ifelse(is.na(idx), term, .term_labels_gait[idx])
@@ -261,14 +270,15 @@ fit_pooled_lmm_gait <- function(
         plot_df,
         ggplot2::aes(x = estimate, y = term_label,
                      xmin = conf_low, xmax = conf_high,
-                     colour = sig)
+                     colour = point_colour)
     ) +
         ggplot2::geom_vline(xintercept = 0, linetype = "dashed",
                             colour = "grey60") +
         ggplot2::geom_errorbarh(height = 0.3, linewidth = 1) +
         ggplot2::geom_point(size = 1.8) +
         ggplot2::scale_colour_manual(
-            values = c(`TRUE` = "#92D050", `FALSE` = "#FF6666"),
+            values = c(dairy_sig = "#92D050", dairy_ns = "#FF6666",
+                       covariate = "black"),
             guide  = "none"
         ) +
         ggplot2::scale_y_discrete(
@@ -280,8 +290,8 @@ fit_pooled_lmm_gait <- function(
                       title = title, caption = "* p < 0.05") +
         .theme_report() +
         ggplot2::theme(
-            axis.text.y = ggplot2::element_text(size = 14),
-            axis.text.x = ggplot2::element_text(size = 9),
+            axis.text.y = ggplot2::element_text(size = 18),
+            axis.text.x = ggplot2::element_text(size = 14),
             plot.margin = ggplot2::margin(2, 2, 2, 2)
         )
 
@@ -290,6 +300,20 @@ fit_pooled_lmm_gait <- function(
     panel_row <- which(coef_grob$layout$name == "panel")
     coef_grob$heights[coef_grob$layout$t[panel_row]] <-
         grid::unit(n_terms * 0.18, "in")
+
+    # ── Save forest plot as PNG and coefficients as CSV ----------------------
+    if (!is.null(out_dir)) {
+        stem <- gsub("[^A-Za-z0-9_-]", "_", title)
+        ggplot2::ggsave(
+            filename = file.path(out_dir, paste0(stem, "_forest.png")),
+            plot     = p_coef,
+            width    = 10,
+            height   = max(4, n_terms * 0.3),
+            dpi      = 300,
+            bg       = "white"
+        )
+        readr::write_csv(disp, file.path(out_dir, paste0(stem, "_coefs.csv")))
+    }
 
     tbl_grob <- gridExtra::tableGrob(
         disp, rows = NULL,
@@ -562,7 +586,7 @@ run_lmm_report_gait <- function(
             )
 
             # ── Results: coefficient plot + table ----------------------------
-            .results_page_gait(fit$pooled_tidy, title = model_tag)
+            .results_page_gait(fit$pooled_tidy, title = model_tag, out_dir = out_dir)
 
             # ── Sandwich robustness check ------------------------------------
             sand_tidy <- tryCatch(

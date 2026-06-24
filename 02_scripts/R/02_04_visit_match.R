@@ -14,7 +14,9 @@
 # Column strategy:
 #   All non-key columns are prefixed with colaus_ / osteo_ upfront.
 #   After the join, shared variables: CoLaus wins (colaus_ value if not NA,
-#   else osteo_ fallback). OsteoLaus-only columns (e.g. ALM): kept as-is.
+#   else osteo_ fallback) — EXCEPT exam_date_iso and Age, which come from
+#   OsteoLaus (osteo_ value if not NA, else colaus_ fallback).
+#   OsteoLaus-only columns (e.g. ALM): kept as-is.
 #   .visit and .cohort are dropped from the final dataset.
 #
 # @param colaus    mids object or plain data frame. Required cols: pt,
@@ -242,38 +244,44 @@ merge_visit_pairs <- function(colaus, osteolaus) {
 # ── Resolve prefixed columns into final unprefixed names ──────────────────────
 #
 # For every variable that exists in both studies (colaus_X + osteo_X):
-#   final X = colaus_X if not NA, else osteo_X  (CoLaus wins).
+#   default: CoLaus wins (colaus_X if not NA, else osteo_X).
+#   exceptions (.OSTEO_WINS): OsteoLaus wins (osteo_X if not NA, else colaus_X).
 # For OsteoLaus-only variables (osteo_X, no colaus_X): rename to X.
 # colaus_-only variables (no osteo_ counterpart): rename to X.
 # exam_date_iso → exam_date.
 # .visit and .cohort columns are dropped.
 
+.OSTEO_WINS <- c("exam_date_iso", "Age")
+
 .resolve_columns <- function(dt) {
-    
+
     all_cols     <- names(dt)
     colaus_cols  <- grep("^colaus_", all_cols, value = TRUE)
     osteo_cols   <- grep("^osteo_",  all_cols, value = TRUE)
     colaus_bases <- sub("^colaus_", "", colaus_cols)
     osteo_bases  <- sub("^osteo_",  "", osteo_cols)
-    
+
     shared_bases  <- intersect(colaus_bases, osteo_bases)
     colaus_only   <- setdiff(colaus_bases, osteo_bases)
     osteo_only    <- setdiff(osteo_bases,  colaus_bases)
-    
-    # Shared columns: CoLaus wins
+
+    # Shared columns: CoLaus wins by default; OsteoLaus wins for .OSTEO_WINS
     for (bn in shared_bases) {
         cc      <- paste0("colaus_", bn)
         oc      <- paste0("osteo_",  bn)
         col_vec <- dt[[cc]]
         ost_vec <- dt[[oc]]
-        
+
+        primary   <- if (bn %in% .OSTEO_WINS) ost_vec else col_vec
+        secondary <- if (bn %in% .OSTEO_WINS) col_vec else ost_vec
+
         if (is.factor(col_vec) || is.factor(ost_vec)) {
             all_levels <- union(levels(col_vec), levels(ost_vec))
-            resolved   <- data.table::fcoalesce(as.character(col_vec),
-                                                as.character(ost_vec))
+            resolved   <- data.table::fcoalesce(as.character(primary),
+                                                as.character(secondary))
             dt[, (bn) := factor(resolved, levels = all_levels)]
         } else {
-            dt[, (bn) := data.table::fcoalesce(col_vec, ost_vec)]
+            dt[, (bn) := data.table::fcoalesce(primary, secondary)]
         }
     }
     

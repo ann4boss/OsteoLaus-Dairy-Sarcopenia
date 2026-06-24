@@ -190,20 +190,28 @@
 #' # MICE — pass mids directly; returns list(long, mids, m)
 #' colaus_derived_imp <- derive(mice_colaus$mids)
 #' osteo_derived_imp  <- derive(mice_osteo$mids)
-derive <- function(data, imputed = NULL) {
-    
+derive <- function(data, imputed = NULL, log_pdf = NULL) {
+
     if (!is.null(imputed)) {
         cli::cli_warn(
             "{.arg imputed} is deprecated in {.fn derive}. \
              Input type is detected automatically from {.cls {class(data)}}."
         )
     }
-    
-    if (.is_mice_result(data)) {
-        .derive_mice(data)
-    } else {
-        cohorts <- .cohort_values(data)
-        cli::cli_h1("Derive: {cohorts}")
-        dplyr::as_tibble(.derive_single(data))
+
+    .run <- function() {
+        if (.is_mice_result(data)) {
+            .derive_mice(data)
+        } else {
+            cohorts <- .cohort_values(data)
+            cli::cli_h1("Derive: {cohorts}")
+            dplyr::as_tibble(.derive_single(data))
+        }
     }
+
+    if (is.null(log_pdf)) return(.run())
+
+    captured <- .capture_messages(.run())
+    save_log_pdf(captured$messages, log_pdf)
+    captured$result
 }
