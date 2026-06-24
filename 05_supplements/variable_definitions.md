@@ -1553,7 +1553,7 @@ K=does not know</p></td>
 </tr>
 <tr>
 <td><p><strong>dairy_total</strong></p></td>
-<td><p><code>dairy_total_imp</code></p></td>
+<td></td>
 <td><p>Numeric</p></td>
 <td><p>Exposure</p></td>
 <td><p>0..*</p></td>
@@ -1565,21 +1565,8 @@ K=does not know</p></td>
 <td></td>
 </tr>
 <tr>
-<td><p><strong>dairy_total_imp</strong></p></td>
-<td><p>None</p></td>
-<td><p>Numeric</p></td>
-<td><p>Exposure</p></td>
-<td><p>0..*</p></td>
-<td><p>NA</p></td>
-<td><p>Missing Values are imputed with previous visit or next value</p></td>
-<td><p>Visits with missing/ invalid values are excluded</p></td>
-<td><p>not used since derived variable</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
 <td><p><strong>dairy_fermented</strong></p></td>
-<td><p><code>dairy_fermented_imp</code></p></td>
+<td></td>
 <td><p>Numeric</p></td>
 <td><p>Exposure</p></td>
 <td><p>0..*</p></td>
@@ -1591,21 +1578,8 @@ K=does not know</p></td>
 <td></td>
 </tr>
 <tr>
-<td><p><strong>dairy_fermented_imp</strong></p></td>
-<td><p>None</p></td>
-<td><p>Numeric</p></td>
-<td><p>Exposure</p></td>
-<td><p>0..*</p></td>
-<td><p>NA</p></td>
-<td><p>Missing Values are imputed with previous visit or next value</p></td>
-<td><p>Visits with missing/ invalid values are excluded</p></td>
-<td><p>not used since derived variable</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
 <td><p><strong>dairy_non_fermented</strong></p></td>
-<td><p><code>dairy_non_fermented_imp</code></p></td>
+<td></td>
 <td><p>Numeric</p></td>
 <td><p>Exposure</p></td>
 <td><p>0..*</p></td>
@@ -1617,21 +1591,8 @@ K=does not know</p></td>
 <td></td>
 </tr>
 <tr>
-<td><p><strong>dairy_non_fermented_imp</strong></p></td>
-<td><p>None</p></td>
-<td><p>Numeric</p></td>
-<td><p>Exposure</p></td>
-<td><p>0..*</p></td>
-<td><p>NA</p></td>
-<td><p>Missing Values are imputed with previous visit or next value</p></td>
-<td><p>Visits with missing/ invalid values are excluded</p></td>
-<td><p>not used since derived variable</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
 <td><p><strong>dairy_lowfat</strong></p></td>
-<td><p><code>dairy_lowfat_imp</code></p></td>
+<td></td>
 <td><p>Numeric</p></td>
 <td><p>Exposure</p></td>
 <td><p>0..*</p></td>
@@ -1643,39 +1604,13 @@ K=does not know</p></td>
 <td></td>
 </tr>
 <tr>
-<td><p><strong>dairy_lowfat_imp</strong></p></td>
-<td><p>None</p></td>
-<td><p>Numeric</p></td>
-<td><p>Exposure</p></td>
-<td><p>0..*</p></td>
-<td><p>NA</p></td>
-<td><p>Missing Values are imputed with previous visit or next value</p></td>
-<td><p>Visits with missing/ invalid values are excluded</p></td>
-<td><p>not used since derived variable</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
 <td><p><strong>dairy_highfat</strong></p></td>
-<td><p><code>dairy_highfat_imp</code></p></td>
+<td></td>
 <td><p>Numeric</p></td>
 <td><p>Exposure</p></td>
 <td><p>0..*</p></td>
 <td><p>NA</p></td>
 <td><p>Sum of all whole-milk, cheese, and cream products, FFQ: 1, 3, 5, 6, 7, 8, 83, 86</p></td>
-<td><p>Visits with missing/ invalid values are excluded</p></td>
-<td><p>not used since derived variable</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td><p><strong>dairy_highfat_imp</strong></p></td>
-<td><p>None</p></td>
-<td><p>Numeric</p></td>
-<td><p>Exposure</p></td>
-<td><p>0..*</p></td>
-<td><p>NA</p></td>
-<td><p>Missing Values are imputed with previous visit or next value</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
 <td></td>
@@ -1745,6 +1680,32 @@ K=does not know</p></td>
 </ul></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
 <td><p>not used since derived variable</p></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p>cumavg</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><p>quartiles</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>based on cumavg value</p></td>
+<td></td>
 <td></td>
 <td></td>
 </tr>
