@@ -18,12 +18,14 @@ tar_option_set(
         "mice", "here",
         "gtsummary", "ggplot2", "patchwork", "gridExtra", "scales", "ggridges", "ggalluvial",
         "RColorBrewer",
+        "nlme",
         "lme4", "lmerTest", "broom.mixed", "broom", "rms", "splines", "clubSandwich",
         "survival", "survminer", "gt", "survey",
         "mgcv", "car",
         "sessioninfo",
         "WeightIt", "cobalt", "geepack",
-        "DiagrammeR", "DiagrammeRsvg", "rsvg"
+        "DiagrammeR", "DiagrammeRsvg", "rsvg",
+        "performance"
         
     )
 )
@@ -324,14 +326,14 @@ covariate_sets_hgs <- list(
         "pa_levels_tertile_f1", "diabetes_status", "sumtot1_scaled"
     ),
     other_PA = c(
-        "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
+        "age_at_baseline_scaled", "weight_scaled", "education_level", "smoking_status",
         "pa_levels_who_f1", "diabetes_status", "sumtot1_scaled"
     )
 )
 
 covariate_sets_alm <- list(
     main = c(
-        "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
+        "age_at_baseline_scaled", "weight_scaled", "education_level", "smoking_status",
         "pa_levels_tertile_f1", "diabetes_status", "sumtot1_scaled"
     ),
     other_PA = c(
@@ -388,9 +390,9 @@ LMM_targets_HGS <- tar_target(
         outcome_fn     = identity,
         exposures      = exposure_definitions,
         covariate_sets = covariate_sets_hgs,
-        random_slope   = TRUE,
+        random_slope   = FALSE,
         interaction    = FALSE,
-        out_dir        = "03_outputs/LMM_exploratory"
+        out_dir        = "03_outputs/LMM_exploratory/HGS"
     ),
     format = "file")
 
@@ -400,12 +402,12 @@ LMM_targets_ALM <- tar_target(
     run_lmm_report(
         mids_object    = mice_analysis$mids$ALM_HT2_harmonised,
         outcome        = "ALM_HT2_harmonised",
-        outcome_fn     = log,
+        outcome_fn     = identity,
         exposures      = exposure_definitions,
         covariate_sets = covariate_sets_alm,
-        random_slope   = TRUE,
+        random_slope   = FALSE,
         interaction    = FALSE,
-        out_dir        = "03_outputs/LMM_exploratory"
+        out_dir        = "03_outputs/LMM_exploratory/ALMI"
     ),
     format = "file")
 
@@ -420,122 +422,55 @@ LMM_targets_gait <- tar_target(
         covariate_sets = covariate_sets_gait,
         random_slope   = FALSE,
         interaction    = FALSE,
-        out_dir        = "03_outputs/LMM_exploratory"
+        out_dir        = "03_outputs/LMM_exploratory/gait_speed"
     ),
     format = "file")
 
 
-#OLD
-# LLM_targets_HGS <- list(
-#     tar_target(
-#         lmm_model_grid_hgs,
-#         create_model_grid(
-#             outcomes             = c("HGS_MAX"),
-#             exposure_definitions = exposure_definitions,
-#             datasets             = c("cc", "mice"),
-#             interactions         = c(TRUE, FALSE),
-#             random_slopes        = c(FALSE, TRUE),
-#             cov_sets             = c("minimal", "other_PA")
-#         )
-#     ),
-#     tar_target(
-#         lmm_results_hgs,
-#         run_lmm_model(
-#             config         = lmm_model_grid_hgs,
-#             cc_data        = cc_analysis$data$HGS_MAX,
-#             mice_data      = mice_analysis$data$HGS_MAX,
-#             covariate_sets = covariate_sets_hgs,
-#             id_var         = "pt",
-#             time_var       = "time_since_baseline"
-#         ),
-#         pattern = map(lmm_model_grid_hgs)
-#     ),
-#     tar_target(
-#         lmm_exports_hgs,
-#         export_lmm_results(lmm_results_hgs),
-#         pattern = map(lmm_results_hgs),
-#         format  = "file"
-#     ),
-#     tar_target(
-#         lmm_diagnostics_hgs,
-#         run_lmm_diagnostics(lmm_results_hgs),
-#         pattern = map(lmm_results_hgs)
-#     )
-# )
-# 
-# LLM_targets_ALM <- list(
-#     tar_target(
-#         lmm_model_grid_alm,
-#         create_model_grid(
-#             outcomes             = c("ALM_HT2_harmonised"),
-#             exposure_definitions = exposure_definitions,
-#             datasets             = c("cc", "mice"),
-#             interactions         = c(TRUE, FALSE),
-#             random_slopes        = c(FALSE, TRUE),
-#             cov_sets             = c("minimal", "other_PA")
-#         )
-#     ),
-#     tar_target(
-#         lmm_results_alm,
-#         run_lmm_model(
-#             config         = lmm_model_grid_alm,
-#             cc_data        = cc_analysis$data$ALM_HT2_harmonised,
-#             mice_data      = mice_analysis$data$ALM_HT2_harmonised,
-#             covariate_sets = covariate_sets_alm,
-#             id_var         = "pt",
-#             time_var       = "time_since_baseline"
-#         ),
-#         pattern = map(lmm_model_grid_alm)
-#     ),
-#     tar_target(
-#         lmm_exports_alm,
-#         export_lmm_results(lmm_results_alm),
-#         pattern = map(lmm_results_alm),
-#         format  = "file"
-#     ),
-#     tar_target(
-#         lmm_diagnostics_alm,
-#         run_lmm_diagnostics(lmm_results_alm),
-#         pattern = map(lmm_results_alm)
-#     )
-# )
-# 
-# LLM_targets_gait <- list(
-#     tar_target(
-#         lmm_model_grid_gait,
-#         create_model_grid(
-#             outcomes             = c("gait_speed"),
-#             exposure_definitions = exposure_definitions_gait,
-#             datasets             = c("cc", "mice"),
-#             interactions         = c(TRUE, FALSE),
-#             random_slopes        = c(FALSE, TRUE),
-#             cov_sets             = c("minimal", "other_PA")
-#         )
-#     ),
-#     tar_target(
-#         lmm_results_gait,
-#         run_lmm_model(
-#             config         = lmm_model_grid_gait,
-#             cc_data        = cc_analysis$data$gait_speed,
-#             mice_data      = mice_analysis$data$gait_speed,
-#             covariate_sets = covariate_sets_gait,
-#             id_var         = "pt",
-#             time_var       = "time_since_baseline"
-#         ),
-#         pattern = map(lmm_model_grid_gait)
-#     ),
-#     tar_target(
-#         lmm_exports_gait,
-#         export_lmm_results(lmm_results_gait),
-#         pattern = map(lmm_results_gait),
-#         format  = "file"
-#     ),
-#     tar_target(
-#         lmm_diagnostics_gait,
-#         run_lmm_diagnostics(lmm_results_gait),
-#         pattern = map(lmm_results_gait)
-#     )
-# )
+# =============================================================================
+# MODEL SPECIFICATION SENSITIVITY TARGETS
+# =============================================================================
+
+LMM_modspec_HGS <- tar_target(
+    modspec_hgs,
+    run_model_specification_sensitivity(
+        mids_object  = mice_analysis$mids$HGS_MAX,
+        outcome      = "HGS_MAX",
+        outcome_fn   = identity,
+        covariates   = covariate_sets_hgs$main,
+        random_slope = TRUE,
+        out_dir      = "03_outputs/model_specification_sensitivity/HGS"
+    ),
+    format = "file"
+)
+
+LMM_modspec_ALM <- tar_target(
+    modspec_alm,
+    run_model_specification_sensitivity(
+        mids_object  = mice_analysis$mids$ALM_HT2_harmonised,
+        outcome      = "ALM_HT2_harmonised",
+        outcome_fn   = log,
+        covariates   = covariate_sets_alm$main,
+        random_slope = TRUE,
+        out_dir      = "03_outputs/model_specification_sensitivity/ALMI"
+    ),
+    format = "file"
+)
+
+LMM_modspec_gait <- tar_target(
+    modspec_gait,
+    run_model_specification_sensitivity_gait(
+        mids_object  = mice_analysis$mids$gait_speed,
+        outcome      = "gait_speed",
+        outcome_fn   = identity,
+        covariates   = covariate_sets_gait$main,
+        random_slope = FALSE,
+        out_dir      = "03_outputs/model_specification_sensitivity/gait_speed"
+    ),
+    format = "file"
+)
+
+
 
 # =============================================================================
 # COX
@@ -595,6 +530,77 @@ cox_targets <- list(
             dairy_cat_col  = "dairy_quartile_baseline",
             analysis_route = "mice"
         )
+    ),
+    tar_target(
+        mice_ewgsop2_timedep_con,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
+            sarcopenia_def = "ewgsop2",
+            covariate_type = "time_dependent",
+            dairy_type     = "continuous",
+            dairy_cat_col  = "dairy_total_gday_cumavg",
+            analysis_route = "mice"
+        )
+    )
+)
+
+cox_targets_fnih <- list(
+    
+    tar_target(
+        cc_fnih_fixed_cont,
+        run_cox_sarcopenia(
+            data           = cc_analysis$data$fnih_sarcopenia,
+            sarcopenia_def = "fnih",
+            covariate_type = "fixed",
+            dairy_type     = "continuous",
+            dairy_col      = "dairy_total_gday_cumavg",
+            analysis_route = "cc"
+        )
+    ),
+    tar_target(
+        mice_fnih_fixed_cat,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$fnih_sarcopenia,
+            sarcopenia_def = "fnih",
+            covariate_type = "fixed",
+            dairy_type     = "continuous",
+            dairy_cat_col  = "dairy_total_gday_cumavg",
+            analysis_route = "mice"
+        )
+    ),
+ 
+    tar_target(
+        mice_fnih_fixed_cat_quartile,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$fnih_sarcopenia,
+            sarcopenia_def = "fnih",
+            covariate_type = "fixed",
+            dairy_type     = "categorical",
+            dairy_cat_col  = "dairy_quartile_baseline",
+            analysis_route = "mice"
+        )
+    ),
+    tar_target(
+        mice_fnih_timedep,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$fnih_sarcopenia,
+            sarcopenia_def = "fnih",
+            covariate_type = "time_dependent",
+            dairy_type     = "categorical",
+            dairy_cat_col  = "dairy_quartile_baseline",
+            analysis_route = "mice"
+        )
+    ),
+    tar_target(
+        mice_fnih_timedep_continuous,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$fnih_sarcopenia,
+            sarcopenia_def = "fnih",
+            covariate_type = "time_dependent",
+            dairy_type     = "continuous",
+            dairy_cat_col  = "dairy_total_gday_cumavg",
+            analysis_route = "mice"
+        )
     )
 )
 
@@ -633,7 +639,7 @@ tableOne_targets_2 <- tar_target(tableOne_datasets,
         )
     )
 
-tableOne_targets_3 <- tar_target(tableOne_datasets_excluded,
+tableOne_targets_compare <- tar_target(tableOne_datasets_excluded,
                                  make_table_one_by_dataset(
                                      list(
                                          Shared       = cc_analysis$data_shared,
@@ -728,6 +734,28 @@ visit_descriptives_targets <- list(
 )
 
 #------------------------------------------------------------------------------
+# MISSINGNESS ANALYSIS (pre-exclusion)
+
+missingness_target <- tar_target(
+    missingness_report,
+    {
+        describe_missingness(
+            data     = mice_merged_derived,
+            compare  = list(
+                "After MICE" = mice::complete(mice_merged_derived, 1)
+            ),
+            time_col = "time_point",
+            out_dir  = "03_outputs/descriptives/missingness"
+        )
+        list.files("03_outputs/descriptives/missingness",
+                   full.names = TRUE, recursive = TRUE)
+    },
+    format = "file"
+)
+
+
+
+#------------------------------------------------------------------------------
 # VARIABLE DESCRIPTIVES
 
 variable_descriptives_target <- tar_target(
@@ -772,6 +800,9 @@ variable_descriptives_target <- tar_target(
     },
     format = "file"
 )
+
+#------
+# Age trajectory
 
 age_trajectories_target <- tar_target(
     age_trajectories,
@@ -941,18 +972,25 @@ c(
     mice_exclusion,
 
     # ── Models ────────────────────────────────────────────────────────────────
-    LMM_targets_HGS,
-    LMM_targets_ALM,
-    LMM_targets_gait
-    # cox_targets,
+    #LMM_targets_HGS,
+    #LMM_targets_ALM,
+    #LMM_targets_gait,
+
+    # ── Model specification sensitivity ──────────────────────────────────────
+    LMM_modspec_HGS,
+    LMM_modspec_ALM,
+    LMM_modspec_gait,
+    cox_targets,
+    cox_targets_fnih
     #
     # ── Descriptives ──────────────────────────────────────────────────────────
     #consort,
     # tableOne_targets_1,
     # tableOne_targets_2,
-    # tableOne_targets_3,
+    #tableOne_targets_compare,
     # tableOne_save,
     # visit_descriptives_targets,
+    #missingness_target
     # variable_descriptives_target,
     # variable_descriptives_target_cc,
     # age_trajectories_target,

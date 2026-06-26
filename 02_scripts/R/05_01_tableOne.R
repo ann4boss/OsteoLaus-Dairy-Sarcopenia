@@ -914,6 +914,141 @@ make_table_one_by_dataset <- function(
 }
 
 # ---------------------------------------------------------------------------
+# Comparison tables with p-values (CC vs MICE; included vs excluded)
+# ---------------------------------------------------------------------------
+
+#' Internal: gtsummary table with Wilcoxon / chi-square p-values.
+#' Used by make_table_one_cc_vs_mice() and make_table_one_included_vs_excluded().
+.build_tbl_summary_with_p <- function(data,
+                                       by,
+                                       caption         = "",
+                                       footnote_suffix = "",
+                                       add_overall     = TRUE) {
+    tbl <- data |>
+        .normalize_table_types() |>
+        gtsummary::tbl_summary(
+            by        = dplyr::all_of(by),
+            label     = labels_for_data(data, names(data)),
+            statistic = list(
+                gtsummary::all_continuous()  ~ .CONTINUOUS_STAT,
+                gtsummary::all_categorical() ~ "{n} ({p}%)"
+            ),
+            digits       = list(gtsummary::all_continuous() ~ 1),
+            missing      = "ifany",
+            missing_text = "Missing"
+        ) |>
+        gtsummary::add_p(
+            test = list(
+                gtsummary::all_continuous()  ~ "wilcox.test",
+                gtsummary::all_categorical() ~ "chisq.test"
+            ),
+            pvalue_fun = function(x) gtsummary::style_pvalue(x, digits = 3)
+        ) |>
+        gtsummary::add_n() |>
+        gtsummary::modify_caption(caption) |>
+        gtsummary::modify_footnote(
+            gtsummary::all_stat_cols() ~ paste0(
+                "Continuous: mean (SD); median [Q1, Q3]. ",
+                "Categorical: n (%). ",
+                "P-values: Wilcoxon rank-sum (continuous), chi-square (categorical). ",
+                "Missing shown only when present.",
+                footnote_suffix
+            )
+        ) |>
+        gtsummary::bold_labels()
+
+    if (add_overall) tbl <- tbl |> gtsummary::add_overall(last = FALSE)
+
+    tbl <- .add_group_heading(tbl, .MEDICATION_VARS, "Medication")
+    tbl <- .add_group_heading(tbl, .DAIRY_VARS,      "Dairy consumption")
+    tbl
+}
+
+#' Compare complete-case (CC) vs. full MICE sample with p-values.
+#'
+#' Shows whether CC participants differ systematically from the full cohort.
+#' The MICE column is built from the first imputation (imp = 1) so that
+#' individual-level statistical tests remain valid.
+#'
+#' @param cc_data    CC dataset (long format with `id` and `visit` columns).
+#' @param mice_data  Multiply-imputed data: a `mids` object or imputed long df.
+#' @param id         Participant ID column.
+#' @param visit      Visit column used to locate the baseline row per variable.
+#' @param imp_col    Imputation index column (only needed for mids / long input).
+#' @param caption    Table caption (markdown).
+#' @return A gtsummary object with Overall, CC, MICE columns and p-values.
+make_table_one_cc_vs_mice <- function(
+    cc_data,
+    mice_data,
+    id      = "pt",
+    visit   = "time_point",
+    imp_col = ".imp",
+    caption = "**Table S1.** Participant characteristics: complete cases vs. full MICE sample"
+) {
+    cc_baseline <- make_display_baseline_earliest(cc_data, id = id, visit = visit) |>
+        dplyr::select(dplyr::any_of(c(id, .TABLE_VARS))) |>
+        dplyr::mutate(analysis_group = "Complete cases (CC)")
+
+    mice_long <- .to_long(mice_data, imp_col)
+    imp1 <- mice_long[mice_long[[imp_col]] == .imp_values(mice_long, imp_col)[1L], , drop = FALSE]
+    mice_baseline <- make_display_baseline_earliest(imp1, id = id, visit = visit) |>
+        dplyr::select(dplyr::any_of(c(id, .TABLE_VARS))) |>
+        dplyr::mutate(analysis_group = "All participants (MICE)")
+
+    combined <- dplyr::bind_rows(cc_baseline, mice_baseline) |>
+        dplyr::mutate(
+            analysis_group = factor(
+                analysis_group,
+                levels = c("Complete cases (CC)", "All participants (MICE)")
+            )
+        ) |>
+        dplyr::select(-dplyr::all_of(id))
+
+    .build_tbl_summary_with_p(
+        combined,
+        by              = "analysis_group",
+        caption         = caption,
+        footnote_suffix = " MICE column uses first imputation for statistical testing."
+    )
+}
+
+#' Compare included vs. excluded participants with p-values.
+#'
+#' Checks whether participants retained in the analysis differ from those
+#' removed during eligibility screening / data cleaning.
+#'
+#' @param full_data    Unfiltered dataset (all participants before exclusions;
+#'   long format with `id` and `visit` columns).
+#' @param included_ids Vector of participant IDs retained in the analysis.
+#' @param id           Participant ID column.
+#' @param visit        Visit column used to locate the baseline row per variable.
+#' @param caption      Table caption (markdown).
+#' @return A gtsummary object with Overall, Included, Excluded columns and p-values.
+make_table_one_included_vs_excluded <- function(
+    full_data,
+    included_ids,
+    id      = "pt",
+    visit   = "time_point",
+    caption = "**Table S2.** Comparison of included and excluded participants"
+) {
+    baseline <- make_display_baseline_earliest(full_data, id = id, visit = visit) |>
+        dplyr::select(dplyr::any_of(c(id, .TABLE_VARS))) |>
+        dplyr::mutate(
+            inclusion_status = factor(
+                dplyr::if_else(.data[[id]] %in% included_ids, "Included", "Excluded"),
+                levels = c("Included", "Excluded")
+            )
+        ) |>
+        dplyr::select(-dplyr::all_of(id))
+
+    .build_tbl_summary_with_p(
+        baseline,
+        by      = "inclusion_status",
+        caption = caption
+    )
+}
+
+# ---------------------------------------------------------------------------
 # Rendering helpers
 # ---------------------------------------------------------------------------
 

@@ -213,6 +213,7 @@ fit_pooled_lmm_gait <- function(
 
     list(
         pooled_tidy = pooled_tidy,
+
         models      = models,
         first_model = models[[1]],
         formula     = formula,
@@ -509,6 +510,7 @@ run_lmm_report_gait <- function(
     .text_page(
         c(paste("Outcome column:", resp_col),
           paste("Outcome transform:", fn_name),
+          paste("Estimation method: REML = FALSE (Maximum Likelihood)"),
           paste("Random slope:", random_slope),
           paste("Interaction (exposure × time):", interaction),
           "",
@@ -604,13 +606,188 @@ run_lmm_report_gait <- function(
                                                title = model_tag)
             }
 
-            # ── Diagnostics (imputation 1) -----------------------------------
+            # ── Variance components ------------------------------------------
+            tryCatch(
+                .variance_components_page(fit$first_model, title = model_tag,
+                                          random_slope = random_slope),
+                error = function(e) .text_page(
+                    c(paste("Variance components failed:", conditionMessage(e))),
+                    title = paste("Variance Components FAILED —", model_tag)
+                )
+            )
+
+            # ── R² (Nakagawa) ------------------------------------------------
+            tryCatch(
+                .r2_page(fit$first_model, title = model_tag),
+                error = function(e) .text_page(
+                    c(paste("R² failed:", conditionMessage(e))),
+                    title = paste("R² FAILED —", model_tag)
+                )
+            )
+
+            # ── VIF ----------------------------------------------------------
+            tryCatch(
+                .vif_page(fit$first_model, title = model_tag),
+                error = function(e) .text_page(
+                    c(paste("VIF failed:", conditionMessage(e))),
+                    title = paste("VIF FAILED —", model_tag)
+                )
+            )
+
+
+
+            # ── Fixed-effect correlations ------------------------------------
+            tryCatch(
+                .fixed_corr_page(fit$first_model, title = model_tag),
+                error = function(e) .text_page(
+                    c(paste("Fixed-effect correlations failed:", conditionMessage(e))),
+                    title = paste("Fixed Corr. FAILED —", model_tag)
+                )
+            )
+
+            # ── Influential points -------------------------------------------
+            inf_idx <- tryCatch(
+                .influential_page(fit$first_model, title = model_tag),
+                error = function(e) {
+                    .text_page(
+                        c(paste("Influential points check failed:", conditionMessage(e))),
+                        title = paste("Influential FAILED —", model_tag)
+                    )
+                    NULL
+                }
+            )
+
+            excl_tag <- paste0("[Excl. influential (top 1% Cook's D)]  ", model_tag)
+            fit_excl <- NULL
+            if (length(inf_idx) > 0L) {
+                mf_imp1  <- model.frame(fit$first_model)
+                excl_ids <- unique(mf_imp1[[id_var]][inf_idx])
+
+                long_full <- mice::complete(mids_object, "long", include = TRUE)
+                long_excl <- long_full |>
+                    dplyr::filter(!.data[[id_var]] %in% excl_ids) |>
+                    dplyr::group_by(.imp) |>
+                    dplyr::mutate(.id = dplyr::row_number()) |>
+                    dplyr::ungroup()
+                mids_excl <- tryCatch(mice::as.mids(long_excl), error = function(e) NULL)
+
+                if (!is.null(mids_excl)) {
+                    fit_excl <- tryCatch(
+                        fit_pooled_lmm_gait(
+                            mids_object  = mids_excl,
+                            formula      = formula,
+                            outcome      = outcome,
+                            resp_col     = resp_col,
+                            outcome_fn   = outcome_fn,
+                            ref_col      = exp_col,
+                            ref_lev      = ref_lev,
+                            id_var       = id_var,
+                            time_var     = time_var,
+                            random_slope = random_slope
+                        ),
+                        error = function(e) {
+                            .text_page(
+                                c(paste("Cook's D exclusion model failed:",
+                                        conditionMessage(e))),
+                                title = paste("Excl. Cook's D FAILED —", model_tag)
+                            )
+                            NULL
+                        }
+                    )
+                    if (!is.null(fit_excl)) {
+                        .text_page(
+                            c(paste("Excluded participants (top 1% Cook's D, imp 1):",
+                                    length(excl_ids)),
+                              paste("Remaining n:", length(unique(
+                                  mice::complete(mids_excl, 1)[[id_var]]))),
+                              "", deparse(fit_excl$formula)),
+                            title = paste("Formula —", excl_tag)
+                        )
+                        .results_page_gait(fit_excl$pooled_tidy, title = excl_tag,
+                                           out_dir = NULL)
+                    }
+                }
+            }
+
+            # ── Sensitivity: exclude pts with dairy > 1000 g/day ------------
+            sens_tag  <- paste0("[Sensitivity: dairy ≤ 1000 g/day]  ", model_tag)
+            fit_s     <- NULL
+            mids_sens <- tryCatch(
+                .filter_mids_dairy_1000(mids_object, id_var,
+                                        dairy_col = "dairy_total_gday_cumavg_lag"),
+                error = function(e) {
+                    .text_page(
+                        c(paste("Sensitivity filter failed:", conditionMessage(e))),
+                        title = paste("Sensitivity FAILED —", model_tag)
+                    )
+                    NULL
+                }
+            )
+
+            if (!is.null(mids_sens)) {
+                fit_s <- tryCatch(
+                    fit_pooled_lmm_gait(
+                        mids_object  = mids_sens,
+                        formula      = formula,
+                        outcome      = outcome,
+                        resp_col     = resp_col,
+                        outcome_fn   = outcome_fn,
+                        ref_col      = exp_col,
+                        ref_lev      = ref_lev,
+                        id_var       = id_var,
+                        time_var     = time_var,
+                        random_slope = random_slope
+                    ),
+                    error = function(e) {
+                        .text_page(
+                            c(paste("Sensitivity model failed:", conditionMessage(e))),
+                            title = paste("Sensitivity FAILED —", model_tag)
+                        )
+                        NULL
+                    }
+                )
+
+                if (!is.null(fit_s)) {
+                    .text_page(
+                        c(deparse(fit_s$formula), "",
+                          paste("Imputations pooled:", fit_s$n_imp),
+                          paste("Participants in sensitivity sample:",
+                                length(unique(
+                                    mice::complete(mids_sens, 1)[[id_var]]
+                                ))),
+                          paste("Threshold: dairy_total_gday_cumavg_lag ≤ 1000 g/day")),
+                        title = paste("Formula —", sens_tag)
+                    )
+                    .results_page_gait(fit_s$pooled_tidy, title = sens_tag,
+                                       out_dir = out_dir)
+                }
+            }
+
+            # ── Assumption checks: main / excl Cook's D / dairy sensitivity --
             p_diag <- tryCatch(
                 .plot_diagnostics(fit$first_model,
-                                  label = paste0("[imp 1, ", model_tag, "]")),
+                                  label = paste0("Main model [imp 1]  ", model_tag)),
                 error = function(e) NULL
             )
             if (!is.null(p_diag)) print(p_diag)
+
+            if (!is.null(fit_excl)) {
+                p_excl <- tryCatch(
+                    .plot_diagnostics(fit_excl$first_model,
+                                      label = paste0("Excl. Cook's D [imp 1]  ", model_tag)),
+                    error = function(e) NULL
+                )
+                if (!is.null(p_excl)) print(p_excl)
+            }
+
+            if (!is.null(fit_s)) {
+                p_diag_s <- tryCatch(
+                    .plot_diagnostics(fit_s$first_model,
+                                      label = paste0("Dairy ≤ 1000 g/day [imp 1]  ", model_tag)),
+                    error = function(e) NULL
+                )
+                if (!is.null(p_diag_s)) print(p_diag_s)
+            }
         }
     }
 

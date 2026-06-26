@@ -91,10 +91,8 @@
 
 # ── Default covariate set (update as needed) ----------------------------------
 .DEFAULT_COVARIATES <- c(
-    "Age", "BMI"
-    , "education_level", "smoking_status",
-    "mvpa_min_day_f1", 
-      "diabetes_status"
+    "BMI", "education_level", "smoking_status",
+    "mvpa_min_day_f1", "diabetes_status"
 )
 
 
@@ -483,10 +481,12 @@ run_cox_sarcopenia <- function(
         dplyr::filter(!is.na(dairy_exposure), !is.na(age_start), !is.na(age_stop),
                       age_start < age_stop)
     
+    person_years <- sum(td_obj$age_stop - td_obj$age_start, na.rm = TRUE)
     cli::cli_inform(c(
-        "v" = "Time-dependent dataset: {nrow(td_obj)} intervals | {sum(td_obj$event)} events"
+        "v" = "Time-dependent dataset: {nrow(td_obj)} intervals | {sum(td_obj$event)} events | {round(person_years, 1)} person-years"
     ))
-    
+    attr(td_obj, "person_years") <- person_years
+
     td_obj
 }
 
@@ -605,6 +605,113 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
+# SECTION 3C — Global model tests (LR, Wald, Score)
+# =============================================================================
+
+#' Extract and report the three global tests from a fitted coxph model.
+#'
+#' For CC: directly from summary(fit).
+#' For MICE: averaged across imputed models (LR and Score tests are not
+#' formally poolable via Rubin's rules; averaging is an approximation).
+#' The likelihood ratio test is preferred when available.
+#'
+#' @param fit   A \code{coxph} object or a list of \code{coxph} objects (MICE).
+#' @param label Character label for messaging.
+#' @return Named numeric: lr_chisq, lr_df, lr_p, wald_chisq, wald_df, wald_p,
+#'         score_chisq, score_df, score_p.
+#' @keywords internal
+.global_model_tests <- function(fit, label = "") {
+
+    cli::cli_h3("Global model tests [{label}]")
+
+    fits <- if (is.list(fit) && !inherits(fit, "coxph")) fit else list(fit)
+
+    extract_tests <- function(f) {
+        s <- summary(f)
+        c(
+            lr_chisq    = unname(s$logtest["test"]),
+            lr_df       = unname(s$logtest["df"]),
+            lr_p        = unname(s$logtest["pvalue"]),
+            wald_chisq  = unname(s$waldtest["test"]),
+            wald_df     = unname(s$waldtest["df"]),
+            wald_p      = unname(s$waldtest["pvalue"]),
+            score_chisq = unname(s$sctest["test"]),
+            score_df    = unname(s$sctest["df"]),
+            score_p     = unname(s$sctest["pvalue"])
+        )
+    }
+
+    vals <- do.call(rbind, lapply(fits, extract_tests))
+    out  <- colMeans(vals, na.rm = TRUE)
+
+    cli::cli_inform(c(
+        "i" = "Likelihood ratio test : χ²({round(out['lr_df'])}) = {round(out['lr_chisq'],2)}, p = {signif(out['lr_p'],3)}  ← preferred",
+        "i" = "Wald test             : χ²({round(out['wald_df'])}) = {round(out['wald_chisq'],2)}, p = {signif(out['wald_p'],3)}",
+        "i" = "Score (log-rank) test : χ²({round(out['score_df'])}) = {round(out['score_chisq'],2)}, p = {signif(out['score_p'],3)}"
+    ))
+
+    out
+}
+
+
+# =============================================================================
+# SECTION 3D — Harrell's C-index
+# =============================================================================
+
+#' Compute Harrell's concordance index (C-index) for a fitted Cox model.
+#'
+#' Uses \code{survival::concordance()} which correctly handles counting-process
+#' (start–stop) data for time-dependent covariates. For MICE, the C-index is
+#' computed on each imputed dataset and averaged (simple mean — pooling via
+#' Rubin's rules is not defined for the C-index).
+#'
+#' @param fit      A \code{coxph} object (CC) or a list of \code{coxph} objects (MICE).
+#' @param label    Character label for messaging.
+#' @return Named numeric: \code{c_index}, \code{se}, \code{lower}, \code{upper}.
+#' @keywords internal
+.compute_cindex <- function(fit, label = "") {
+
+    cli::cli_h3("C-index (Harrell's concordance) [{label}]")
+
+    fits <- if (is.list(fit) && !inherits(fit, "coxph")) fit else list(fit)
+
+    c_vals <- vapply(fits, function(f) {
+        tryCatch(
+            survival::concordance(f)$concordance,
+            error = function(e) NA_real_
+        )
+    }, numeric(1L))
+
+    se_vals <- vapply(fits, function(f) {
+        tryCatch(
+            sqrt(survival::concordance(f)$var),
+            error = function(e) NA_real_
+        )
+    }, numeric(1L))
+
+    c_mean  <- mean(c_vals,  na.rm = TRUE)
+    se_mean <- mean(se_vals, na.rm = TRUE)
+    lower   <- c_mean - 1.96 * se_mean
+    upper   <- c_mean + 1.96 * se_mean
+
+    cli::cli_inform(c(
+        "i" = "C-index : {round(c_mean, 3)} (95% CI: {round(lower,3)}–{round(upper,3)})",
+        "i" = "SE      : {round(se_mean, 4)}"
+    ))
+
+    if (c_mean < 0.6) {
+        cli::cli_inform(c("!" = "C-index < 0.60 — limited discriminative ability (expected in epidemiology)."))
+    } else if (c_mean < 0.7) {
+        cli::cli_inform(c("i" = "C-index 0.60–0.70 — acceptable discrimination."))
+    } else {
+        cli::cli_inform(c("v" = "C-index >= 0.70 — good discrimination."))
+    }
+
+    c(c_index = c_mean, se = se_mean, lower_95 = lower, upper_95 = upper)
+}
+
+
+# =============================================================================
 # SECTION 4 — Complete-case model fitting
 # =============================================================================
 
@@ -655,11 +762,27 @@ run_cox_sarcopenia <- function(
     # ── EPV (uses actual coefficient count from fitted model) ──────────────
     n_events <- sum(surv_data$event == 1L, na.rm = TRUE)
     epv      <- .compute_epv(fit_adj, n_events, label = "cc")
-    
+
+    # ── C-index ────────────────────────────────────────────────────────────
+    cindex <- .compute_cindex(fit_adj, label = "cc")
+
+    # ── Global model tests ─────────────────────────────────────────────────
+    global_tests <- .global_model_tests(fit_adj, label = "cc")
+
+    # ── Person-years ───────────────────────────────────────────────────────
+    person_years <- if (!is.null(attr(surv_data, "person_years"))) {
+        attr(surv_data, "person_years")
+    } else if ("time" %in% names(surv_data)) {
+        sum(surv_data$time, na.rm = TRUE)
+    } else if (all(c("age_start", "age_stop") %in% names(surv_data))) {
+        sum(surv_data$age_stop - surv_data$age_start, na.rm = TRUE)
+    } else NA_real_
+    cli::cli_inform(c("i" = "Total person-years: {round(person_years, 1)}"))
+
     # ── Tidy results -------------------------------------------------------
     results_unadj <- .tidy_cox(fit_unadj)
     results_adj   <- .tidy_cox(fit_adj)
-    
+
     cli::cli_h2("Adjusted model results")
     cli::cli_inform(paste(capture.output(print(results_adj)), collapse = "\n"))
 
@@ -713,6 +836,9 @@ run_cox_sarcopenia <- function(
 
     list(
         config_epv          = epv,
+        c_index             = cindex,
+        global_tests        = global_tests,
+        person_years        = person_years,
         fit_unadj           = fit_unadj,
         fit_adj             = fit_adj,
         results_unadj       = results_unadj,
@@ -828,6 +954,23 @@ run_cox_sarcopenia <- function(
     n_events_mice <- sum(surv_data_list[[1L]]$event == 1L, na.rm = TRUE)
     epv           <- .compute_epv(fits_adj[[1L]], n_events_mice, label = "mice (all imputations)")
 
+    # ── C-index (averaged across imputations) ───────────────────────────────
+    cindex <- .compute_cindex(fits_adj, label = "mice (averaged)")
+
+    # ── Global model tests (averaged across imputations) ────────────────────
+    global_tests <- .global_model_tests(fits_adj, label = "mice (averaged)")
+
+    # ── Person-years (summed across all imputed datasets, divided by m) ─────
+    person_years <- {
+        py_vals <- vapply(surv_data_list, function(d) {
+            if (all(c("age_start", "age_stop") %in% names(d)))
+                sum(d$age_stop - d$age_start, na.rm = TRUE)
+            else NA_real_
+        }, numeric(1L))
+        mean(py_vals, na.rm = TRUE)
+    }
+    cli::cli_inform(c("i" = "Total person-years (mean across imputations): {round(person_years, 1)}"))
+
     # ── Assumption checks on first imputed dataset (representative) --------
     # KM also uses imp = 1 as the representative dataset (see §RUBIN'S RULES note).
     assumptions <- .check_cox_assumptions(
@@ -879,6 +1022,9 @@ run_cox_sarcopenia <- function(
     list(
         surv_data           = surv_data_list[[1L]],
         config_epv          = epv,
+        c_index             = cindex,
+        global_tests        = global_tests,
+        person_years        = person_years,
         fit_unadj           = mira_unadj,
         fit_adj             = mira_adj,
         results_unadj       = results_unadj,

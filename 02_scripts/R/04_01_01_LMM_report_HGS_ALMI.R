@@ -41,6 +41,8 @@
             age                  = median(df$Age, na.rm = TRUE),
             age_baseline_median  = median(df$age_at_baseline, na.rm = TRUE),
             sumtot               = median(df$sumtot1,                 na.rm = TRUE),
+            height               = median(df$Height, na.rm = TRUE),
+            weight               = median(df$Weight, na.rm = TRUE),
             dairy                = median(df$dairy_total_gday_cumavg, na.rm = TRUE),
             fermented            = median(df$dairy_fermented_gday_cumavg, na.rm = TRUE),
             nonfermented         = median(df$dairy_non_fermented_gday_cumavg, na.rm = TRUE),
@@ -63,6 +65,12 @@
             sumtot1_scaled = as.numeric(scale(sumtot1,
                                                 center = scale_centres$sumtot,
                                                 scale  = 1000)),
+            height_scaled = as.numeric(scale(Height,
+                                              center = scale_centres$height,
+                                              scale  = 100)),
+            weight_scaled = as.numeric(scale(Weight,
+                                             center = scale_centres$weight,
+                                             scale  = 1)),
             dairy_100g       = as.numeric(scale(dairy_total_gday_cumavg,
                                                 center = scale_centres$dairy,
                                                 scale  = 100)),
@@ -249,6 +257,7 @@ fit_pooled_lmm <- function(
 
     list(
         pooled_tidy = pooled_tidy,
+
         models      = models,          # all imputations — needed for sandwich
         first_model = models[[1]],
         formula     = formula,
@@ -370,6 +379,8 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
     `dairy_guidelines_port>= 2 servings/day` = "Dairy intake ≥ 2 servings/day",
     time_since_baseline                   = "Time since baseline [year]",
     age_at_baseline_scaled                = "Age at T1 [year]",
+    height_scaled                       = "Height [m]",
+    weight_scaled                        = "Weight [kg]",
     BMI_categoryUnderweight               = "BMI - Underweight",
     BMI_categoryOverweight                = "BMI - Overweight",
     BMI_categoryObese                     = "BMI - Obese",
@@ -651,6 +662,255 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
 }
 
 
+# ---------------------------------------------------------------------------
+# ADDITIONAL MODEL DIAGNOSTICS
+# ---------------------------------------------------------------------------
+
+# ── Variance components (random intercept / slope / residual) ----------------
+
+.variance_components_page <- function(model, title, random_slope = FALSE) {
+    vc        <- lme4::VarCorr(model)
+    vc_df     <- as.data.frame(vc)
+    resid_var <- attr(vc, "sc")^2
+
+    # Extract random intercept variance
+    ri_row <- vc_df[is.na(vc_df$var2) & vc_df$var1 == "(Intercept)", ]
+    ri_var <- if (nrow(ri_row) > 0) ri_row$vcov[1] else NA
+
+    # Extract random slope variance (any non-intercept diagonal term)
+    rs_rows <- vc_df[is.na(vc_df$var2) & vc_df$var1 != "(Intercept)", ]
+
+    summary_lines <- c(
+        paste0("Random intercept variance:  ", round(ri_var, 5),
+               "  (SD = ", round(sqrt(ri_var), 5), ")")
+    )
+
+    if (isTRUE(random_slope)) {
+        if (nrow(rs_rows) > 0) {
+            rs_lines <- apply(rs_rows, 1, function(r)
+                paste0("Random slope variance [", r[["var1"]], "]:  ",
+                       round(as.numeric(r[["vcov"]]), 5),
+                       "  (SD = ", round(sqrt(as.numeric(r[["vcov"]])), 5), ")"))
+            summary_lines <- c(summary_lines, rs_lines)
+        } else {
+            summary_lines <- c(summary_lines,
+                               "Random slope variance:  not estimated (check model)")
+        }
+    } else {
+        summary_lines <- c(summary_lines,
+                           "Random slope:  not included in this model")
+    }
+
+    summary_lines <- c(
+        summary_lines,
+        paste0("Residual variance:          ", round(resid_var, 5),
+               "  (SD = ", round(sqrt(resid_var), 5), ")")
+    )
+
+    lines <- c(
+        "── Full VarCorr output ──────────────────────────────────────────",
+        utils::capture.output(print(vc, comp = c("Variance", "Std.Dev."))),
+        "",
+        "── Summary ──────────────────────────────────────────────────────",
+        summary_lines
+    )
+    .text_page(lines, title = paste("Variance Components —", title))
+}
+
+
+# ── Marginal & conditional R² (Nakagawa & Schielzeth) -----------------------
+
+.r2_page <- function(model, title) {
+    r2 <- tryCatch(
+        performance::r2_nakagawa(model),
+        error = function(e) NULL
+    )
+    if (is.null(r2)) {
+        .text_page(c("R² could not be computed.", conditionMessage(
+            tryCatch(performance::r2_nakagawa(model), error = function(e) e)
+        )), title = paste("R² —", title))
+        return(invisible(NULL))
+    }
+    lines <- c(
+        paste0("Marginal  R² (fixed effects only):       ",
+               round(r2$R2_marginal,    4)),
+        paste0("Conditional R² (fixed + random effects): ",
+               round(r2$R2_conditional, 4)),
+        "",
+        "Method: Nakagawa & Schielzeth (2013), Johnson (2014)"
+    )
+    .text_page(lines, title = paste("Effect Size (R²) —", title))
+}
+
+
+# ── VIF for fixed effects ----------------------------------------------------
+
+.vif_page <- function(model, title) {
+    vif_vals <- tryCatch(car::vif(model), error = function(e) NULL)
+    if (is.null(vif_vals)) {
+        .text_page(c("VIF could not be computed."),
+                   title = paste("VIF —", title))
+        return(invisible(NULL))
+    }
+
+    if (is.matrix(vif_vals)) {
+        # GVIF for categorical predictors — use GVIF^(1/(2*Df))
+        vif_df <- as.data.frame(vif_vals) |>
+            tibble::rownames_to_column("term") |>
+            dplyr::mutate(
+                adjusted_vif = round(`GVIF^(1/(2*Df))`, 3),
+                flag = dplyr::if_else(adjusted_vif > 5, "!", "")
+            )
+    } else {
+        vif_df <- data.frame(
+            term         = names(vif_vals),
+            VIF          = round(vif_vals, 3),
+            flag         = dplyr::if_else(vif_vals > 5, "!", ""),
+            stringsAsFactors = FALSE
+        )
+    }
+
+    lines <- c(
+        "VIF > 5 flagged with '!'",
+        "",
+        utils::capture.output(print(vif_df, row.names = FALSE))
+    )
+    .text_page(lines, title = paste("VIF —", title))
+}
+
+
+
+# ── Correlation matrix of fixed-effect estimates -----------------------------
+
+.fixed_corr_page <- function(model, title) {
+    corr_mat <- cov2cor(as.matrix(vcov(model)))
+    corr_mat <- round(corr_mat, 3)
+
+    corr_df  <- as.data.frame(corr_mat) |>
+        tibble::rownames_to_column("term")
+
+    # Plot as heatmap
+    corr_long <- corr_df |>
+        tidyr::pivot_longer(-term, names_to = "term2", values_to = "corr") |>
+        dplyr::mutate(
+            term  = factor(term,  levels = rev(rownames(corr_mat))),
+            term2 = factor(term2, levels = rownames(corr_mat))
+        )
+
+    p_corr <- ggplot2::ggplot(
+        corr_long,
+        ggplot2::aes(x = term2, y = term, fill = corr)
+    ) +
+        ggplot2::geom_tile(colour = "white") +
+        ggplot2::geom_text(ggplot2::aes(label = corr),
+                           size = 2.5, colour = "black") +
+        ggplot2::scale_fill_gradient2(
+            low  = .pal[1], mid = "white", high = .pal[9],
+            midpoint = 0, limits = c(-1, 1), name = "r"
+        ) +
+        ggplot2::labs(x = NULL, y = NULL,
+                      title = paste("Fixed-Effect Correlations —", title)) +
+        .theme_report() +
+        ggplot2::theme(
+            axis.text.x = ggplot2::element_text(angle = 45, hjust = 1, size = 7),
+            axis.text.y = ggplot2::element_text(size = 7)
+        )
+
+    print(p_corr)
+}
+
+
+# ── Influential points (Cook's distance, refit without) ----------------------
+
+.influential_page <- function(model, title) {
+    df_model  <- model.frame(model)
+    cd        <- cooks.distance(model)
+    threshold <- quantile(cd, 0.99, na.rm = TRUE)
+    inf_idx   <- which(cd > threshold)
+
+    n_inf <- length(inf_idx)
+    if (n_inf == 0L) {
+        .text_page(
+            c(paste0("No influential points detected (top 1% threshold = ",
+                     round(threshold, 5), ").")),
+            title = paste("Influential Points —", title)
+        )
+        return(invisible(NULL))
+    }
+
+    # Refit without influential observations
+    df_clean    <- df_model[-inf_idx, ]
+    model_clean <- tryCatch(
+        update(model, data = df_clean),
+        error = function(e) NULL
+    )
+
+    inf_lines <- c(
+        paste0("Influential observations (top 1% Cook's D > ",
+               round(threshold, 5), "): ", n_inf),
+        "",
+        "Index  Cook's D",
+        utils::capture.output(
+            print(data.frame(index = inf_idx, cooks_d = round(cd[inf_idx], 5)),
+                  row.names = FALSE)
+        )
+    )
+
+    if (!is.null(model_clean)) {
+        fe_orig  <- lme4::fixef(model)
+        fe_clean <- lme4::fixef(model_clean)
+        common   <- intersect(names(fe_orig), names(fe_clean))
+        comp_df  <- data.frame(
+            term              = common,
+            estimate_full     = round(fe_orig[common],  4),
+            estimate_excl     = round(fe_clean[common], 4),
+            abs_delta         = round(abs(fe_orig[common] - fe_clean[common]), 4),
+            pct_change        = round(
+                100 * abs(fe_orig[common] - fe_clean[common]) /
+                    (abs(fe_orig[common]) + 1e-10), 2
+            ),
+            stringsAsFactors  = FALSE
+        )
+        inf_lines <- c(inf_lines, "",
+                       "Fixed-effect comparison (full vs. excluding influential):",
+                       utils::capture.output(print(comp_df, row.names = FALSE)))
+    }
+
+    .text_page(inf_lines, title = paste("Influential Points —", title))
+    invisible(inf_idx)
+}
+
+
+# ── Filter mids: exclude pts with any cumulative dairy > 1000 g/day ---------
+
+.filter_mids_dairy_1000 <- function(mids_object, id_var,
+                                     dairy_col = "dairy_total_gday_cumavg",
+                                     threshold = 1000) {
+    long <- mice::complete(mids_object, "long", include = TRUE)
+
+    if (!dairy_col %in% names(long)) {
+        warning(".filter_mids_dairy_1000: column '", dairy_col,
+                "' not found — returning unfiltered mids.")
+        return(mids_object)
+    }
+
+    excl_ids <- long |>
+        dplyr::filter(.imp == 1L, .data[[dairy_col]] > threshold) |>
+        dplyr::pull(dplyr::all_of(id_var)) |>
+        unique()
+
+    if (length(excl_ids) == 0L) return(mids_object)
+
+    long_filtered <- long |>
+        dplyr::filter(!.data[[id_var]] %in% excl_ids) |>
+        dplyr::group_by(.imp) |>
+        dplyr::mutate(.id = dplyr::row_number()) |>
+        dplyr::ungroup()
+
+    mice::as.mids(long_filtered)
+}
+
+
 # ── Diagnostic plots ---------------------------------------------------------
 
 .plot_diagnostics <- function(model, label = "") {
@@ -660,27 +920,19 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
                           residuals = res_v,
                           sqrt_abs  = sqrt(abs(res_v)))
 
-    slope_rd <- round(coef(lm(residuals ~ fitted, data = df_d))[["fitted"]], 4)
-
     p_rd <- ggplot2::ggplot(df_d, ggplot2::aes(fitted, residuals)) +
         ggplot2::geom_point(colour = .pal[8], alpha = 0.45, size = 1.2) +
         ggplot2::geom_hline(yintercept = 0, linetype = "dashed",
                             colour = .pal[1]) +
-        ggplot2::geom_smooth(method = "lm", se = TRUE, colour = .pal[1],
+        ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
                              fill = .pal[4], alpha = 0.2, linewidth = 0.7) +
-        ggplot2::annotate("text",
-                          x    = -Inf, y = Inf,
-                          hjust = -0.15, vjust = 1.6,
-                          label = paste0("slope = ", slope_rd),
-                          size  = 3.5, colour = .pal[1],
-                          fontface = "italic") +
         ggplot2::labs(x = "Fitted", y = "Residuals",
                       title = paste("A  Residuals vs Fitted", label)) +
         .theme_report()
 
     p_sl <- ggplot2::ggplot(df_d, ggplot2::aes(fitted, sqrt_abs)) +
         ggplot2::geom_point(colour = .pal[8], alpha = 0.45, size = 1.2) +
-        ggplot2::geom_smooth(method = "lm", se = TRUE, colour = .pal[1],
+        ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
                              fill = .pal[3], alpha = 0.2, linewidth = 0.7) +
         ggplot2::labs(x = "Fitted", y = expression(sqrt("|Residuals|")),
                       title = "B  Scale-Location") +
@@ -814,6 +1066,7 @@ run_lmm_report <- function(
     .text_page(
         c(paste("Outcome column:", resp_col),
           paste("Outcome transform:", fn_name),
+          paste("Estimation method: REML = FALSE (Maximum Likelihood)"),
           paste("Random slope:", random_slope),
           paste("Interaction (exposure × time):", interaction),
           "",
@@ -911,13 +1164,189 @@ run_lmm_report <- function(
                                           title = model_tag)
             }
 
-            # ── Diagnostics (imputation 1) -----------------------------------
+            # ── Variance components ------------------------------------------
+            tryCatch(
+                .variance_components_page(fit$first_model, title = model_tag,
+                                          random_slope = random_slope),
+                error = function(e) .text_page(
+                    c(paste("Variance components failed:", conditionMessage(e))),
+                    title = paste("Variance Components FAILED —", model_tag)
+                )
+            )
+
+            # ── R² (Nakagawa) ------------------------------------------------
+            tryCatch(
+                .r2_page(fit$first_model, title = model_tag),
+                error = function(e) .text_page(
+                    c(paste("R² failed:", conditionMessage(e))),
+                    title = paste("R² FAILED —", model_tag)
+                )
+            )
+
+            # ── VIF ----------------------------------------------------------
+            tryCatch(
+                .vif_page(fit$first_model, title = model_tag),
+                error = function(e) .text_page(
+                    c(paste("VIF failed:", conditionMessage(e))),
+                    title = paste("VIF FAILED —", model_tag)
+                )
+            )
+
+
+            # ── Fixed-effect correlations ------------------------------------
+            tryCatch(
+                .fixed_corr_page(fit$first_model, title = model_tag),
+                error = function(e) .text_page(
+                    c(paste("Fixed-effect correlations failed:", conditionMessage(e))),
+                    title = paste("Fixed Corr. FAILED —", model_tag)
+                )
+            )
+
+            # ── Influential points -------------------------------------------
+            inf_idx <- tryCatch(
+                .influential_page(fit$first_model, title = model_tag),
+                error = function(e) {
+                    .text_page(
+                        c(paste("Influential points check failed:", conditionMessage(e))),
+                        title = paste("Influential FAILED —", model_tag)
+                    )
+                    NULL
+                }
+            )
+
+            excl_tag <- paste0("[Excl. influential (top 1% Cook's D)]  ", model_tag)
+            fit_excl <- NULL
+            if (length(inf_idx) > 0L) {
+                # Identify participant IDs that are influential (imp 1 model frame)
+                mf_imp1   <- model.frame(fit$first_model)
+                excl_ids  <- unique(mf_imp1[[id_var]][inf_idx])
+
+                # Filter mids across all imputations and refit pooled model
+                long_full    <- mice::complete(mids_object, "long", include = TRUE)
+                long_excl    <- long_full |>
+                    dplyr::filter(!.data[[id_var]] %in% excl_ids) |>
+                    dplyr::group_by(.imp) |>
+                    dplyr::mutate(.id = dplyr::row_number()) |>
+                    dplyr::ungroup()
+                mids_excl <- tryCatch(mice::as.mids(long_excl), error = function(e) NULL)
+
+                if (!is.null(mids_excl)) {
+                    fit_excl <- tryCatch(
+                        fit_pooled_lmm(
+                            mids_object  = mids_excl,
+                            formula      = formula,
+                            outcome      = outcome,
+                            resp_col     = resp_col,
+                            outcome_fn   = outcome_fn,
+                            ref_col      = exp_col,
+                            ref_lev      = ref_lev,
+                            id_var       = id_var,
+                            time_var     = time_var,
+                            random_slope = random_slope
+                        ),
+                        error = function(e) {
+                            .text_page(
+                                c(paste("Cook's D exclusion model failed:",
+                                        conditionMessage(e))),
+                                title = paste("Excl. Cook's D FAILED —", model_tag)
+                            )
+                            NULL
+                        }
+                    )
+                    if (!is.null(fit_excl)) {
+                        .text_page(
+                            c(paste("Excluded participants (top 1% Cook's D, imp 1):",
+                                    length(excl_ids)),
+                              paste("Remaining n:", length(unique(
+                                  mice::complete(mids_excl, 1)[[id_var]]))),
+                              "", deparse(fit_excl$formula)),
+                            title = paste("Formula —", excl_tag)
+                        )
+                        .results_page(fit_excl$pooled_tidy, title = excl_tag,
+                                      out_dir = NULL)
+                    }
+                }
+            }
+
+            # ── Sensitivity: exclude pts with dairy > 1000 g/day ------------
+            sens_tag  <- paste0("[Sensitivity: dairy ≤ 1000 g/day]  ", model_tag)
+            fit_s     <- NULL
+            mids_sens <- tryCatch(
+                .filter_mids_dairy_1000(mids_object, id_var,
+                                        dairy_col = "dairy_total_gday_cumavg"),
+                error = function(e) {
+                    .text_page(
+                        c(paste("Sensitivity filter failed:", conditionMessage(e))),
+                        title = paste("Sensitivity FAILED —", model_tag)
+                    )
+                    NULL
+                }
+            )
+
+            if (!is.null(mids_sens)) {
+                fit_s <- tryCatch(
+                    fit_pooled_lmm(
+                        mids_object  = mids_sens,
+                        formula      = formula,
+                        outcome      = outcome,
+                        resp_col     = resp_col,
+                        outcome_fn   = outcome_fn,
+                        ref_col      = exp_col,
+                        ref_lev      = ref_lev,
+                        id_var       = id_var,
+                        time_var     = time_var,
+                        random_slope = random_slope
+                    ),
+                    error = function(e) {
+                        .text_page(
+                            c(paste("Sensitivity model failed:", conditionMessage(e))),
+                            title = paste("Sensitivity FAILED —", model_tag)
+                        )
+                        NULL
+                    }
+                )
+
+                if (!is.null(fit_s)) {
+                    .text_page(
+                        c(deparse(fit_s$formula), "",
+                          paste("Imputations pooled:", fit_s$n_imp),
+                          paste("Participants in sensitivity sample:",
+                                length(unique(
+                                    mice::complete(mids_sens, 1)[[id_var]]
+                                ))),
+                          paste("Threshold: dairy_total_gday_cumavg ≤ 1000 g/day")),
+                        title = paste("Formula —", sens_tag)
+                    )
+                    .results_page(fit_s$pooled_tidy, title = sens_tag,
+                                  out_dir = out_dir)
+                }
+            }
+
+            # ── Assumption checks: main / excl Cook's D / dairy sensitivity --
             p_diag <- tryCatch(
                 .plot_diagnostics(fit$first_model,
-                                  label = paste0("[imp 1, ", model_tag, "]")),
+                                  label = paste0("Main model [imp 1]  ", model_tag)),
                 error = function(e) NULL
             )
             if (!is.null(p_diag)) print(p_diag)
+
+            if (!is.null(fit_excl)) {
+                p_excl <- tryCatch(
+                    .plot_diagnostics(fit_excl$first_model,
+                                      label = paste0("Excl. Cook's D [imp 1]  ", model_tag)),
+                    error = function(e) NULL
+                )
+                if (!is.null(p_excl)) print(p_excl)
+            }
+
+            if (!is.null(fit_s)) {
+                p_diag_s <- tryCatch(
+                    .plot_diagnostics(fit_s$first_model,
+                                      label = paste0("Dairy ≤ 1000 g/day [imp 1]  ", model_tag)),
+                    error = function(e) NULL
+                )
+                if (!is.null(p_diag_s)) print(p_diag_s)
+            }
         }
     }
 
