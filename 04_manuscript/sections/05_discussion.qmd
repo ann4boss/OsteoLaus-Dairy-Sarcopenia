@@ -2,6 +2,14 @@
 
 - acknowledge potential for residual confounding
 
+## Dataset matching
+
+T1/T2 CoLaus precedes OsteoLaus almost a year on average. T3 CoLaus half a year later than OsteoLaus
+
+- why problematic: ??
+
+- why not problematic: taking cumulative average of dairy intake represents long-term intake anyway rather than snapshot
+
 ## HGS
 
 - Q3 is sig higher HGS compare to Q1, but Q4 is not: it does not support a simple dose-response relationship.
@@ -19,3 +27,5 @@
   - Consistency with the continuous model The continuous model showed a positive association of 0.20 kg per 100 g/day increase in dairy intake (p = 0.01). Therefore, the overall evidence still points toward a positive association. The quartile analysis suggests that the association may not be perfectly linear across the full intake range.
 
 -\> Although the third quartile exhibited significantly higher handgrip strength compared with the lowest quartile, the highest quartile did not. This lack of a monotonic dose-response pattern may indicate a plateau effect at higher levels of dairy consumption or may reflect random variation, as confidence intervals for the quartile estimates overlapped substantially. Nevertheless, the positive association observed in the continuous analysis supports an overall beneficial relationship between dairy intake and handgrip strength.
+
+The strong positive association between educational attainment and handgrip strength may reflect socioeconomic differences in lifelong health behaviours, occupational exposures, healthcare access, and overall health status. Notably, physical activity and diabetes were not independently associated with handgrip strength in the fully adjusted model, suggesting that their effects may be partially mediated or explained by other covariates included in the model.

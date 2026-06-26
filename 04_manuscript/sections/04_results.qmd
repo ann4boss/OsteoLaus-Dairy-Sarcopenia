@@ -8,23 +8,21 @@ bibliography: references.bib
 
 ## Study population
 
-### Study population
-
-A total of $1\,475$ women participated in the OsteoLaus study between 2009 and 2022. After applying the general exclusion criteria, 317 participants were excluded: 1 had no match between OsteoLaus and CoLaus, 49 had missing examination dates, 42 had missing exposure data, 4 had missing covariate data, 7 reported implausible energy intakes (\<500 or \>3500 kcal/day), and 214 had fewer than two study visits. The remaining 1,158 participants formed the base analytical cohort (@fig-consort).
+A total of $1\,475$ women participated in the OsteoLaus study between 2010 and 2022. After applying the general exclusion criteria, 317 participants were excluded: 1 had no match between OsteoLaus and CoLaus visits as defined in Section XX <!--# insert -->, 49 had missing examination dates, 42 had missing exposure data, 4 had missing covariate data, 7 reported implausible energy intakes (\<500 or \>3500 kcal/day), and 214 had fewer than two study visits. The remaining $1\,158$ participants formed the base analytical cohort (@fig-consort).
 
 For the HGS analysis, 23 participants were excluded because they had fewer than two visits with complete outcome and covariate data, resulting in a final sample of $1\,135$ participants. For the ALMI analysis, 92 participants were excluded for the same reason, leaving $1\,066$ participants. For the gait speed analysis, 358 participants were excluded because complete gait speed data were available at fewer than two visits, resulting in a final sample of 800 participants.
 
 For the EWGSOP2 sarcopenia incidence analysis, 12 participants who were already sarcopenic at baseline and 23 participants with fewer than two visits with complete data were excluded, leaving $1\,123$ participants for analysis.
 
-Most participants included in the longitudinal analyses contributed data from all three available study visits. In the HGS analysis, 850 of $1\,135$ participants (74.9%) had data from all three visits, while 285 (25.1%) contributed data from two visits. Similarly, in the ALMI analysis, 812 of $1\,066$ participants (76.2%) had data from three visits and 254 (23.8%) from two visits. For the EWGSOP2 sarcopenia analysis, 843 of $1\,123$ participants (75.1%) contributed data from three visits and 280 (24.9%) from two visits. Gait speed was assessed at only two study visits; therefore, all 800 participants included in this analysis contributed data from both visits.
+Most participants included in the longitudinal analyses contributed data from all three available study visits. In the HGS analysis, 850 of $1\,135$ participants (74.9%) had data from all three visits, while 285 (25.1%) contributed data from two visits. Similarly, in the ALMI analysis, 812 of $1\,066$ participants (76.2%) had data from three visits and 254 (23.8%) from two visits. For the EWGSOP2 sarcopenia analysis, 843 of $1\,123$ participants (75.1%) contributed data from three visits and 280 (24.9%) from two visits. Gait speed was assessed at only two study visits. Therefore, all 800 participants included in this analysis contributed data from both visits.
 
-![](images/consort_flow-01.png){#fig-consort}
+![](images/consort_flow-01.png){#fig-consort fig-cap="Consort flow diagram showing participant enrolled, excluded and used in analysis." fig-alt="Flowchart with participants recruited, excluded and used in analysis." fig-align="left" width="80%"}
 
 ## Dataset matching
 
-Figure @fig-timepoint_dist shows the distribution of time differences between matched CoLaus and OsteoLaus examinations across study visits. For T1 and T2, CoLaus assessments generally preceded the corresponding OsteoLaus visits, with median differences of -316 days (IQR: -621 to -76) and -291 days (IQR: -588.5 to -5), respectively. In contrast, for T3, the temporal ordering was reversed, with CoLaus assessments typically occurring after OsteoLaus visits, showing a median difference of 176.5 days (IQR: -125 to 447.25). The transition between T2 and T3 reflects a marked shift in scheduling structure, with a median change in inter-visit timing of 467.5 days, indicating a substantial re-alignment of the relative timing between cohorts across waves.
+Figure @fig-timepoint shows the distribution of time differences between matched CoLaus and OsteoLaus examinations across study visits. For T1 and T2, CoLaus assessments generally preceded the corresponding OsteoLaus visits, with median differences of -316 days (IQR: -621 to -76) and -291 days (IQR: -588.5 to -5), respectively. In contrast, for T3, the temporal ordering was reversed, with CoLaus assessments typically occurring after OsteoLaus visits, showing a median difference of 176.5 days (IQR: -125 to 447.25). The transition between T2 and T3 reflects a marked shift in scheduling structure, with a median change in inter-visit timing of 467.5 days, indicating a substantial re-alignment of the relative timing between cohorts across waves. The forth time point has no distribution difference since it only was a OsteoLaus visit without matching CoLaus visit.
 
-![](images/mice_timing_violin.png){#fig-timepoint_dist fig-align="left"}
+![](images/mice_timing_violin.png){#fig-timepoint fig-cap="Time point alignment difference between CoLaus and OsteoLaus" fig-align="left"}
 
 Follow-up assessments were conducted at approximately 2.5-year intervals. Across the shared study population, the median time from baseline (T1) to the second assessment (T2) was 5.03 years (IQR: 4.96-5.14 years; range: 3.46-7.43 years). The median follow-up time from baseline to the third assessment (T3) was 7.57 years (IQR: 7.45-7.74 years; range: 5.95-8.79 years), while the median time from baseline to the fourth assessment (T4) was 10.15 years (IQR: 9.93-10.39 years; range: 8.21-12.50 years).
 
@@ -34,13 +32,13 @@ For analyses of grip strength, ALMI, and EWGSOP2 sarcopenia status, participants
 
 <!--# Prior to imputation, the proportion of missing data ranged from 0% for age to 35% for the FNIH sarcopenia definitions. Following multiple imputation, the proportion of missing values was reduced to a maximum of XX%. Detailed patterns of missingness across study time points are provided in Supplementary Table XX for the complete-case dataset and Supplementary Figure XX for the imputed dataset. Ten multiply imputed datasets were generated using chained equations. Visual inspection of diagnostic plots indicated generally good convergence of the imputation models and comparable distributions between observed and imputed values (Supplementary Figure XX), supporting the plausibility of the imputed values. Some deviations from ideal convergence were observed for the baseline variables left arm lean mass, right arm lean mass, left leg lean mass, and right leg lean mass. In particular, left leg lean mass showed less stable convergence across several time points, while right leg lean mass exhibited minor convergence issues at selected time points. However, no substantial differences between observed and imputed value distributions were evident, suggesting that the imputations remained reasonable overall. If you want to be slightly more cautious in a thesis, the last sentence could be: Nevertheless, these departures from ideal convergence were modest, and the overall diagnostic assessment did not indicate major concerns regarding the validity of the imputed datasets. -->
 
-## Characteristics of the study population
+## Characteristics of the study samples
 
 ### Baseline characteristics
 
 Baseline characteristics according to quartiles of total dairy intake are shown in <!--# Table XX -->. Among the $1\,158$ women included in the base analytical cohort before outcome specific exclusions are applied, $1\,119$ had available T1 dietary data and could be classified into dairy intake quartiles. The remaining 39 participants had missing T1 dietary information and were therefore not included in the quartile-based comparisons.
 
-Median total dairy intake increased from 69.9 g/day (IQR: 45.4 to 91.1) in the lowest quartile (Q1) to 428.8 g/day (IQR: 354.4 to 537.0) in the highest quartile (Q4), corresponding to approximately a six-fold difference in dairy consumption. Participants in higher dairy intake quartiles had higher total energy intake, with median energy intake increasing from 1,265 kcal/day in Q1 to 1,914 kcal/day in Q4.
+Median total dairy intake increased from 69.9 g/day (IQR: 45.4 to 91.1) in the lowest quartile (Q1) to 428.8 g/day (IQR: 354.4 to 537.0) in the highest quartile (Q4), corresponding to approximately a six-fold difference in dairy consumption. The dairy intake quartile cut offs were: <!--# add cut offs --> Participants in higher dairy intake quartiles had higher total energy intake, with median energy intake increasing from 1,265 kcal/day in Q1 to 1,914 kcal/day in Q4.
 
 Baseline age was similar across quartiles, with median age ranging from 62.8 to 63.8 years. BMI distribution was also comparable across groups, although the proportion of participants with obesity was slightly lower in the highest dairy intake quartile (12.4%) than in the lowest quartile (16.1%). Participants in Q4 were more likely to report high physical activity levels (32.5% vs. 27.5% in Q1) and less likely to report hypertension (35.8% vs. 43.6% in Q1). The prevalence of diabetes was low and similar across quartiles (5.3% to 7.3%).
 
@@ -88,63 +86,243 @@ Gait speed remained relatively stable throughout early older adulthood, with mea
 
 ALMI exhibited a more gradual age-related decline than the functional measures. Mean ALMI was approximately 6.6 kg/m² to 6.8 kg/m² in participants younger than 55 years and decreased steadily throughout adulthood. By age 70, mean ALMI had fallen to approximately 6.2 kg/m², representing a decline of about 0.5 kg/m² (8%) from age 50. Thereafter, ALMI remained relatively stable around 6.0 kg/m² to 6.2 kg/m², with greater variability at older ages due to smaller sample sizes. Compared with grip strength and gait speed, the decline in muscle mass appeared less pronounced, suggesting that age-related losses in muscle function exceeded losses in muscle quantity.
 
-All three outcomes demonstrated age-related deterioration, but the magnitude differed substantially. Grip strength showed the strongest decline, gait speed displayed moderate decline that accelerated after age 70, and ALMI showed only a modest gradual decrease. <!--# These trajectories are consistent with the concept that muscle function deteriorates more rapidly with age than muscle mass, particularly in later life. -->
-
-The prevalence of confirmed EWGSOP2 sarcopenia increased from 0.8% at T1 to 3.0% at the third visit and 3.4% (confirmed or severe sarcopenia combined) at the final visit. Similarly, FNIH-defined sarcopenia increased from 0.5% at T1 to 2.5% at later visits.
+All three outcomes demonstrated age-related deterioration, but the magnitude differed substantially. Grip strength showed the strongest decline, gait speed displayed moderate decline that accelerated after age 70, and ALMI showed only a modest gradual decrease. The prevalence of confirmed EWGSOP2 sarcopenia increased from 0.8% at T1 to 3.0% at the third visit and 3.4% (confirmed or severe sarcopenia combined) at the final visit. Similarly, FNIH-defined sarcopenia increased from 0.5% at T1 to 2.5% at later visits.
 
 ## Association between dairy intake and handgrip strength
 
-In the primary linear mixed effects model, cumulative average total dairy intake was positively associated with handgrip strength over follow-up. After adjustment for age at T1, BMI category, education, smoking status, physical activity, diabetes status, total energy intake, and time since baseline, each 100 g/day higher total dairy intake was associated with a 0.204 kg higher handgrip strength ($\beta$ = 0.204, 95% CI 0.050 to 0.358, p = 0.010) <!--# Tabel X --> .The association remained virtually unchanged when robust sandwich standard errors were applied ($\beta$ = 0.204, p = 0.012), indicating that the findings were robust to potential model misspecification.
+### Primary exposure cumulative average total dairy intake
 
-Handgrip strength declined significantly over time, with an estimated decrease of 0.139 kg per year ($\beta$ = -0.139, 95% CI -0.186 to -0.092, p \< 0.001). Older baseline age was also associated with lower handgrip strength ($\beta$ = -2.976, 95% CI -3.354 to -2.597, p \< 0.001).
+In the adjusted linear mixed-effects model, cumulative average total dairy intake was positively associated with handgrip strength over follow-up. Each 100 g/day higher intake was associated with a 0.204 kg higher handgrip strength ($\beta$ = 0.204, 95% CI 0.050 to 0.358, p = 0.010) (Table XX). Handgrip strength decreased over time ($\beta$ = -0.139 per year, 95% CI -0.186 to -0.092, p \< 0.001) and was lower in participants with higher baseline age ($\beta$ = -2.976, 95% CI -3.354 to -2.597, p \< 0.001). Higher educational attainment and overweight status were associated with higher handgrip strength, whereas underweight participants had lower values. No clear associations were observed for smoking status, physical activity, diabetes, or total energy intake (Table XX).
 
-Among the dairy subtypes, positive associations were observed for fermented dairy products ($\beta$ = 0.216 kg per 100 g/day, 95% CI 0.024 to 0.407, p = 0.027) and high-fat dairy products ($\beta$ = 0.215 kg per 100 g/day, 95% CI 0.036 to 0.394, p = 0.019). No statistically significant associations were found for non-fermented dairy ($\beta$ = 0.203 kg per 100 g/day, 95% CI -0.071 to 0.477, p = 0.146) or low-fat dairy products ($\beta$ = 0.191 kg per 100 g/day, 95% CI -0.122 to 0.504, p = 0.231).
+| Predictor                          | $\beta$   | 95% CI           | p-value   |
+|--------------------|------------------|------------------|------------------|
+| **Dairy intake** (per 100 g/day)   | **0.204** | **0.050, 0.358** | **0.010** |
+| **Time since baseline** (per year) | -0.139    | -0.186, -0.092   | \<0.001   |
+| **Age at baseline**                | -2.976    | -3.354, -2.597   | \<0.001   |
+| **BMI** (ref: Normal weight)       |           |                  |           |
+| Underweight                        | -1.716    | -3.237, -0.195   | 0.027     |
+| Overweight                         | 0.642     | 0.148, 1.135     | 0.011     |
+| Obese                              | 0.090     | -0.599, 0.780    | 0.797     |
+| **Education** (ref: Low)           |           |                  |           |
+| Medium (ISCED 3 to 4)              | 0.936     | 0.224, 1.647     | 0.010     |
+| High (ISCED 5 to 8)                | 1.747     | 0.776, 2.719     | \<0.001   |
+| **Smoking** (ref: Never)           |           |                  |           |
+| Former                             | 0.479     | -0.085, 1.043    | 0.096     |
+| Current                            | 0.626     | -0.146, 1.398    | 0.112     |
+| **Physical activity** (ref: Low)   |           |                  |           |
+| Medium                             | -0.325    | -0.962, 0.311    | 0.316     |
+| High                               | -0.050    | -0.776, 0.675    | 0.891     |
+| **Diabetes** (ref: No)             | -0.231    | -1.107, 0.645    | 0.605     |
+| **Total energy intake**            | 0.183     | -0.207, 0.573    | 0.356     |
 
-When dairy intake was analysed categorically, participants in the third quartile of baseline dairy intake had significantly greater handgrip strength than those in the lowest quartile (Q3 vs Q1: $\beta$ = 1.024 kg, 95% CI 0.390 to 1.659, p = 0.002). No significant differences were observed for participants in the second quartile (Q2 vs Q1: $\beta$ = 0.503 kg, 95% CI -0.071 to 1.078, p = 0.086) or the highest quartile (Q4 vs Q1: $\beta$ = 0.565 kg, 95% CI -0.144 to 1.273, p = 0.118). Similarly, adherence to dairy consumption guidelines (≥2 servings/day) was not associated with handgrip strength ($\beta$ = 0.015 kg, 95% CI -0.550 to 0.581, p = 0.958).
+: Adjusted linear mixed-effects model examining the association between cumulative average dairy intake and handgrip strength
 
-Several covariates were independently associated with handgrip strength. Compared with participants of normal weight, underweight individuals had lower handgrip strength ($\beta$ = -1.716 kg, 95% CI -3.237 to -0.195, p = 0.027), whereas overweight individuals had higher handgrip strength ($\beta$ = 0.642 kg, 95% CI 0.148 to 1.1435 p = 0.011). No significant difference was observed between participants with obesity and those with normal BMI ($\beta$ = 0.090 kg, 95% CI -0.599 to 0.780, p = 0.797).
+### Model assumptions analysis
 
-Educational attainment was positively associated with handgrip strength. Compared with participants with low educational attainment, those with medium education had 0.936 kg higher handgrip strength (95% CI 0.224 to 1.647, p = 0.010), while those with high education had 1.747 kg higher handgrip strength (95% CI 0.776 to 2.719, p \< 0.001). Smoking status, physical activity level, diabetes status, and total energy intake were not significantly associated with handgrip strength after adjustment for the other covariates.
+Model assumptions were assessed using diagnostic plots (Figure XX). The Q–Q plot indicated approximately normally distributed residuals, with only minor deviations in the tails. The scale-location plot suggested generally constant variance but showed a slight U-shaped pattern, indicating mild heteroskedasticity across the range of fitted values. The residuals versus fitted values plot revealed a systematic trend, with increasing residuals at higher fitted values and lower residuals at lower fitted values, suggesting remaining model misspecification.
 
-| Exposure                            | $\beta$ (kg) | 95% CI        | p-value |
-|-------------------------------------|--------------|---------------|---------|
-| Total dairy (per 100 g/day)         | 0.204        | 0.050, 0.358  | 0.010   |
-| Fermented dairy (per 100 g/day)     | 0.216        | 0.024, 0.407  | 0.027   |
-| Non-fermented dairy (per 100 g/day) | 0.203        | -0.071, 0.477 | 0.146   |
-| High-fat dairy (per 100 g/day)      | 0.215        | 0.036, 0.394  | 0.019   |
-| Low-fat dairy (per 100 g/day)       | 0.191        | -0.122, 0.504 | 0.231   |
+To evaluate robustness to these deviations, cluster-robust (sandwich) standard errors were applied. The estimated association between cumulative average dairy intake and handgrip strength remained unchanged ($\beta$ = 0.204, p = 0.012), indicating that statistical inference was robust to heteroskedasticity and mild model misspecification. However, residual diagnostics suggested some model misfit, so results should be interpreted as population-average associations rather than exact model-based effects.
 
-: Association between dairy intake and handgrip strength in linear mixed-effects models
+### Sensitivity analysis
 
-<!--# more Tables?? -->
+Sensitivity analyses demonstrated that the results were robust. Excluding participants with extreme dairy intake (\>1000 g/day; n = 5) did not materially alter the association between cumulative average dairy intake and handgrip strength ($\beta$ = 0.177, 95% CI 0.014 to 0.341, p = 0.034). Similarly, excluding the top 1% most influential observations identified using Cook’s distance (n = 31) produced comparable estimates, with a slightly larger effect estimate ($\beta$ = 0.239, 95% CI 0.086 to 0.392, p = 0.002), indicating that the observed association was not driven by extreme or influential observations and was robust to the exclusion of high-leverage data points.
 
-## Association Between Dairy Intake and Appendicular Lean Mass Index
+### Model fit and variance decomposition
 
-Table 4.
+The linear mixed-effects model showed substantial between-subject variability in handgrip strength. The variance of the random intercept for participant ID was 18.07 (SD = 4.25), and the variance of the random slope for time since baseline was 0.12 (SD = 0.35), with a negative correlation between intercept and slope (r = -0.39), indicating that participants with higher baseline grip strength tended to experience steeper declines over time. The residual variance was 12.56 (SD = 3.54).
 
-Same structure.
+The model explained a moderate proportion of the total variance, with a marginal R² (fixed effects only) of 0.164 and a conditional R² (fixed and random effects combined) of 0.639, indicating that most of the explained variance was attributable to individual-level heterogeneity captured by the random effects structure.
 
-Text:
+### Secondary exposures
 
-> Higher total dairy intake was associated with ALMI (β = X kg/m² per 100 g/day, 95% CI X to X).
+Among the dairy subtypes, positive associations were observed for fermented dairy products ($\beta$ = 0.216 kg per 100 g/day, 95% CI 0.024 to 0.407, p = 0.027) and high-fat dairy products ($\beta$ = 0.215 kg per 100 g/day, 95% CI 0.036 to 0.394, p = 0.019). No statistically significant associations were found for non-fermented dairy or low-fat dairy products (@HGS-sec).
 
-## Association Between Dairy Intake and Gait Speed
+When dairy intake was analysed categorically, participants in the third quartile of baseline dairy intake had significantly greater handgrip strength than those in the lowest quartile (Q3 vs Q1: $\beta$ = 1.024 kg, 95% CI 0.390 to 1.659, p = 0.002). No significant differences were observed for participants in the second quartile or the highest quartile (@HGS-sec). Similarly, adherence to dairy consumption guidelines (≥2 servings/day) was not associated with handgrip strength.
 
-Table 5.
+#tbl-HGS-sec
 
-Same structure.
+| **Exposure** | **Comparison** | $\beta$ | **95% CI** | **p-value** |
+|---------------|---------------|---------------|---------------|---------------|
+| **Continuous exposures** |  |  |  |  |
+| Fermented dairy | Per 100 g/day | 0.216 | 0.024, 0.407 | 0.027 |
+| Non-fermented dairy | Per 100 g/day | 0.203 | -0.071, 0.477 | 0.146 |
+| High-fat dairy | Per 100 g/day | 0.215 | 0.036, 0.394 | 0.019 |
+| Low-fat dairy | Per 100 g/day | 0.191 | -0.122, 0.504 | 0.231 |
+| **Categorical exposures** |  |  |  |  |
+| Dairy intake quartile | Q2 vs Q1 | 0.503 | -0.071, 1.078 | 0.086 |
+|  | Q3 vs Q1 | 1.024 | 0.390, 1.659 | 0.002 |
+|  | Q4 vs Q1 | 0.564 | -0.144, 1.273 | 0.118 |
+| Dairy guideline adherence | ≥2 vs \<2 servings/day | 0.015 | -0.550, 0.581 | 0.958 |
 
-Text:
+: Association between dairy consumption and body weight (kg).
 
-> No statistically significant association was observed between total dairy intake and gait speed.
+Table: Models are adjusted for age, sex, and total energy intake. CI, confidence interval.
 
-## Association Between Dairy Intake and Incident Sarcopenia
+## Association between dairy intake and appendicular lean mass index
+
+### Primary exposure cumulative average total dairy intake
+
+In the fully adjusted linear mixed-effects model, cumulative average total dairy intake was not associated with log-transformed ALMI. A 100 g/day higher intake corresponded to a negligible, non-significant difference in log ALMI ($\beta$ = 0.001 kg/m², p \> 0.05). ALMI showed a small but statistically significant decline over time ($\beta$ = -0.007 kg/m² per year, 95% CI -0.008 to -0.007, p \< 0.001) and was lower among participants with higher baseline age ($\beta$ = -0.022 kg/m² per one-year increase, 95% CI -0.030 to -0.014, p \< 0.001).
+
+Associations with covariates were statistically significant but small in magnitude. Compared with normal BMI, ALMI was lower in underweight participants and higher in overweight and obese participants, with only the obese group exceeding a 0.1 kg/m² difference. High education was associated with slightly lower ALMI , whereas medium education showed no association. Former smokers had marginally higher ALMI than never smokers, and higher physical activity was weakly associated with higher ALMI. No meaningful associations were observed for current smoking, diabetes, or total energy intake.
+
+| Predictor                          | $\beta$ | 95% CI           | p-value |
+|------------------------------------|---------|------------------|---------|
+| **Dairy intake** (per 100 g/day)   | 0.001   | (−0.001, 0.004)  | 0.340   |
+| **Time since baseline** (per year) | -0.007  | (-0.008, -0.007) | \<0.001 |
+| **Age at baseline**                | -0.022  | (-0.030, -0.014) | \<0.001 |
+| **BMI** (ref: Normal weight)       |         |                  |         |
+| Underweight                        | -0.055  | (-0.076, -0.035) | \<0.001 |
+| Overweight                         | 0.063   | (0.055, 0.070)   | \<0.001 |
+| Obese                              | 0.131   | (0.120, 0.142)   | \<0.001 |
+| **Education** (ref: Low)           |         |                  |         |
+| Medium (ISCED 3–4)                 | -0.006  | (-0.022, 0.009)  | 0.409   |
+| High (ISCED 5–8)                   | -0.020  | (-0.041, -0.000) | 0.047   |
+| **Smoking** (ref: Never)           |         |                  |         |
+| Former                             | 0.013   | (0.002, 0.025)   | 0.024   |
+| Current                            | 0.001   | (-0.013, 0.014)  | 0.929   |
+| **Physical activity** (ref: Low)   |         |                  |         |
+| Medium                             |         |                  |         |
+| High                               | 0.016   | (0.001, 0.032)   | 0.035   |
+| **Diabetes** (ref: No)             | 0.011   | (-0.001, 0.023)  | 0.084   |
+| **Total energy intake**            | -0.004  | (-0.009, 0.000)  | 0.063   |
+
+### Model assumptions analysis
+
+Visual inspection of mixed-model assumptions indicated that residuals were approximately normally distributed and that variance was broadly constant across fitted values (Figure XX). A mild deviation from homoscedasticity was observed at the lower range of fitted values. The residuals versus fitted values plot showed a systematic pattern similar to that observed for handgrip strength, suggesting remaining model misspecification. Application of cluster-robust (sandwich) standard errors confirmed the stability of the estimated association between dairy intake and ALMI ($\beta$ = 0.001, p = 0.334), with results remaining unchanged. Overall, results were robust to heteroscedasticity, although some caution is warranted in interpreting the model as fully correctly specified.
+
+### Sensitivity analysis
+
+Sensitivity analyses for ALMI showed that results were robust. Excluding participants with extreme dairy intake (\>1000 g/day; n = 5) did not materially change the association between cumulative average dairy intake and ALMI (\$\\beta\$ = 0.001, 95% CI -0.001 to 0.004, p = 0.322). Similarly, exclusion of influential observations identified by Cook’s distance (n = 27) yielded comparable estimates (\$\\beta\$ = 0.001, 95% CI -0.001 to 0.004, p = 0.308).
+
+### Model fit and variance decomposition
+
+The linear mixed-effects model for ALMI showed small within-subject residual variability ($\sigma^2$ = 0.00126; SD = 0.0356). Between-subject variability was more pronounced for baseline ALMI (random intercept variance = 0.00827; SD = 0.091), indicating meaningful differences in ALMI levels between individuals.
+
+In contrast, variability in ALMI change over time was extremely small (random slope variance = 2.95 × 10⁻⁵; SD = 0.0054), indicating that participants showed very similar, nearly parallel trajectories over time with minimal differences in individual rates of change. The intercept and slope were weakly negatively correlated (r = −0.149), suggesting only a slight tendency for individuals with higher baseline ALMI to decline marginally faster.
+
+Model fit statistics indicated that fixed effects explained 25.1% of the variance (marginal R² = 0.251), while inclusion of random effects increased explained variance to 90.3% (conditional R² = 0.903), showing that most variability in ALMI was driven by stable between-person differences rather than differences in longitudinal change.
+
+### Secondary exposures
+
+No statistically significant associations were observed between dairy intake and ALMI, regardless of exposure specification. Continuous analyses showed effect estimates close to zero for fermented, non-fermented, high-fat, and low-fat dairy intake, with all confidence intervals including the null. Similarly, no clear dose–response pattern was observed across quartiles of total dairy intake, although estimates were slightly higher in higher quartiles without statistical significance. Dairy guideline adherence (≥2 servings/day) was also not associated with ALMI. Overall, findings were consistent across exposure definitions and did not support an association between dairy intake and ALMI.
+
+| Exposure | Comparison | $\beta$ | 95% CI | p-value |
+|----|----|----|----|----|
+| **Continuous exposures** |  |  |  |  |
+| Fermented dairy | Per 100 g/day | 0.001 | -0.002, 0.004 | 0.594 |
+| Non-fermented dairy | Per 100 g/day | 0.003 | -0.002, 0.008 | 0.263 |
+| High-fat dairy | Per 100 g/day | 0.001 | -0.002, 0.004 | 0.691 |
+| Low-fat dairy | Per 100 g/day | 0.002 | -0.003, 0.007 | 0.364 |
+| **Categorical exposures** |  |  |  |  |
+| Dairy intake quartile | Q2 vs Q1 | 0.002 | -0.006, 0.010 | 0.591 |
+| Dairy intake quartile | Q3 vs Q1 | 0.006 | -0.004, 0.015 | 0.234 |
+| Dairy intake quartile | Q4 vs Q1 | 0.008 | -0.003, 0.019 | 0.134 |
+| Dairy guideline adherence | ≥2 vs \<2 servings/day | 0.006 | -0.001, 0.012 | 0.098 |
+
+: Adjusted linear mixed-effects models examining the association between dairy intake and ALMI (kg/m², log-transformed)
+
+## Association between dairy intake and gait speed
+
+### Primary exposure cumulative average total dairy intake
+
+For gait speed, lagged cumulative average total dairy intake showed no association in the fully adjusted linear mixed model. A 100 g/day higher dairy intake was associated with a non-significant difference of 0.001 m/s in gait speed (95% CI -0.005 to 0.007, p = 0.748).
+
+Older baseline age was strongly associated with slower gait speed ($\beta$ = -0.122 m/s per SD increase, 95% CI -0.138 to -0.105, p \< 0.001). Compared with normal BMI, overweight and obesity were associated with lower gait speed ($\beta$ = -0.062 and -0.119 m/s, both p \< 0.001). Higher educational attainment was associated with faster gait speed ($\beta$ = 0.058 m/s, 95% CI 0.017 to 0.099, p = 0.006), whereas diabetes was associated with lower gait speed ($\beta$ = -0.076 m/s, 95% CI -0.119 to -0.034, p \< 0.001). Other covariates, including time since baseline, smoking, and physical activity, were not significantly associated.
+
+| Predictor                        | $\beta$ | 95% CI           | p-value |
+|----------------------------------|---------|------------------|---------|
+| **Primary exposure**             |         |                  |         |
+| Dairy intake (per 100 g/day)     | 0.001   | (-0.005, 0.007)  | 0.748   |
+| **Time-related variables**       |         |                  |         |
+| Time since baseline (per year)   | -0.003  | (-0.008, 0.001)  | 0.176   |
+| Age at baseline                  | -0.122  | (-0.138, -0.105) | \<0.001 |
+| **BMI** (ref: normal weight)     |         |                  |         |
+| Underweight                      | -0.015  | (-0.078, 0.048)  | 0.639   |
+| Overweight                       | -0.062  | (-0.084, -0.041) | \<0.001 |
+| Obese                            | -0.119  | (-0.150, -0.089) | \<0.001 |
+| **Education** (ref: low)         |         |                  |         |
+| Medium (ISCED 3–4)               | 0.029   | (-0.004, 0.061)  | 0.082   |
+| High (ISCED 5–8)                 | 0.058   | (0.017, 0.099)   | 0.006   |
+| **Smoking** (ref: never)         |         |                  |         |
+| Former                           | 0.004   | (-0.019, 0.027)  | 0.732   |
+| Current                          | -0.031  | (-0.064, 0.003)  | 0.072   |
+| **Physical activity** (ref: low) |         |                  |         |
+| Medium                           | 0.007   | (-0.022, 0.036)  | 0.637   |
+| High                             | 0.017   | (-0.013, 0.048)  | 0.272   |
+| **Diabetes** (ref: no)           |         |                  |         |
+| Diabetes                         | -0.076  | (-0.119, -0.034) | \<0.001 |
+
+: Adjusted linear mixed-effects model examining the association between cumulative average dairy intake and gait speed
+
+### Model assumptions analysis
+
+Model diagnostics for gait speed indicated approximately normally distributed residuals and near-constant variance across fitted values (Figure XX), with a mild deviation at lower fitted values. The residuals versus fitted values plot showed a pattern consistent with that observed for handgrip strength and ALMI, suggesting some model misspecification. Cluster-robust standard errors confirmed the stability of the dairy intake association with gait speed ($\beta$ = 0.001, p = 0.778), with no change in inference. Overall, results were robust to heteroscedasticity, although some residual model misfit remains.
+
+### Sensitivity analysis
+
+Sensitivity analyses for gait speed showed that results were robust. Excluding participants with extreme dairy intake (\>1000 g/day; n = 2) did not materially change the association between cumulative average dairy intake and ALMI ($\beta$ = 0.003, 95% CI -0.004 to 0.010, p = 0.349). Similarly, exclusion of influential observations identified by Cook’s distance (n = 14) yielded comparable estimates ($\beta$ = 0.001, 95% CI -0.005 to 0.007, p = 0.731).
+
+### Model fit and variance decomposition
+
+The linear mixed-effects model showed moderate explanatory power of the fixed effects, with a marginal R² of 0.247. Including random effects substantially improved model fit, yielding a conditional R² of 0.655. This indicates that between-individual variability contributed meaningfully to the outcome structure. The estimated variance of the random intercept was 0.0167 (SD = 0.129), while the residual variance was 0.0142 (SD = 0.119), suggesting that both within- and between-subject variability were of similar magnitude, with a slightly larger contribution from subject-level differences after accounting for covariates.
+
+### Secondary exposures
+
+No significant associations were observed for any dairy subtype.All dairy intake exposure types showed a positive but non-significant association with gait speed.
+
+| Exposure | Comparison | $\beta$ | 95% CI | p-value |
+|----|----|----|----|----|
+| **Continuous exposures** |  |  |  |  |
+| Fermented dairy | Per 100 g/day | 0.001 | -0.002, 0.004 | 0.594 |
+| Non-fermented dairy | Per 100 g/day | 0.003 | -0.002, 0.008 | 0.263 |
+| High-fat dairy | Per 100 g/day | 0.001 | -0.002, 0.004 | 0.691 |
+| Low-fat dairy | Per 100 g/day | 0.002 | -0.003, 0.007 | 0.364 |
+| **Categorical exposures** |  |  |  |  |
+| Dairy intake quartile | Q2 vs Q1 | 0.012 | -0.015, 0.039 | 0.374 |
+| Dairy intake quartile | Q3 vs Q1 | 0.012 | -0.017, 0.041 | 0.418 |
+| Dairy intake quartile | Q4 vs Q1 | 0.007 | -0.024, 0.038 | 0.642 |
+| Dairy guideline adherence | ≥2 vs \<2 servings/day | 0.006 | -0.023, 0.035 | 0.667 |
+
+## Association between dairy intake and incident sarcopenia
+
+- **Number of Events:** Report the total number of patients and, crucially, the **total number of events** (e.g., deaths). *A rule of thumb is 10-20 events per predictor variable; reporting this allows readers to judge overfitting.*
+
+- **Univariable vs. Multivariable:** It is standard to present a table showing **both** univariable (crude) and multivariable (adjusted) hazard ratios. If you only show multivariable, justify why.
+
+- **The Effect Estimates:** For each covariate, report:
+
+  - **Hazard Ratio (HR)**
+
+  - **95% Confidence Interval (CI)** for the HR
+
+  - **P-value** (exact p-value, not just `<0.05`; use `<0.001` for very small values).
+
+**Model Performance (Optional but highly recommended):**
+
+- **Discrimination:** Report the **C-index (Harrell's Concordance Index)** to show how well the model separates high-risk from low-risk patients.
+
+- **Calibration:** If possible, report a calibration plot (observed vs. predicted survival at a specific time point, e.g., 5-years) to show accuracy.
+
+- **R-squared:** Report the explained variation (e.g., Nagelkerke's pseudo R²) if space allows.
+
+<!-- -->
+
+- **Kaplan-Meier Curves:** Show survival stratified by your **primary predictor** (e.g., Treatment A vs. B, or High-risk vs. Low-risk groups).
+
+  - *Crucial:* Always include the **number at risk** below the x-axis at relevant time intervals.
+
+  - If you have a continuous predictor, show survival for quartiles or use a restricted cubic spline plot to visualize the relationship.
+
+You **must** report that the PH assumption was tested.
+
+- State: "The proportional hazards assumption was assessed using Schoenfeld residuals and was not violated (global p = X.XX)."
+
+- **If violated:** Report it immediately. State that you used a **time-varying coefficient** (interaction with time) or stratified the model by that variable, and report the adjusted results.
 
 ### Incidence
 
-Example:
-
-> During X person-years of follow-up, N participants developed incident sarcopenia according to EWGSOP2 criteria.
+During X person-years of follow-up, N participants developed incident sarcopenia according to EWGSOP2 criteria. This lead
 
 Include:
 
@@ -177,51 +355,13 @@ Figure:
 
 censoring is most likeley non-informative due to the end of study and event has not occured yet. However some (how many? do not have T3) participants dropped out before last follow up visit and for these participants it could still be informative censoring
 
-## Sensitivity Analyses
-
-### Adherence to Swiss Dairy Recommendations
-
-Text:
-
-> Participants meeting national dairy intake recommendations had a \[lower/higher/similar\] risk of sarcopenia compared with non-adherent participants.
-
-Table S2.
-
 ### Alternative Sarcopenia Definition (FNIH)
 
 Text:
 
 > Associations were consistent when sarcopenia was defined according to FNIH criteria.
 
-Table S3.
-
-------------------------------------------------------------------------
-
-### Alternative Muscle Mass Metrics - ALM/BMI
-
-Text:
-
-> Results remained materially unchanged when alternative muscle mass indices were used.
-
-Table S4-S5.
-
-## Model Diagnostics
-
-### Linear Mixed Models
-
-Report:
-
-- Random intercept/slope structure
-
-- Residual assessment
-
-Example:
-
-> Visual inspection of residual and Q-Q plots indicated no major departures from model assumptions.
-
-explain issues
-
-### Cox Models
+### Model DiagnosticsCox Models
 
 Report:
 
@@ -234,39 +374,3 @@ Report:
 Example:
 
 > No substantial violations of the proportional hazards assumption were detected (global Schoenfeld test p = X). Variance inflation factors were below X for all covariates.
-
-# STROBE Tables/Figures Checklist
-
-**Main manuscript**
-
-- Figure 1: Participant flow diagram
-
-- Figure 2: Outcome trajectories over time
-
-- Figure 3: Kaplan-Meier curves
-
-- Table 1: Baseline characteristics by dairy quartile
-
-- Table 2: Exposure and outcome distributions over time
-
-- Table 3: HGS models
-
-- Table 4: ALMI models
-
-- Table 5: Gait speed models
-
-- Table 6: Cox models for sarcopenia
-
-**Supplement**
-
-- Missing data table
-
-- Imputation diagnostics
-
-- Sensitivity analyses
-
-- Alternative sarcopenia definitions
-
-- Alternative ALM metrics
-
-- Full regression outputs

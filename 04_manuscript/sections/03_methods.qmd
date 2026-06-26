@@ -326,6 +326,8 @@ The models included fixed effects for the exposure, time (visit), and selected c
 
 For multiple imputed data, models were fitted within each imputed dataset and pooled using Rubin’s rules via the mice package. <!--# source --> Fixed-effect estimates were extracted using standard mixed-model summary procedures and reported as regression coefficients with 95% confidence intervals.
 
+<!--# We report clubSandwich CR2 robust standard errors as our primary inference, as they are robust to heteroscedasticity and misspecification of the random effects. Standard LMM SEs are provided for comparison in the appendix. -->
+
 ### **Cox proportional hazards model**
 
 Cox proportional hazards regression models were used to examine the association between dairy intake and incident sarcopenia. The package survival (version 3.8.3) was used [@therneau2026]. Sarcopenia was defined according to either the EWGSOP2 [@cruz-jentoft2019] or FNIH criteria [@studenski2014] and analyzed as a binary outcome. Participants were followed from baseline until the first occurrence of sarcopenia or until their last available follow-up visit, whichever occurred first.
