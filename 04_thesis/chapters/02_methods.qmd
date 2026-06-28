@@ -1,0 +1,230 @@
+# Methods {#sec-methods}
+
+## Study design and population
+
+I analyzed longitudinal data from the CoLaus\textbar{}PsyCoLaus cohort and its nested sub-study, OsteoLaus. CoLaus is a population-based cohort of men and women aged 35 to 75 years at baseline living in Lausanne, Switzerland, recruited between June 2003 and May 2006 at a single study center. <!--# add information to study center --> Follow-up assessments of the CoLaus cohort were conducted at four intervals, i.e., 2009-2013, 2014-2018, 2018-2021, and 2022-2026. OsteoLaus is a sub-cohort nested within CoLaus, comprising women who participated in the CoLaus baseline examination and were invited to an additional study focused on bone health. The OsteoLaus study included $1\,475$ women aged 50 to 80 years at baseline [@shevroja2019].
+
+Eligibility criteria for the OsteoLaus study included written informed consent, body mass index (BMI) between 15 and 40 kg/m², and availability of dual-energy X-ray absorptiometry (DXA) data (obtained in vertebrae and femur) <!--# I am not sure if this is correct like this! old version: and availability of relevant skeletal measurement sites (vertebrae and femur) -->. In addition, ultrasound bone density measurements in the heel and information on previous osteoporotic fractures had to be available. Women with known diseases affecting bone metabolism or skeletal sites were excluded.
+
+Data were collected approximately every 2.5 years at five visits: baseline (2010-2012, n = $1\,475$), second visit (2012-2015, n = $1\,349$), third visit (2015-2018, n = $1\,242$), fourth visit (2017-2020, n = $1\,104$), and fifth visit (2020-2022, n = 944). Loss to follow-up of participants were mainly due to, death, institutionalisation, refusal to participate, BMI above 40 kg/m², or severe psychiatric disease [@vendrami2025a].
+
+Further details on recruitment and methodology for CoLaus and OsteoLaus were described by Firmann et al. [@firmann2008] and Shevroja et al. [@shevroja2019], respectively. Additional study information is available at the CoLaus\textbar{}PsyCoLaus [website](https://www.colaus-psycolaus.ch/). @fig-timeline shows the study population sizes, visit time intervals, and the variables collected at each visit.
+
+<!--# Figure 1 insert -->
+
+## Dataset matching {#sec-matching}
+
+Visits from the CoLaus and OsteoLaus cohorts were aligned using a predefined visit-matching scheme, with OsteoLaus serving as the backbone dataset. OsteoLaus baseline was paired with CoLaus follow-up 1 (F1), OsteoLaus visit 3 (V3) with CoLaus follow-up 2 (F2), and OsteoLaus visit 4 (V4) with CoLaus follow-up 3 (F3), corresponding to study time points T1, T2, and T3, respectively (@fig-timeline). OsteoLaus visit 2 (V2) was excluded because it had no corresponding CoLaus assessment and was not part of the longitudinal analysis framework. Similarly, the baseline visit of CoLaus was excluded. OsteoLaus visit 5 (V5) was retained as an OsteoLaus-only assessment and defined as time point T4 to retain two time points for gait speed. For variables available in both cohorts, the OsteoLaus value was preferentially retained, with the corresponding CoLaus value used only when the OsteoLaus value was missing. Variables collected exclusively at CoLaus visits, such as dairy intake, were retained unchanged. The final dataset included the time difference between the matched CoLaus and OsteoLaus examination dates for each study time point.
+
+## Exposure
+
+### Dietary assessment
+
+Dietary intake, including dairy consumption, was assessed in the CoLaus study from the first follow-up visit onwards using a self-administered semi-quantitative food frequency questionnaire (FFQ). The FFQ was developed and validated in Geneva and includes 97 food items covering intake over the previous 4 weeks [@bernstein1995; @marques-vidal2018]. Participants reported consumption frequency and portion size for each item. Portion sizes were defined as seen in @tbl-ffq for dairy products. Daily intake (g/day or mL/day) was calculated by combining frequency and portion size information. Energy and nutrient values were derived using the French CIQUAL food composition database [@ciqual].
+
+| FFQ number | Food item                   | Unit | Portion size (S / E / L) |
+|------------|-----------------------------|------|--------------------------|
+| 1          | Plain yogurt                | g    | 90 / 180 / 270           |
+| 2          | Low-fat yogurt              | g    | 90 / 180 / 270           |
+| 3          | Fruit/aroma yogurt          | g    | 90 / 180 / 270           |
+| 4          | Cottage cheese (0% fat)     | g    | 60 / 125 / 200           |
+| 5          | Cottage cheese, ricotta     | g    | 50 / 100 / 150           |
+| 6          | Feta, mozzarella            | g    | 20 / 40 / 60             |
+| 7          | Gruyère, tomme, camembert   | g    | 30 / 60 / 90             |
+| 8          | Cheese fondue               | g    | 175 / 350 / 525          |
+| 52         | Butter                      | g    | 4 / 7 / 10               |
+| 53         | Cream (35% fat)             | g    | 8 / 15 / 23              |
+| 63         | Cream tart, cream cake      | g    | 50 / 100 / 150           |
+| 68         | Ice cream, sorbet           | g    | 50 / 100 / 150           |
+| 71         | Butter (for cooking)        | g    | 4 / 7 / 10               |
+| 82         | Milk in coffee (0% fat)     | mL   | 15 / 30 / 45             |
+| 83         | Milk in coffee (non 0% fat) | mL   | 15 / 30 / 45             |
+| 84         | Coffee creamer              | mL   | 6 / 12 / 18              |
+| 85         | Milk as drink (0% fat)      | mL   | 75 / 150 / 225           |
+| 86         | Milk as drink (non 0% fat)  | mL   | 75 / 150 / 225           |
+
+: Food Frequency Questionnaire (FFQ) items and portion sizes for women.
+
+FFQ = food frequency questionnaire; S = small, E = medium, L = large portion. Portion sizes provided by <!--# give source -->.
+
+### Total dairy intake
+
+Total dairy intake was defined as the sum of milk, cheese, yogurt, cream, butter, and dairy-based desserts consumed per day. Intake was expressed in g/day, assuming a density of 1 g/mL for liquid dairy products to allow
+
+zation across units. Ice cream (FFQ68) was reported together with sorbet. The entire amount of FFQ68 reported was assumed to represent a dairy-based product and was included in total dairy intake.
+
+### Dairy subtypes
+
+Dairy subtypes were derived by summing predefined FFQ items. Fermented dairy products included yogurt and cheese. Non-fermented dairy products included milk, cream, and ice cream. Full-fat dairy products comprised full-fat milk, yogurt, cheese, cream, butter, and ice cream, while low-fat dairy products included skimmed milk, low-fat yogurt, and reduced-fat cheese. Detailed FFQ item mappings are provided in the Supplementary Material. <!--# Table S1 remember to include this -->
+
+### Adherence to dietary guidelines
+
+Adherence to Swiss Society for Nutrition recommendations <!--# of which year? --> for dairy intake was classified as meeting or not meeting recommended intake levels [@dairyguid]. Intake was calculated using weighted frequency scores based on portion size (0.5 for smaller, 1.0 for equal, 1.5 for larger portions) for selected dairy items contributing substantially to total intake (FFQ1 to FFQ8, FFQ85 and FFQ86).
+
+### Exposure modelling
+
+Total dairy intake was the primary exposure and was modeled both as a continuous variable and in quartiles. Quartile cut-offs were derived from the distribution at the first follow-up visit and applied to all subsequent visits. Secondary analyses explored dairy subtypes, modeled exclusively as continuous variables.
+
+For longitudinal outcomes (handgrip strength and ALMI), I used the cumulative average of total dairy intake, calculated as the mean of all available previous intakes up to each visit. For gait speed, I utilized a lagged cumulative average (mean of previous intakes, excluding the most recent visit) to account for the absence of dairy data at the T4 time point. For sarcopenia incidence, the Cox proportional hazards model incorporated both continuous and quartile-based intake measures. Sensitivity analyses were conducted to test the robustness of our findings, including the assessment of adherence to dietary guidelines and the use of quartiles in mixed linear models.
+
+## Covariates
+
+### Covariate selection
+
+Covariates were selected based on prior evidence of direct or indirect associations with muscle mass, muscle strength, physical function, sarcopenia, and dairy intake. A directed acyclic graph (DAG) was used to represent the assumed relationships between variables (Supplementary Figure XX <!--# add to supplements -->). The DAG guided the selection of a minimal sufficient adjustment set to control for confounding. Variables that did not contribute to blocking confounding paths, as well as potential mediators, colliders, or redundant variables, were not included in the final models.
+
+### Dietary assessment
+
+Total energy intake was assessed as a covariate to account for overall dietary quantity, since individuals with higher energy intake tend to consume more of all food groups, including dairy products. Adjusting for total energy intake helps separate the association of dairy intake from overall food consumption and reduces confounding due to differences in dietary energy intake between participants. Total energy intake was calculated as the sum of all FFQ items (all 97 food items), using energy values derived from the French CIQUAL food composition table [@ciqual].
+
+### Sociodemographic factors
+
+Sociodemographic factors are associated with dietary patterns and lifestyle. Therefore, these factors are also associated with health outcome. The sociodemographic variables were self-reported. I included the following variables:
+
+- Age of each participant was derived at each visit using the birth date and examination date.
+
+- Educational level was defined as the highest level of education completed at the time of recruitment. It was grouped into three categories based on the International Standard Classification of Education (ISCED): low (ISCED 0-2), medium (ISCED 3), and high (ISCED 4-8) [@ISCED].
+
+- Marital status was recorded during the CoLaus visits and included the category 'living alone' and 'living in a partnership'.
+
+The following sociodemographic variables were not included as confounding factor:
+
+- Sex and geographical location were not used since the entire cohort consisted of females living in Lausanne, Switzerland.
+
+- Ethnicity was not included since most participants (\> 98%) were Caucasian.
+
+- Income and occupation were not included because the data were not available. <!--# But would they have been in the confounding pathway? CHECK -->
+
+### Anthropometric factors
+
+Higher BMI is often linked to higher energy intake and to lower muscle function. Thus, BMI was considered as covariate. Height and weight were measured using standardized protocols with a portable stadiometer (Seca 216) and electronic scale (Seca Clara 803), respectively. Measurements were taken with participants barefoot and in light clothing, with precision of 0.1 cm and 0.1 kg, respectively. BMI was calculated as weight divided by height squared (kg/m²) and categorized according to WHO definitions: underweight (\< 18.5 kg/m²), normal weight (18.5–24.9 kg/m²), overweight (25.0–29.9 kg/m²), and obese ($\geq$ 30.0 kg/m²).
+
+### Lifestyle
+
+Smoking may indirectly affect muscle mass through lower levels of physical activity [@degens2015]. It may also directly contribute to the loss of muscle mass by reducing protein synthesis and increasing muscle breakdown through metabolic pathway changes. Thus, the smoking status of the participant was included as covariate. Smoking history of participants was collected through self-report. Participants were grouped into three categories:
+
+- Current smokers: those who were actively smoking at the time of the study, regardless of how much they smoked
+- Former smokers: those who had smoked in the past but had quit before the study, regardless of how long ago they had quit
+- Never smokers: those who had never smoked
+
+Smoking status was recorded at each CoLaus study visit. Some reported changes were not realistic, for example, switching from never smoker to former or current smoker, or from former or current smoker to never smoker. In these cases, the “never smoker” status was changed to “former smoker”, assuming that participants had answered based on their current situation rather than their lifetime history.
+
+Alcohol consumption is not consistently linked to lower grip strength or appendicular lean mass. However, some evidence suggests that higher intake of alcohol may be associated with lower muscle mass in a dose-dependent manner [@skinner2023; @cui2019]. Alcohol comsumtion was therefore included as a covariate.
+
+Alcohol consumption was assessed using two self-reported questionnaires. The method used in the main analysis asked participants how many alcoholic drinks they had consumed in the previous 7 days measured in units/week and was used for the main analysis. The second method asked about the number of glasses of wine, bottles of beer, or shots of spirits consumed in the past month measured in gram ethanol/day and was used for sensitivity analyses.
+
+Based on these responses, the number of units consumed per week was calculated. According to Swiss national guidelines, one standard drink was defined as one glass of wine, one bottle of beer, or one shot of spirits, each containing about 10 g to 12 g of pure ethanol [@standardglas]. The alcohol intake in g/day was converted into units per week using 10 g of ethanol per unit. Participants were then grouped into four categories based on their total weekly alcohol intake:
+
+- Non-drinkers: 0 units/week (0 g/day), which included both lifetime and current abstainers.
+- Light drinkers: $\geq$ 1 to 3 units/week (\> 0–6 g/day), representing occasional consumption.
+- Moderate drinkers: $\geq$ 4 to 7 units/week (\> 6–12 g/day), representing frequent consumption within the Swiss low-risk limit for women.
+- Heavy drinkers: \> 7 units/week (\> 12 g/day), categorized as hazardous consumption exceeding the Swiss national guidelines for women.
+
+Physical activity (PA) was considered as a covariate because it strongly correlates with muscle function outcomes in older adults. Systematic reviews and longitudinal studies consistently show that higher levels of physical activity are associated with better muscle strength, power, and functional performance in older populations [@ramsey2021; @ward-ritacco2022].
+
+PA was measured using a Physical Activity Frequency Questionnaire (PAFQ) developed in 1998 for the Geneva population and containing 70 types of physical activity [@bernstein1998]. The questionnaire recorded how many days during the past week (0-7 days) each activity was performed and the duration per day (0-10 h in 15 min increments) [@verhoog2019]. Each activity was classified according to its metabolic equivalent of task (MET) value as sedentary behaviour (\< 2 METs), light physical activity (2 to \< 3 METs), moderate physical activity (3-6 METs), or vigorous physical activity (\> 6 METs).
+
+This assessment was only available at the first and second follow-up visits of the CoLaus study. A previous study in a subpopulation of CoLaus showed moderate correlation between physical activity measured with the PAFQ and accelerometer-based measurements [@verhoog2019]. Self-reported questionnaires tend to overestimate physical activity and underestimate sedentary behaviour. Therefore, physical activity was analyzed as tertiles representing low, moderate, and high activity levels rather than as a continuous variable. Tertiles were used because no established reference values were available.
+
+The tertiles were defined using the combined amount of moderate and vigorous physical activity reported at the first follow-up visit and were subsequently applied to all time points. Only moderate and vigorous physical activity levels were used because these measures showed the smallest difference compared with accelerometer-based assessments [@verhoog2019].
+
+### Clinical variables
+
+Type 2 diabetes was assessed as a covariate because previous studies have shown a bidirectional relationship between diabetes and sarcopenia. Diabetes may contribute to reduced muscle mass and function through insulin resistance, chronic inflammation, oxidative stress, and altered protein metabolism, while low muscle mass may also worsen glucose metabolism and increase diabetes risk [@chen2023].
+
+Diabetes status was assessed using three sources recorded during CoLaus visits: self-report, fasting plasma glucose (FPG), and glycated haemoglobin (HbA1c). Self-report was based on the question “Have you ever been told that you had diabetes?”. Among the objective measures, HbA1c was considered the primary indicator due to its higher reliability and was used whenever available. If HbA1c was missing, FPG was used. If neither biomarker was available, diabetes status was based on self-report. Description of the sample collection procedure can be found elsewhere [@ducraux2021].
+
+Hormonal replacement therapy (HRT) status was assessed for a potential covariate because previous research shows mixed but biologically plausible effects on muscle strength, mass, and function in postmenopausal women [@xu2020]. Given the variability in HRT use among participants, controlling for this factor helps ensure that the observed associations are not influenced by hormonal differences. <!--# possibly rephrase after introduction writing -->
+
+HRT use was assessed using self-reported questionnaire data. Participants were asked whether they were currently using HRT and at what age HRT was started. Based on these responses, HRT status was classified into three categories: current HRT use, past HRT use, and never or not current HRT use. Participants who answered “Yes” to current HRT use were classified as current users. Participants who answered “No” but provided a valid age at HRT initiation were classified as past users. Participants who answered “No” and had no indication of previous HRT use were classified as never or not current users. HRT status was set to missing when no information on current HRT use was available.
+
+Hypertension was considered as a covariant because of the established association between hypertension and reduced muscle mass [@han2020]. Hypertension status was derived using a hierarchical approach based on three sources of information: measured hypertension, documented antihypertensive treatment, and self-reported antihypertensive medication use. Measured hypertension was defined as systolic blood pressure $\geq$ 140 mmHg and/or diastolic blood pressure $\geq$ 90 mmHg and was considered the primary source. Participants were classified as having hypertension if hypertension was measured. If measured hypertension data were missing, documented antihypertensive treatment was used. If both measured hypertension and documented treatment data were unavailable, self-reported antihypertensive medication use was considered. Participants were classified as not having hypertension if at least one data source was available and none indicated hypertension. Hypertension status was set to missing if all three sources were unavailable.
+
+Cardiovascular disease (CVD) is associated with reduced muscle mass and function via multiple mechanisms, including reduced physical activity due to symptoms such as fatigue and dyspnoea, impaired muscle perfusion and oxygen delivery, systemic inflammation, and shared metabolic risk factors such as insulin resistance and age-related pathways.
+
+CVD event status was derived as a composite binary variable (any CVD event: yes/no) based on 13 self-reported and clinically reported cardiovascular conditions, including myocardial infarction, stroke, heart failure, coronary artery disease, angina, cardiomyopathy, cardiac surgery, heart valve surgery, treated arrhythmia, peripheral vascular surgery, cardiac catheterisation, coronary artery bypass graft, and percutaneous coronary intervention.
+
+Participants were classified as having a CVD event if at least one of the component conditions was reported as “Yes”. Participants were classified as having no CVD event if at least one component was available, and all reported conditions were “No”. Data were classified as missing if no information was available across all component variables. CVD status was available only at baseline.
+
+### Medication and supplement use
+
+The use of prescribed medication and supplements was assessed by self-report during CoLaus visits. Each drug type was labelled in line with the Anatomical Therapeutic Chemical (ATC) classification. Some drugs have beneficial effects on muscle mass and muscle function, whereas others negatively impact muscle-related outcomes.
+
+Lipid-lowering medications have been linked to muscle-related adverse effects in clinical reports [@shin2026]. However, evidence for an association with reduced muscle mass or impaired muscle function remains inconsistent, with some studies reporting negative associations [@shin2026] and others finding no effect [@fazel2026]. Lipid-lowering drugs were defined as all medications classified under ATC code C10.
+
+Use of systemic corticosteroids and benzodiazepines negatively impact muscle strength, mass, and functional outcomes in older adults. Thus, ATC codes starting with H02 were included for use of systemic corticosteroids and N05B for use of benzodiazepines.
+
+The evidence for muscle-protective effects of bisphosphonates in humans is limited, but it was suggested that bone-to-muscle paracrine signalling may mediate benefits [@klein2018]. Therefore, all participants reporting ACT code M05BA were considered to take bisphosphonates.
+
+Supplementation with vitamin D (ACT code A11) and calcium (ACT code A12A) is positively associated with muscle outcomes [@gao2026]. Thus, these variables were included as covariates in the analysis.
+
+## Outcome Variables
+
+### Handgrip strength
+
+Handgrip strength (HGS) was measured at all CoLaus visits using a JAMAR Baseline® hydraulic hand dynamometer (Fabrication Enterprises, Inc., White Plains, NY, USA) following the guidelines of the American Society of Hand Therapists. Values were recorded in pounds and converted to kilograms using a conversion factor of 0.454.
+
+In OsteoLaus, HGS was assessed only at visit V5 using the same protocol. The highest value of three measurements of the dominant hand was used for analysis. Measurements were recorded directly in kilograms. Further details of the procedure are described in Vendrami et al. (2025) [@vendrami2025].
+
+### Appendicular lean mass (ALM)
+
+ALM was defined as the sum of lean muscle mass of the arms and legs. ALM was measured at all five OsteoLaus visits using dual-energy X-ray absorptiometry (DXA). Two devices were used over time: the Hologic Horizon A System™ for the first two visits and the GE Lunar iDXA™ system for the remaining visits. <!--# Comment Silvia: mention reference for the standard values? -> What is meant with that?-->
+
+A study within the same cohort revealed that the Hologic Horizon A System generally leads to a higher lean muscle mass (1293.7 g $\pm$ 1643.5 g) [@vendrami2024]. However, measured lean mass of the arms and legs was higher for the Lunar iDXA device (arms 151.4 g $\pm$ 274.8 g; legs: 777.1 g $\pm$ 490.0 g). <!--# This is not understandable to Silvia, check source again and possible rephrase -->
+
+Because systematic differences were observed between devices, ALM values were harmonized using previously published cross-calibration equations derived within the same OsteoLaus cohort [@vendrami2024]. Hologic-derived values were converted to Lunar-equivalent values prior to analysis using the following equation: $ALM_{Holigic}=−369.3+0.967\cdot ALM_{Lunar}$.
+
+Appendicular lean mass index (ALMI) was calculated as ALM divided by height squared (kg/m²). ALM was converted from grams to kilograms and height from centimetres to metres before calculation. Sensitivity analyses additionally included alternative muscle mass index based on ALM adjusted for body mass index (ALM/BMI). <!--# Do I really do it? -->
+
+### Gait speed
+
+Gait speed was used as a measure of physical performance and functional capacity. Gait speed was assessed using a 6-metre walk test performed at usual walking pace and expressed in meters per second (m/s). Detailed procedures are described in Vendrami et al. [@vendrami2025]. Slow gait speed was defined as $≤$ 0.8 m/s.
+
+### Sarcopenia
+
+Sarcopenia was defined according to the criteria of the European Working Group on Sarcopenia in Older People 2 (EWGSOP2) [@cruz-jentoft2019] and was used for the main analyses. Muscle strength was defined as low when handgrip strength was \< 16 kg, muscle mass as low when ALMI was \< 5.5 kg/m², and physical performance as low when gait speed was $≤$ 0.8 m/s. These values represent the female-specific thresholds of EWGSOP2 sarcopenia definition [@cruz-jentoft2019].
+
+Participants were classified into four categories: no sarcopenia, probable sarcopenia (low muscle strength only), confirmed sarcopenia (low muscle strength and low muscle mass), and severe sarcopenia (low muscle strength, low muscle mass, and low physical performance). Because gait speed was measured only at visits V4 and V5, severe sarcopenia could not be assessed at earlier visits. This limitation did not affect the primary sarcopenia classification, as participants were classified as sarcopenic if they met the criteria for either confirmed or severe sarcopenia.
+
+In sensitivity analyses, sarcopenia was additionally defined using the Foundation for the National Institutes of Health (FNIH) criteria [@studenski2014], based on the combination of low muscle strength (HGS \< 16 kg) and low muscle mass relative to body mass index (ALM/BMI \< 0.512). Participants were classified as having sarcopenia or no sarcopenia in line with this definition.
+
+## Statistical Methods
+
+All analyses were performed in R version 4.5.1 [@Rprogram]. Data preparation and manipulation was done with dplyr (version 1.2.0) [@wickham2026]. Results were visualized using ggplot2 (version 4.0.2) [@wickham2016a] For descriptive analyses, participants were grouped into quartiles based on baseline daily total dairy intake (g/day). Categorical variables are presented as counts and percentages, and continuous variables as mean ± standard deviation (SD) or median with interquartile range (IQR), as appropriate.
+
+### Missing data
+
+Missing data were handled using multiple imputation by chained equations (MICE) implemented in the R package mice (version 3.19.0) [@buuren2011]. Imputation was performed under a fully conditional specification framework and with the assumption that data were missing at random.
+
+Longitudinal data were reshaped into wide format (one row per participant with separate columns for each visit), allowing within-person correlations across time to be incorporated in the imputation model. A total of 10 imputed datasets were generated, with 30 iterations per dataset.
+
+Continuous variables were imputed using predictive mean matching. <!--# taking d=10 example complete cases instead of 5 which is standard --> Binary variables were imputed using logistic regression, and ordinal variables using proportional odds models. Derived variables were not imputed directly. Instead, they were recomputed after imputation from the underlying variables. This approach preserves internal consistency between raw and derived variables. Auxiliary variables (e.g. participant identifiers, examination dates, and additional clinical or lifestyle variables) were included as predictors to improve imputation accuracy but were not imputed as such.
+
+For OsteoLaus, visit structure and measurement design were explicitly incorporated. Variables were only imputed at visits where measurement was possible (e.g. gait speed only at T3 and T4). For DXA-derived variables, measurements obtained from different devices were prevented from directly predicting each other to reduce systematic bias across measurement methods.
+
+Predictor matrices were manually specified to preserve temporal structure. Only missing values were imputed. Observed values were left unchanged. Post-imputation diagnostics included trace plots, density plots, and strip plots to assess convergence and distributional plausibility across imputations.
+
+<!--#  In addition, numerical range checks were performed on imputed datasets to identify implausible values. -->
+
+### Data cleaning and exclusions
+
+### Covariate selection <!--# need different title -->
+
+### Linear mixed-effects models
+
+### **Cox proportional hazards model**
+
+## Ethics
+
+CoLaus \textbar{} PsyCoLaus and the OsteoLaus studies were approved by the Institutional Ethics Committee of the University of Lausanne, Switzerland. All participants signed a written informed consent form after having received a detailed description of the goal and funding of the studies.
+
+<!--# How did you anonymise the data? Or were they already anonymised?-->\
+<!--# give date and number of ethics approval -->
+
+## Data and Code Availability Statement
+
+This observational cohort study is reported in accordance with the STROBE guidelines [@STROBE].
+
+The data used in this study are not publicly available but may be requested subject to approval. More information on data request can be found in [www.colaus-psycolaus.ch](www.colaus-psycolaus.ch).
+
+All code used for data processing and statistical analyses is available on GitHub: <https://github.com/ann4boss/OsteoLaus-Dairy-Sarcopenia>.

@@ -1,0 +1,6 @@
+---
+# This file is intentionally left without a chapter heading.
+# All front matter (title page, declaration, abstract, acknowledgements,
+# TOC, abbreviations, dedication) is handled by tex/frontmatter.tex.
+# The main chapters start in chapters/01_introduction.qmd.
+---

@@ -1,0 +1,44 @@
+# Discussion {#sec-discussion}
+
+<!-- ------------------------------------------------------------------ -->
+<!-- SOURCE: ../04_manuscript/sections/05_discussion.qmd                -->
+<!-- ------------------------------------------------------------------ -->
+
+## Principal findings
+
+<!-- Summarise the key findings in the context of the study objectives.
+     State whether the primary hypothesis was supported or refuted. -->
+
+## Comparison with existing literature
+
+<!-- Dataset matching (T1/T2 CoLaus precedes OsteoLaus ~1 year on
+     average; T3 CoLaus ~0.5 year after OsteoLaus). -->
+
+<!-- HGS: Q3 significantly higher than Q1 but Q4 is not — no simple
+     dose-response relationship. Possible threshold / plateau effect. -->
+
+<!-- ALMI: … -->
+
+<!-- Gait speed: … -->
+
+## Biological mechanisms
+
+<!-- Protein quality (leucine content of dairy), calcium and vitamin D,
+     insulin-like growth factor-1 (IGF-1) signalling, anti-inflammatory
+     effects. -->
+
+## Strengths {#sec-strengths}
+
+<!-- Large sample size, repeated measures, food frequency questionnaire
+     validated in the Swiss population, objective muscle assessments. -->
+
+## Limitations {#sec-limitations}
+
+<!-- Acknowledge potential for residual confounding; observational
+     design; FFQ measurement error; restricted to women ≥ 50 years;
+     generalisability. -->
+
+## Implications for public health {#sec-implications}
+
+<!-- Translate findings into dietary recommendations and identify
+     priority target groups. -->

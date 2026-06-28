@@ -1,0 +1,40 @@
+# Results {#sec-results}
+
+<!-- ------------------------------------------------------------------ -->
+<!-- SOURCE: ../04_manuscript/sections/04_results.qmd                   -->
+<!-- ------------------------------------------------------------------ -->
+
+## Study population
+
+<!-- Describe the final analytical sample after inclusion/exclusion
+     criteria, referencing the flow diagram in the appendix. -->
+
+## Baseline characteristics {#sec-baseline}
+
+<!-- Present Table 1: descriptive statistics stratified by dairy
+     quartile. Use gtsummary or kableExtra output inserted via R chunk. -->
+
+## Dairy intake and handgrip strength {#sec-hgs}
+
+<!-- Report LMM results for HGS across quartiles of dairy intake,
+     including the trend test. Reference Figure X and Table X. -->
+
+## Dairy intake and appendicular lean mass index {#sec-almi}
+
+<!-- Report LMM results for ALMI across quartiles of dairy intake. -->
+
+## Dairy intake and gait speed {#sec-gait}
+
+<!-- Report LMM results for gait speed across quartiles of dairy
+     intake. -->
+
+## Incident sarcopenia {#sec-cox}
+
+<!-- Report Cox proportional hazards results for incident sarcopenia
+     (EWGSOP2 criteria) by dairy quartile. -->
+
+## Sensitivity analyses {#sec-sensitivity}
+
+<!-- Describe results of pre-specified sensitivity analyses:
+     e.g., excluding participants with <2 time points, restricting to
+     those without supplement use, etc. -->

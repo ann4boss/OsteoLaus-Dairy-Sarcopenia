@@ -1,7 +1,5 @@
 # Discussion
 
-- acknowledge potential for residual confounding
-
 ## Dataset matching
 
 T1/T2 CoLaus precedes OsteoLaus almost a year on average. T3 CoLaus half a year later than OsteoLaus
@@ -9,6 +7,12 @@ T1/T2 CoLaus precedes OsteoLaus almost a year on average. T3 CoLaus half a year 
 - why problematic: ??
 
 - why not problematic: taking cumulative average of dairy intake represents long-term intake anyway rather than snapshot
+
+## Covariat selection
+
+Despite careful selection, residual confounding from unmeasured or incompletely measured factors may still be present.
+
+Alcohol: While this categorization provides structured metrics for analysis, self-reported dietary and alcohol questionnaires often underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative FFQs tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
 
 ## HGS
 

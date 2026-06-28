@@ -1,0 +1,78 @@
+% -----------------------------------------------------------------------
+%  Extra packages and thesis metadata
+%  (MastersDoctoralThesis.cls loads: geometry, hyperref, caption, etc.)
+% -----------------------------------------------------------------------
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{mathpazo}          % Palatino font (matches the template)
+\usepackage{csquotes}          % Language-aware quotation marks
+
+% Tables
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{float}
+\usepackage{pdflscape}
+
+% -----------------------------------------------------------------------
+% NOTE: Citations are handled by Quarto's pandoc-citeproc engine using
+% the CSL file (csl/nlm-citation-sequence-brackets.csl).
+% Do NOT add \usepackage{biblatex} here — it conflicts with citeproc.
+% -----------------------------------------------------------------------
+
+% Override class caption: use bold label instead of small-caps (sc)
+% The class sets labelfont=sc which renders "Figure" as "FIGURE".
+\captionsetup{labelfont=bf}
+
+% -----------------------------------------------------------------------
+%  Chapter title format: "1. Introduction" on one line (no "Chapter X")
+% -----------------------------------------------------------------------
+\makeatletter
+\renewcommand{\@makechapterhead}[1]{%
+  \abovechapterskip
+  {\parindent \z@ \chapteralign \normalfont
+    \chapterfont
+    \ifnum \c@secnumdepth >\m@ne
+      \if@mainmatter
+        \thechapter.\enspace
+      \fi
+    \fi
+    \interlinepenalty\@M
+    #1\par\nobreak
+    \chapterbelowskip
+  }
+  \thispagestyle{\chapter@p@gestyle}
+}
+\makeatother
+
+% -----------------------------------------------------------------------
+%  Suppress Quarto's auto-generated \maketitle — we have a custom title
+%  page in tex/frontmatter.tex instead.
+% -----------------------------------------------------------------------
+\renewcommand{\maketitle}{}
+
+% -----------------------------------------------------------------------
+%  Thesis metadata — used by \ttitle, \authorname, \supname, etc.
+% -----------------------------------------------------------------------
+\thesistitle{Dairy intake and muscle ageing in older women: a prospective
+  analysis from the OsteoLaus cohort}
+\supervisor{PD Dr.~med.~Dr.~phil.~Patricia Chocano-Bedoya}
+\examiner{}
+\degree{Master of Science in Bioinformatics and Computational Biology}
+% \author is intentionally omitted here; Quarto injects it from _quarto.yml
+% which sets \authorname via the class's \author redefinition.
+\addresses{}
+\subject{Nutritional Epidemiology}
+\keywords{sarcopenia, dairy, muscle, ageing, cohort study, OsteoLaus}
+\university{University of Fribourg}
+\department{Department of Biology}
+\group{}
+\faculty{Faculty of Science and Medicine}
+
+\AtBeginDocument{
+  \hypersetup{pdftitle=\ttitle}
+  \hypersetup{pdfauthor=\authorname}
+  \hypersetup{pdfkeywords=\keywordnames}
+}
