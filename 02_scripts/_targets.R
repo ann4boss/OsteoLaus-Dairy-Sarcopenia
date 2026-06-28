@@ -326,14 +326,14 @@ covariate_sets_hgs <- list(
         "pa_levels_tertile_f1", "diabetes_status", "sumtot1_scaled"
     ),
     other_PA = c(
-        "age_at_baseline_scaled", "weight_scaled", "education_level", "smoking_status",
+        "age_at_baseline_scaled", "BMI_categor", "education_level", "smoking_status",
         "pa_levels_who_f1", "diabetes_status", "sumtot1_scaled"
     )
 )
 
 covariate_sets_alm <- list(
     main = c(
-        "age_at_baseline_scaled", "weight_scaled", "education_level", "smoking_status",
+        "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
         "pa_levels_tertile_f1", "diabetes_status", "sumtot1_scaled"
     ),
     other_PA = c(
@@ -954,6 +954,23 @@ variable_descriptives_target_cc <- tar_target(
     format = "file"
 )
 
+dairy_quartile_cuts_target <- tar_target(
+    dairy_quartile_cuts,
+    {
+        out_file <- "03_outputs/descriptives/dairy_quartile_cuts.csv"
+        export_dairy_quartile_cuts(
+            data_list = list(
+                "CC"   = cc_merged_derived,
+                "MICE" = mice_merged_derived
+            ),
+            out_file       = out_file,
+            visit_col      = "time_point",
+            baseline_visit = "T1"
+        )
+    },
+    format = "file"
+)
+
 # =============================================================================
 # ASSEMBLE
 # =============================================================================
@@ -973,15 +990,15 @@ c(
 
     # ── Models ────────────────────────────────────────────────────────────────
     #LMM_targets_HGS,
-    #LMM_targets_ALM,
-    #LMM_targets_gait,
+    #LMM_targets_ALM
+    #LMM_targets_gait
 
     # ── Model specification sensitivity ──────────────────────────────────────
-    LMM_modspec_HGS,
-    LMM_modspec_ALM,
-    LMM_modspec_gait,
-    cox_targets,
-    cox_targets_fnih
+    # LMM_modspec_HGS,
+    # LMM_modspec_ALM,
+    # LMM_modspec_gait
+    #cox_targets,
+    #cox_targets_fnih,
     #
     # ── Descriptives ──────────────────────────────────────────────────────────
     #consort,
@@ -993,6 +1010,7 @@ c(
     #missingness_target
     # variable_descriptives_target,
     # variable_descriptives_target_cc,
+    dairy_quartile_cuts_target
     # age_trajectories_target,
     # age_trajectories_target_cc,
     # followup_targets

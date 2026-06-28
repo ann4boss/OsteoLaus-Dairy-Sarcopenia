@@ -17,9 +17,9 @@ dag {
 
 Dairy [exposure]
 
-HGS [outcome]
+HandgripStrength [outcome]
 ALMI [outcome]
-GS [outcome]
+GaitSpeed [outcome]
 Sarcopenia [outcome]
 
 Age
@@ -30,6 +30,7 @@ Alcohol
 PA
 TotalEnergy
 OtherFoodGroups
+
 BMI
 
 Diabetes
@@ -50,8 +51,8 @@ Age -> BP
 Age -> CVD
 Age -> Dairy
 Age -> Diabetes
-Age -> GS
-Age -> HGS
+Age -> GaitSpeed
+Age -> HandgripStrength
 Age -> HRT
 Age -> Hypertension
 Age -> Hypolipid
@@ -62,36 +63,38 @@ Age -> Smoking
 
 Alcohol -> ALMI
 Alcohol -> Diabetes
-Alcohol -> GS
-Alcohol -> HGS
+Alcohol -> GaitSpeed
+Alcohol -> HandgripStrength
 Alcohol -> Sarcopenia
+
 
 BMI -> CVD
 BMI -> Diabetes
-BMI -> GS
+BMI -> GaitSpeed
 BMI -> Hypertension
 BMI -> Sarcopenia
+BMI -> ALMI
 
 BP -> ALMI
 
 
 VitaminD -> Calcium
-VitaminD -> GS
-VitaminD -> HGS
+VitaminD -> GaitSpeed
+VitaminD -> HandgripStrength
 
 Cortico -> Sarcopenia
 
 Dairy -> ALMI
 Dairy -> Calcium
-Dairy -> GS
-Dairy -> HGS
+Dairy -> GaitSpeed
+Dairy -> HandgripStrength
 Dairy -> VitaminD
 
 Diabetes -> ALMI
 Diabetes -> CVD
 Diabetes -> Dairy
-Diabetes -> GS
-Diabetes -> HGS
+Diabetes -> GaitSpeed
+Diabetes -> HandgripStrength
 Diabetes -> PA
 Diabetes -> Sarcopenia
 
@@ -107,12 +110,12 @@ Education -> TotalEnergy
 Education -> VitaminD
 
 HRT -> ALMI
-HRT -> HGS
+HRT -> HandgripStrength
 
 Hypertension -> CVD
 Hypertension -> PA
-Hypolipid -> GS
-Hypolipid -> HGS
+Hypolipid -> GaitSpeed
+Hypolipid -> HandgripStrength
 
 Marital -> Dairy
 Marital -> OtherFoodGroups
@@ -122,21 +125,21 @@ Marital -> TotalEnergy
 OtherFoodGroups -> BMI
 
 PA -> ALMI
-PA -> GS
-PA -> HGS
+PA -> GaitSpeed
+PA -> HandgripStrength
 PA -> Sarcopenia
 
 Smoking -> ALMI
 Smoking -> CVD
-Smoking -> GS
-Smoking -> HGS
+Smoking -> GaitSpeed
+Smoking -> HandgripStrength
 Smoking -> PA
 Smoking -> Sarcopenia
 
 TotalEnergy -> ALMI
 TotalEnergy -> BMI
 TotalEnergy -> Dairy
-TotalEnergy -> HGS
+TotalEnergy -> HandgripStrength
 TotalEnergy -> OtherFoodGroups
 
 }
@@ -178,8 +181,8 @@ coordinates(dag) <- list(
         Dairy = 5,
         
         ALMI = 6,
-        HGS = 6,
-        GS = 6,
+        HandgripStrength = 6,
+        GaitSpeed = 6,
         
         Sarcopenia = 7
     ),
@@ -213,8 +216,8 @@ coordinates(dag) <- list(
         Dairy = 7,
         
         ALMI = 9,
-        HGS = 7,
-        GS = 5,
+        HandgripStrength = 7,
+        GaitSpeed = 5,
         
         Sarcopenia = 7
     )
@@ -228,7 +231,7 @@ base_dag <- tidy_dagitty(dag) %>%
     mutate(
         node_type = case_when(
             name == "Dairy" ~ "Exposure",
-            name %in% c("ALMI", "HGS", "GS", "Sarcopenia") ~ "Outcome",
+            name %in% c("ALMI", "HandgripStrength", "GaitSpeed", "Sarcopenia") ~ "Outcome",
             TRUE ~ "Covariate"
         )
     )
@@ -395,9 +398,9 @@ plot_bias_paths <- function(outcome_name){
 # Generate plots
 # =============================================================================
 
-plot_HGS <- plot_bias_paths("HGS")
+plot_HGS <- plot_bias_paths("HandgripStrength")
 plot_ALMI <- plot_bias_paths("ALMI")
-plot_GS <- plot_bias_paths("GS")
+plot_GS <- plot_bias_paths("GaitSpeed")
 plot_Sarcopenia <- plot_bias_paths("Sarcopenia")
 
 # =============================================================================

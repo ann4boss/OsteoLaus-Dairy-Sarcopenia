@@ -832,6 +832,15 @@ run_cox_sarcopenia <- function(
     } else NULL
 
     # ── Save results -----------------------------------------------------------
+    # ── Incidence rates by dairy quartile ──────────────────────────────────
+    incidence_tbl_cc <- .incidence_by_quartile(
+        surv_data      = surv_data,
+        covariate_type = covariate_type,
+        dairy_col      = dairy_col,
+        out_dir        = out_dir,
+        label          = "cc"
+    )
+
     .save_model_results(results_unadj, results_adj, out_dir, label = "cc")
 
     list(
@@ -853,6 +862,7 @@ run_cox_sarcopenia <- function(
         dfbeta_flagged      = assumptions$dfbeta_flagged,
         dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,
         cox_snell_plot      = assumptions$cox_snell_plot,
+        incidence_by_quartile = incidence_tbl_cc,
         km_plot             = km_plot,
         km_logrank_p        = km_logrank,
         scenario_plot       = scenario_plot_cc,
@@ -1017,6 +1027,15 @@ run_cox_sarcopenia <- function(
         )
     } else NULL
 
+    # ── Incidence rates by dairy quartile (averaged across imputations) ────
+    incidence_tbl_mice <- .incidence_by_quartile(
+        surv_data      = surv_data_list,
+        covariate_type = covariate_type,
+        dairy_col      = dairy_col,
+        out_dir        = out_dir,
+        label          = "mice"
+    )
+
     .save_model_results(results_unadj, results_adj, out_dir, label = "mice")
 
     list(
@@ -1039,6 +1058,7 @@ run_cox_sarcopenia <- function(
         dfbeta_flagged      = assumptions$dfbeta_flagged,
         dfbeta_flag_detail  = assumptions$dfbeta_flag_detail,
         cox_snell_plot      = assumptions$cox_snell_plot,
+        incidence_by_quartile = incidence_tbl_mice,
         km_plot             = km_plot,
         km_logrank_p        = km_logrank,
         scenario_plot       = scenario_plot_mice,
@@ -1751,6 +1771,153 @@ run_cox_sarcopenia <- function(
 #' @param out_dir        Output directory or NULL.
 #' @param label          String label for file names.
 #' @keywords internal
+# =============================================================================
+# =============================================================================
+# SECTION 7B — Incidence rates per dairy quartile
+# =============================================================================
+
+#' Compute crude incidence rates per dairy quartile.
+#'
+#' For each quartile: number of events, total person-years, incidence rate
+#' per 1000 person-years, and exact Poisson 95% CI.
+#'
+#' For the time-dependent route: quartile is assigned from the first interval
+#' per participant (baseline dairy); person-years are summed across all
+#' intervals; events from the last interval.
+#'
+#' For MICE: results are averaged across imputed datasets.
+#'
+#' @param surv_data      data.frame (CC) or list of data.frames (MICE).
+#' @param covariate_type "fixed" or "time_dependent".
+#' @param dairy_col      Column name for continuous dairy exposure.
+#' @param out_dir        Output directory or NULL.
+#' @param label          String label for file names.
+#' @return Tibble with columns: quartile, n_pts, n_events, person_years,
+#'         rate_per_1000py, ci_low, ci_high.
+#' @keywords internal
+.incidence_by_quartile <- function(surv_data, covariate_type, dairy_col,
+                                   out_dir, label) {
+
+    cli::cli_h3("Incidence rates by dairy quartile [{label}]")
+
+    # Accept either a single data frame (CC) or a list (MICE)
+    data_list <- if (is.data.frame(surv_data)) list(surv_data) else surv_data
+    m         <- length(data_list)
+
+    .compute_one <- function(d) {
+
+        if (!dairy_col %in% names(d)) return(NULL)
+
+        # ── Assign quartile groups ──────────────────────────────────────────
+        if (covariate_type == "time_dependent") {
+            if (!"pt" %in% names(d)) return(NULL)
+
+            # Baseline quartile from first interval per participant
+            baseline <- d |>
+                dplyr::arrange(pt, age_start) |>
+                dplyr::group_by(pt) |>
+                dplyr::slice(1L) |>
+                dplyr::ungroup() |>
+                dplyr::select(pt, dairy_val = dplyr::all_of(dairy_col))
+
+            breaks <- stats::quantile(baseline$dairy_val,
+                                      probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+            baseline$quartile <- cut(
+                baseline$dairy_val, breaks = breaks,
+                labels = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
+                include.lowest = TRUE
+            )
+
+            # Person-years: sum all intervals per participant
+            py_per_pt <- d |>
+                dplyr::group_by(pt) |>
+                dplyr::summarise(
+                    py    = sum(age_stop - age_start, na.rm = TRUE),
+                    .groups = "drop"
+                )
+
+            # Events: last interval per participant
+            ev_per_pt <- d |>
+                dplyr::arrange(pt, age_start) |>
+                dplyr::group_by(pt) |>
+                dplyr::slice_tail(n = 1L) |>
+                dplyr::ungroup() |>
+                dplyr::select(pt, event)
+
+            pt_data <- baseline |>
+                dplyr::inner_join(py_per_pt, by = "pt") |>
+                dplyr::inner_join(ev_per_pt,  by = "pt")
+
+        } else {
+            # Fixed: one row per participant
+            breaks <- stats::quantile(d[[dairy_col]],
+                                      probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+            pt_data <- d |>
+                dplyr::mutate(
+                    dairy_val = .data[[dairy_col]],
+                    quartile  = cut(
+                        dairy_val, breaks = breaks,
+                        labels = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
+                        include.lowest = TRUE
+                    ),
+                    py = time
+                )
+        }
+
+        pt_data <- pt_data[!is.na(pt_data$quartile), ]
+
+        # ── Summarise per quartile ──────────────────────────────────────────
+        pt_data |>
+            dplyr::group_by(quartile) |>
+            dplyr::summarise(
+                n_pts      = dplyr::n(),
+                n_events   = sum(event == 1L, na.rm = TRUE),
+                person_years = sum(py, na.rm = TRUE),
+                .groups    = "drop"
+            ) |>
+            dplyr::mutate(
+                rate_per_1000py = (n_events / person_years) * 1000,
+                # Exact Poisson 95% CI via chi-squared method
+                ci_low  = (stats::qchisq(0.025, 2 * n_events) / 2 / person_years) * 1000,
+                ci_high = (stats::qchisq(0.975, 2 * (n_events + 1)) / 2 / person_years) * 1000
+            )
+    }
+
+    results_list <- lapply(data_list, .compute_one)
+    results_list <- Filter(Negate(is.null), results_list)
+    if (length(results_list) == 0L) return(NULL)
+
+    # Average across imputations if MICE
+    if (m > 1L) {
+        result <- results_list[[1L]] |>
+            dplyr::select(quartile) |>
+            dplyr::mutate(
+                n_pts        = rowMeans(do.call(cbind, lapply(results_list, `[[`, "n_pts"))),
+                n_events     = rowMeans(do.call(cbind, lapply(results_list, `[[`, "n_events"))),
+                person_years = rowMeans(do.call(cbind, lapply(results_list, `[[`, "person_years"))),
+                rate_per_1000py = rowMeans(do.call(cbind, lapply(results_list, `[[`, "rate_per_1000py"))),
+                ci_low       = rowMeans(do.call(cbind, lapply(results_list, `[[`, "ci_low"))),
+                ci_high      = rowMeans(do.call(cbind, lapply(results_list, `[[`, "ci_high")))
+            )
+    } else {
+        result <- results_list[[1L]]
+    }
+
+    result <- result |>
+        dplyr::mutate(dplyr::across(where(is.numeric), \(x) round(x, 2)))
+
+    cli::cli_inform(paste(capture.output(print(as.data.frame(result))), collapse = "\n"))
+
+    if (!is.null(out_dir)) {
+        readr::write_csv(result,
+                         file.path(out_dir, glue::glue("{label}_incidence_by_quartile.csv")))
+        cli::cli_inform("Incidence table saved to {.path {out_dir}}")
+    }
+
+    result
+}
+
+
 # =============================================================================
 # SECTION 8 — Kaplan-Meier plot by dairy category
 # =============================================================================

@@ -107,6 +107,28 @@ label_var <- function(var) {
   else grDevices::colorRampPalette(interleaved)(n)
 }
 
+# Compute Q25/Q50/Q75 cut-points per exposure variable.
+# For mids objects, averages quantiles over all m complete datasets.
+compute_quartile_cuts <- function(data, vars, probs = c(0.25, 0.5, 0.75)) {
+  if (inherits(data, "mids")) {
+    purrr::map(vars, function(v) {
+      qs <- purrr::map(seq_len(data$m), function(i) {
+        d <- mice::complete(data, i)
+        if (v %in% names(d)) stats::quantile(d[[v]], probs = probs, na.rm = TRUE)
+        else NULL
+      })
+      qs <- purrr::compact(qs)
+      if (length(qs) == 0) return(NULL)
+      rowMeans(do.call(cbind, qs))
+    }) |> rlang::set_names(vars) |> purrr::compact()
+  } else {
+    purrr::map(vars, function(v) {
+      if (!v %in% names(data)) return(NULL)
+      stats::quantile(data[[v]], probs = probs, na.rm = TRUE)
+    }) |> rlang::set_names(vars) |> purrr::compact()
+  }
+}
+
 theme_proj <- function() {
   ggplot2::theme_minimal(base_family = FONT) +
     ggplot2::theme(
@@ -116,49 +138,7 @@ theme_proj <- function() {
     )
 }
 
-# ── 1. Missingness heatmap ─────────────────────────────────────────────────────
-
-plot_missing_heatmap <- function(data,
-                                 vars     = NULL,
-                                 time_col = "time_point") {
-  df   <- extract_data(data)
-  vars <- intersect(vars %||% setdiff(names(df), time_col), names(df))
-
-  miss <- df |>
-    dplyr::group_by(.data[[time_col]]) |>
-    dplyr::summarise(
-      dplyr::across(dplyr::all_of(vars), ~ mean(is.na(.)) * 100),
-      .groups = "drop"
-    ) |>
-    tidyr::pivot_longer(-dplyr::all_of(time_col),
-                        names_to = "variable", values_to = "pct") |>
-    dplyr::mutate(
-      vlabel = label_var(variable),
-      vlabel = forcats::fct_reorder(vlabel, pct, .fun = mean)
-    )
-
-  ggplot2::ggplot(miss, ggplot2::aes(
-    x    = factor(.data[[time_col]]),
-    y    = vlabel,
-    fill = pct
-  )) +
-    ggplot2::geom_tile(color = "white") +
-    ggplot2::geom_text(
-      ggplot2::aes(label = sprintf("%.0f%%", pct)),
-      size = 3, family = FONT
-    ) +
-    ggplot2::scale_fill_gradient2(
-      low = PALETTE[6], mid = PALETTE[5], high = PALETTE[1],
-      midpoint = 50, limits = c(0, 100), name = "% missing"
-    ) +
-    theme_proj() +
-    ggplot2::labs(
-      title = "Missingness by variable and time point",
-      x = "Time point", y = NULL
-    )
-}
-
-# ── 2. Continuous distributions (density overlay per visit) ───────────────────
+# ── 1. Continuous distributions (density overlay per visit) ───────────────────
 
 plot_continuous <- function(data,
                             vars     = NULL,
@@ -294,8 +274,9 @@ plot_alluvial <- function(data,
 plot_exposure_outcome <- function(data,
                                   x,
                                   y,
-                                  time_col = "time_point",
-                                  span     = 0.75) {
+                                  time_col      = "time_point",
+                                  span          = 0.75,
+                                  quartile_cuts = NULL) {
   df     <- extract_data(data)
   visits <- sort(unique(df[[time_col]]))
   cols   <- .pal_seq(length(visits))
@@ -307,7 +288,7 @@ plot_exposure_outcome <- function(data,
       dplyr::filter(!is.na(.data[[x]]), !is.na(.data[[y]])) |>
       dplyr::mutate(visit = factor(.data[[time_col]], levels = visits))
 
-    ggplot2::ggplot(pd, ggplot2::aes(
+    p <- ggplot2::ggplot(pd, ggplot2::aes(
       x = .data[[x]], y = .data[[y]], color = visit, fill = visit
     )) +
       ggplot2::geom_point(alpha = 0.35, size = 1.2) +
@@ -321,6 +302,14 @@ plot_exposure_outcome <- function(data,
         title = paste(label_var(y), "~", label_var(x)),
         x = label_var(x), y = label_var(y)
       )
+
+    if (!is.null(quartile_cuts) && x %in% names(quartile_cuts)) {
+      p <- p + ggplot2::geom_vline(
+        xintercept = quartile_cuts[[x]],
+        linetype = "dashed", color = PALETTE[10], linewidth = 0.4, alpha = 0.6
+      )
+    }
+    p
   }) |> rlang::set_names(paste(combos$y, "vs", combos$x))
 }
 
@@ -373,11 +362,17 @@ describe_variables <- function(data,
   )
 
   if (!is.null(scatter_pairs)) {
+    # Compute cuts first (keeps mids object before extract_data strips it)
+    all_cuts <- purrr::imap(scatter_pairs, function(pair, nm)
+      compute_quartile_cuts(pair$data %||% data, pair$x)
+    )
     plots$scatter <- purrr::imap(scatter_pairs, function(pair, nm) {
-      pair_df <- extract_data(pair$data %||% df)
+      pair_df <- extract_data(pair$data %||% data)
       plot_exposure_outcome(pair_df, x = pair$x, y = pair$y,
-                            time_col = time_col, span = loess_span)
+                            time_col = time_col, span = loess_span,
+                            quartile_cuts = all_cuts[[nm]])
     }) |> purrr::list_flatten(name_spec = "{outer}_{inner}")
+    plots$quartile_cuts <- all_cuts
   }
 
   # ── CSV summaries ──────────────────────────────────────────────────────────
@@ -448,6 +443,18 @@ describe_variables <- function(data,
               )
           })
       }) |> readr::write_csv(file.path(out_dir, "data_scatter_correlations.csv"))
+
+      # Quartile cut-points (one row per pair × variable)
+      purrr::imap_dfr(all_cuts, function(cuts, pair_nm) {
+        purrr::imap_dfr(cuts, function(q, var_nm) {
+          tibble::tibble(pair     = pair_nm,
+                         variable = var_nm,
+                         label    = label_var(var_nm),
+                         q25      = round(q[[1]], 3),
+                         q50      = round(q[[2]], 3),
+                         q75      = round(q[[3]], 3))
+        })
+      }) |> readr::write_csv(file.path(out_dir, "data_dairy_quartile_cuts.csv"))
     }
 
     # ── Save plots ────────────────────────────────────────────────────────────

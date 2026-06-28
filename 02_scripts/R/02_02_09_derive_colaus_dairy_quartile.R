@@ -193,3 +193,90 @@ derive_dairy_quartile <- function(df) {
     
     return(df)
 }
+
+# =============================================================================
+# Export: dairy quartile cut-points to CSV
+# =============================================================================
+#
+# Recomputes the same breaks used inside derive_dairy_quartile() from
+# already-derived datasets so the applied cut-points can be inspected.
+# Works on the MERGED datasets (time_point = "T1" maps to CoLaus F1).
+#
+# For mids objects the breaks are averaged over all m complete datasets.
+#
+# Usage:
+#   export_dairy_quartile_cuts(
+#     list("CC" = cc_merged_derived, "MICE" = mice_merged_derived),
+#     out_file = "03_outputs/descriptives/dairy_quartile_cuts.csv"
+#   )
+
+export_dairy_quartile_cuts <- function(data_list,
+                                       out_file,
+                                       visit_col      = "time_point",
+                                       baseline_visit = "T1") {
+
+    # Compute breaks from a single plain data frame.
+    .breaks_from_df <- function(df) {
+        baseline_vals <- df |>
+            dplyr::filter(.data[[visit_col]] == baseline_visit,
+                          !is.na(dairy_total_gday_cumavg)) |>
+            dplyr::pull(dairy_total_gday_cumavg)
+
+        overall_vals <- df$dairy_total_gday_cumavg[!is.na(df$dairy_total_gday_cumavg)]
+
+        list(
+            baseline = if (length(baseline_vals) >= 4)
+                stats::quantile(baseline_vals,
+                                probs = c(0, 0.25, 0.50, 0.75, 1), na.rm = TRUE)
+            else NULL,
+            overall  = if (length(overall_vals) >= 4)
+                stats::quantile(overall_vals,
+                                probs = c(0, 0.25, 0.50, 0.75, 1), na.rm = TRUE)
+            else NULL
+        )
+    }
+
+    # Compute breaks for one dataset entry (data.frame or mids).
+    .cuts_one <- function(data, nm) {
+        if (inherits(data, "mids")) {
+            m   <- data$m
+            all <- purrr::map(seq_len(m), function(i)
+                .breaks_from_df(mice::complete(data, i)))
+
+            avg_breaks <- list(
+                baseline = {
+                    lst <- purrr::map(all, "baseline") |> purrr::compact()
+                    if (length(lst)) rowMeans(do.call(cbind, lst)) else NULL
+                },
+                overall = {
+                    lst <- purrr::map(all, "overall") |> purrr::compact()
+                    if (length(lst)) rowMeans(do.call(cbind, lst)) else NULL
+                }
+            )
+            source_note <- sprintf("MICE (m=%d)", m)
+            breaks      <- avg_breaks
+        } else {
+            breaks      <- .breaks_from_df(data)
+            source_note <- "CC"
+        }
+
+        purrr::imap_dfr(breaks, function(b, type_nm) {
+            if (is.null(b)) return(tibble::tibble())
+            tibble::tibble(
+                dataset      = nm,
+                source       = source_note,
+                quartile_var = type_nm,
+                boundary     = names(b),
+                cut_g_day    = round(unname(b), 1)
+            )
+        }) |>
+            dplyr::filter(!.data$boundary %in% c("0%", "100%"))
+    }
+
+    result <- purrr::imap_dfr(data_list, .cuts_one)
+
+    dir.create(dirname(out_file), showWarnings = FALSE, recursive = TRUE)
+    readr::write_csv(result, out_file)
+    cli::cli_inform(c("v" = "Dairy quartile cut-points saved to {.path {out_file}}"))
+    invisible(out_file)
+}

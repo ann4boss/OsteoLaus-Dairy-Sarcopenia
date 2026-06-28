@@ -120,6 +120,10 @@
                                           ordered = FALSE) |>
                 stats::relevel(ref = "Never"),
 
+            pa_levels_who_f1 = factor(pa_levels_who_f1,
+                                          levels  = c("Low","Medium","High"),
+                                          ordered = FALSE) |>
+                stats::relevel(ref = "Low"),
             pa_levels_tertile_f1 = factor(pa_levels_tertile_f1,
                                           levels  = c("Low","Medium","High"),
                                           ordered = FALSE) |>
@@ -373,7 +377,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
     nonfermented_100g                     = "Non- Fermented Dairy intake cum. avg. [100g/day]",
     highfat_100g                          = "High Fat Dairy intake cum. avg. [100g/day]",
     lowfat_100g                           = "Low Fat Dairy intake cum. avg. [100g/day]",
-    dairy_quartile_baselineQ2             = "Dairy intale Q2",
+    dairy_quartile_baselineQ2             = "Dairy intake Q2",
     dairy_quartile_baselineQ3             = "Dairy intake Q3",
     dairy_quartile_baselineQ4             = "Dairy intake Q4",
     `dairy_guidelines_port>= 2 servings/day` = "Dairy intake ≥ 2 servings/day",
@@ -390,8 +394,10 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
     smoking_statusCurrent                 = "Smoking - Current",
     pa_levels_tertile_f1Medium            = "Physical activity - Medium",
     pa_levels_tertile_f1High              = "Physical activity - High",
+    pa_levels_who_f1.Medium                   = "Physical activity WHO - Medium",
+    pa_levels_who_f1.High                    = "Physical activity WHO - High",
     diabetes_statusDiabetes               = "Diabetes - Yes",
-    sumtot1_scaled                      = "Total calorie intake [kcal]"
+    sumtot1_scaled                        = "Total calorie intake [kcal]"
 )
 
 .theme_report <- function() {
@@ -558,53 +564,50 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
 
 # ── Sandwich vs standard comparison page ------------------------------------
 
-.sandwich_comparison_page <- function(std_tidy, sand_tidy, title) {
+.sandwich_comparison_page <- function(std_tidy, sand_tidy, title, out_dir = NULL) {
 
-    # Combine, exclude intercept
     combined <- dplyr::bind_rows(
         dplyr::mutate(std_tidy,  estimator = "Standard LMM"),
         dplyr::mutate(sand_tidy, estimator = "Sandwich (CR2)")
     ) |>
         dplyr::filter(term != "(Intercept)") |>
         dplyr::mutate(
-            sig = p_value < 0.05,
-            term_label = {
+            term_label_base = {
                 idx <- match(term, names(.term_labels))
                 ifelse(is.na(idx), term, .term_labels[idx])
             },
-            term_label = factor(term_label,
-                                levels = rev(unique(term_label))),
-            estimator  = factor(estimator,
-                                levels = c("Standard LMM", "Sandwich (CR2)"))
+            term_label = factor(
+                term_label_base,
+                levels = rev(c(
+                    unname(.term_labels),
+                    sort(unique(term_label_base[!(term %in% names(.term_labels))]))
+                ))
+            ),
+            estimator = factor(estimator,
+                               levels = c("Standard LMM", "Sandwich (CR2)"))
         )
 
-    colours <- c("Standard LMM"   = .pal[8],
-                 "Sandwich (CR2)" = .pal[2])
-    shapes  <- c("Standard LMM"   = 16L,
-                 "Sandwich (CR2)" = 17L)
+    colours <- c("Standard LMM" = .pal[8], "Sandwich (CR2)" = .pal[2])
+    shapes  <- c("Standard LMM" = 16L,     "Sandwich (CR2)" = 17L)
 
-    p <- ggplot2::ggplot(
+    p_coef <- ggplot2::ggplot(
         combined,
-        ggplot2::aes(x      = estimate,
-                     y      = term_label,
-                     xmin   = conf_low,
-                     xmax   = conf_high,
-                     colour = estimator,
-                     shape  = estimator)
+        ggplot2::aes(x = estimate, y = term_label,
+                     xmin = conf_low, xmax = conf_high,
+                     colour = estimator, shape = estimator)
     ) +
-        ggplot2::geom_vline(xintercept = 0, linetype = "dashed",
-                            colour = "grey60") +
+        ggplot2::geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
         ggplot2::geom_errorbarh(
-            ggplot2::aes(height = 0),
-            linewidth = 0.8,
+            height    = 0.3, linewidth = 0.8,
             position  = ggplot2::position_dodge(width = 0.5)
         ) +
         ggplot2::geom_point(
-            size     = 2.5,
+            size     = 2,
             position = ggplot2::position_dodge(width = 0.5)
         ) +
         ggplot2::scale_colour_manual(values = colours, name = "Estimator") +
         ggplot2::scale_shape_manual(values  = shapes,  name = "Estimator") +
+        ggplot2::scale_y_discrete(expand = ggplot2::expansion(add = 0.1)) +
         ggplot2::labs(
             x       = "Estimate (95 % CI)",
             y       = NULL,
@@ -614,51 +617,55 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
         .theme_report() +
         ggplot2::theme(
             legend.position = "bottom",
-            axis.text.y     = ggplot2::element_text(size = 11)
+            axis.text.y     = ggplot2::element_text(size = 18),
+            axis.text.x     = ggplot2::element_text(size = 14)
         )
 
-    # Numeric comparison table (delta SE, delta p)
+    n_terms   <- length(unique(combined$term_label))
+    coef_grob <- ggplot2::ggplotGrob(p_coef)
+    panel_row <- which(coef_grob$layout$name == "panel")
+    coef_grob$heights[coef_grob$layout$t[panel_row]] <-
+        grid::unit(n_terms * 0.18, "in")
+
+    if (!is.null(out_dir)) {
+        stem <- gsub("[^A-Za-z0-9_-]", "_", title)
+        ggplot2::ggsave(
+            filename = file.path(out_dir, paste0(stem, "_sandwich.png")),
+            plot     = p_coef,
+            width    = 10, height = max(4, n_terms * 0.3),
+            dpi      = 300, bg = "white"
+        )
+    }
+
+    # Numeric comparison table
     comp_tbl <- dplyr::inner_join(
         std_tidy  |> dplyr::select(term, estimate,
-                                    std_error_std  = std_error,
-                                    p_std          = p_value),
+                                    SE_std = std_error, p_std = p_value),
         sand_tidy |> dplyr::select(term,
-                                    std_error_sand = std_error,
-                                    p_sand         = p_value),
+                                    SE_sandwich = std_error, p_sandwich = p_value),
         by = "term"
     ) |>
         dplyr::mutate(
-            estimate       = round(estimate, 3),
-            std_error_std  = round(std_error_std,  3),
-            std_error_sand = round(std_error_sand, 3),
-            delta_se       = round(std_error_sand - std_error_std, 4),
-            p_std  = dplyr::if_else(p_std  < 0.001, "<0.001",
-                                    as.character(round(p_std,  3))),
-            p_sand = dplyr::if_else(p_sand < 0.001, "<0.001",
-                                    as.character(round(p_sand, 3)))
-        ) |>
-        dplyr::rename(
-            Term        = term,
-            Beta        = estimate,
-            SE_std      = std_error_std,
-            SE_sandwich = std_error_sand,
-            `ΔSE`       = delta_se,
-            p_std       = p_std,
-            p_sandwich  = p_sand
+            estimate    = round(estimate, 3),
+            SE_std      = round(SE_std,      3),
+            SE_sandwich = round(SE_sandwich, 3),
+            delta_SE    = round(SE_sandwich - SE_std, 4),
+            p_std       = dplyr::if_else(p_std      < 0.001, "<0.001",
+                                          as.character(round(p_std,      3))),
+            p_sandwich  = dplyr::if_else(p_sandwich < 0.001, "<0.001",
+                                          as.character(round(p_sandwich, 3)))
         )
 
     tbl_grob <- gridExtra::tableGrob(
-        comp_tbl,
-        rows  = NULL,
+        comp_tbl, rows = NULL,
         theme = gridExtra::ttheme_minimal(
             base_size = 7,
-            core      = list(fg_params = list(hjust = 0, x = 0.05)),
-            colhead   = list(fg_params = list(fontface = "bold",
-                                              hjust = 0, x = 0.05))
+            core    = list(fg_params = list(hjust = 0, x = 0.05)),
+            colhead = list(fg_params = list(fontface = "bold", hjust = 0, x = 0.05))
         )
     )
 
-    gridExtra::grid.arrange(p, tbl_grob, ncol = 2, widths = c(1.4, 1.6))
+    gridExtra::grid.arrange(coef_grob, tbl_grob, ncol = 2, widths = c(1.2, 1.8))
 }
 
 
@@ -913,7 +920,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
 
 # ── Diagnostic plots ---------------------------------------------------------
 
-.plot_diagnostics <- function(model, label = "") {
+.plot_diagnostics <- function(model, label = "", out_dir = NULL, file_stem = NULL) {
     res_v  <- residuals(model)
     fit_v  <- fitted(model)
     df_d   <- data.frame(fitted    = fit_v,
@@ -926,8 +933,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
                             colour = .pal[1]) +
         ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
                              fill = .pal[4], alpha = 0.2, linewidth = 0.7) +
-        ggplot2::labs(x = "Fitted", y = "Residuals",
-                      title = paste("A  Residuals vs Fitted", label)) +
+        ggplot2::labs(x = "Fitted", y = "Residuals", title = "A  Residuals vs Fitted") +
         .theme_report()
 
     p_sl <- ggplot2::ggplot(df_d, ggplot2::aes(fitted, sqrt_abs)) +
@@ -945,7 +951,26 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
                       title = "C  Q-Q") +
         .theme_report()
 
-    patchwork::wrap_plots(p_rd, p_sl, p_qq, ncol = 3)
+    p_combined <- patchwork::wrap_plots(p_rd, p_sl, p_qq, ncol = 3) +
+        patchwork::plot_annotation(
+            title = paste("Model Assumption Checks —", label),
+            theme = ggplot2::theme(
+                plot.title = ggplot2::element_text(
+                    face = "bold", size = 13, family = "Helvetica"
+                )
+            )
+        )
+
+    if (!is.null(out_dir) && !is.null(file_stem)) {
+        stem <- gsub("[^A-Za-z0-9_-]", "_", file_stem)
+        ggplot2::ggsave(
+            filename = file.path(out_dir, paste0(stem, "_diagnostics.png")),
+            plot     = p_combined,
+            width    = 14, height = 5, dpi = 300, bg = "white"
+        )
+    }
+
+    p_combined
 }
 
 
@@ -1146,7 +1171,8 @@ run_lmm_report <- function(
             )
 
             # ── Results: coefficient plot + table ----------------------------
-            .results_page(fit$pooled_tidy, title = model_tag, out_dir = out_dir)
+            .results_page(fit$pooled_tidy, title = model_tag,
+                          out_dir = if (cov_nm == "other_PA") NULL else out_dir)
 
             # ── Sandwich robustness check ------------------------------------
             sand_tidy <- tryCatch(
@@ -1161,7 +1187,8 @@ run_lmm_report <- function(
             )
             if (!is.null(sand_tidy)) {
                 .sandwich_comparison_page(fit$pooled_tidy, sand_tidy,
-                                          title = model_tag)
+                                          title   = model_tag,
+                                          out_dir = if (cov_nm == "other_PA") NULL else out_dir)
             }
 
             # ── Variance components ------------------------------------------
@@ -1323,9 +1350,13 @@ run_lmm_report <- function(
             }
 
             # ── Assumption checks: main / excl Cook's D / dairy sensitivity --
+            diag_out <- if (cov_nm == "other_PA") NULL else out_dir
+
             p_diag <- tryCatch(
                 .plot_diagnostics(fit$first_model,
-                                  label = paste0("Main model [imp 1]  ", model_tag)),
+                                  label     = paste0("Main model [imp 1]  ", model_tag),
+                                  out_dir   = diag_out,
+                                  file_stem = paste0(model_tag, "_main")),
                 error = function(e) NULL
             )
             if (!is.null(p_diag)) print(p_diag)
@@ -1333,7 +1364,9 @@ run_lmm_report <- function(
             if (!is.null(fit_excl)) {
                 p_excl <- tryCatch(
                     .plot_diagnostics(fit_excl$first_model,
-                                      label = paste0("Excl. Cook's D [imp 1]  ", model_tag)),
+                                      label     = paste0("Excl. Cook's D [imp 1]  ", model_tag),
+                                      out_dir   = diag_out,
+                                      file_stem = paste0(model_tag, "_excl_cooks")),
                     error = function(e) NULL
                 )
                 if (!is.null(p_excl)) print(p_excl)
@@ -1342,7 +1375,9 @@ run_lmm_report <- function(
             if (!is.null(fit_s)) {
                 p_diag_s <- tryCatch(
                     .plot_diagnostics(fit_s$first_model,
-                                      label = paste0("Dairy ≤ 1000 g/day [imp 1]  ", model_tag)),
+                                      label     = paste0("Dairy ≤ 1000 g/day [imp 1]  ", model_tag),
+                                      out_dir   = diag_out,
+                                      file_stem = paste0(model_tag, "_dairy_sens")),
                     error = function(e) NULL
                 )
                 if (!is.null(p_diag_s)) print(p_diag_s)
