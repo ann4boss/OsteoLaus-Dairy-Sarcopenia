@@ -642,12 +642,27 @@ tableOne_targets_2 <- tar_target(tableOne_datasets,
 tableOne_targets_compare <- tar_target(tableOne_datasets_excluded,
                                  make_table_one_by_dataset(
                                      list(
-                                         Shared       = cc_analysis$data_shared,
-                                         Excluded    = cc_analysis$data_excluded_shared
+                                         Shared       = mice_analysis$data_shared,
+                                         Excluded    = mice_analysis$data_excluded_shared
                                      ),
                                      visit = "time_point"
                                  )
 )
+
+# Included vs excluded participants (with p-values).
+# full_data = first imputation of pre-exclusion MICE data (all participants).
+# included_ids = unique pt IDs from the post-exclusion shared MICE dataset.
+tableOne_incl_vs_excl <- tar_target(
+    tableOne_included_vs_excluded,
+    make_table_one_included_vs_excluded(
+        full_data    = mice::complete(mice_merged_derived, 1),
+        included_ids = unique(mids_to_long(mice_analysis$data_shared)[["pt"]]),
+        id           = "pt",
+        visit        = "time_point",
+        caption      = "**Table S2.** Comparison of included and excluded participants (MICE, first imputation)"
+    )
+)
+
 tableOne_save <- list(
     tar_target(
         tableOne_quartile_files,
@@ -661,7 +676,12 @@ tableOne_save <- list(
     ),
     tar_target(
         tableOne_datasets_files_excluded,
-        save_gtsummary_table(tableOne_datasets_excluded, "03_outputs/TableOne/cc/datasets"),
+        save_gtsummary_table(tableOne_datasets_excluded, "03_outputs/TableOne/mice/datasets_compare"),
+        format = "file"
+    ),
+    tar_target(
+        tableOne_incl_vs_excl_files,
+        save_gtsummary_table(tableOne_included_vs_excluded, "03_outputs/TableOne/mice/included_vs_excluded"),
         format = "file"
     )
 )
@@ -687,7 +707,7 @@ visit_descriptives_targets <- list(
     tar_target(
         violin_timing_cc,
         {
-            out <- plot_timing_violin(cc_analysis$data_shared, timing_var = "days_colaus_minus_osteo")
+            out <- plot_timing_violin(cc_analysis$data_shared, timing_var = "days_colaus_minus_osteo", y_label = "Difference in examination date (CoLaus - OsteoLaus)")
             dir.create("03_outputs/descriptives/visits", recursive = TRUE, showWarnings = FALSE)
             f_png <- "03_outputs/descriptives/visits/cc_timing_violin.png"
             f_csv <- "03_outputs/descriptives/visits/cc_timing_summary.csv"
@@ -701,7 +721,7 @@ visit_descriptives_targets <- list(
     tar_target(
         violin_timing_mice,
         {
-            out <- plot_timing_violin(mice_analysis$data_shared, timing_var = "days_colaus_minus_osteo")
+            out <- plot_timing_violin(mice_analysis$data_shared, timing_var = "days_colaus_minus_osteo",y_label = "Difference in examination date (CoLaus - OsteoLaus)")
             dir.create("03_outputs/descriptives/visits", recursive = TRUE, showWarnings = FALSE)
             f_png <- "03_outputs/descriptives/visits/mice_timing_violin.png"
             f_csv <- "03_outputs/descriptives/visits/mice_timing_summary.csv"
@@ -743,6 +763,21 @@ missingness_target <- tar_target(
             data     = mice_merged_derived,
             compare  = list(
                 "After MICE" = mice::complete(mice_merged_derived, 1)
+            ),
+            comparison_vars = c(
+                "dairy_total_gday_cumavg",
+                "HGS_MAX",
+                "ALM_HT2_harmonised",
+                "ALM_BMI_harmonised",
+                "gait_speed",
+                "ewgsop2_sarcopenia_stage",
+                "fnih_sarcopenia",
+                "BMI",
+                "education_level",
+                "smoking_status",
+                "pa_levels_tertile_f1",
+                "diabetes_status",
+                "sumtot1"
             ),
             time_col = "time_point",
             out_dir  = "03_outputs/descriptives/missingness"
@@ -1001,18 +1036,19 @@ c(
     #cox_targets_fnih,
     #
     # ── Descriptives ──────────────────────────────────────────────────────────
-    #consort,
+    # consort
     # tableOne_targets_1,
     # tableOne_targets_2,
-    #tableOne_targets_compare,
-    # tableOne_save,
-    # visit_descriptives_targets,
-    #missingness_target
-    # variable_descriptives_target,
-    # variable_descriptives_target_cc,
-    dairy_quartile_cuts_target
-    # age_trajectories_target,
-    # age_trajectories_target_cc,
-    # followup_targets
+    # tableOne_targets_compare,
+    # tableOne_incl_vs_excl,
+    # tableOne_save
+    # visit_descriptives_targets
+    # missingness_target
+    variable_descriptives_target,
+    variable_descriptives_target_cc,
+    # dairy_quartile_cuts_target
+    age_trajectories_target,
+    age_trajectories_target_cc,
+    followup_targets
 
 )

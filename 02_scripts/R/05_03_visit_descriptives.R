@@ -98,36 +98,33 @@ analyze_visits_structure <- function(data,
 # T4 is excluded (OsteoLaus-only visit; no CoLaus counterpart).
 # -----------------------------------------------------------------------------
 plot_timing_violin <- function(data,
-                               timing_var = "time_since_baseline",
-                               visit_var  = "time_point",
+                               timing_var     = "time_since_baseline",
+                               visit_var      = "time_point",
                                exclude_visits = "T4",
-                               title = "Distribution of time since baseline by visit",
-                               y_title = "Days (Colaus - OsteoLaus)") {
+                               fill_color     = "#376795FF",
+                               y_label        = "Years since baseline") {
 
     df <- .extract_df(data)
     df <- dplyr::filter(df, !(.data[[visit_var]] %in% exclude_visits))
 
     visit_levels <- sort(unique(as.character(df[[visit_var]])))
-    colors       <- .visit_colors(visit_levels)
 
     plot <- ggplot2::ggplot(
         df,
         ggplot2::aes(
-            x    = factor(.data[[visit_var]], levels = visit_levels),
-            y    = .data[[timing_var]],
-            fill = factor(.data[[visit_var]], levels = visit_levels)
+            x = factor(.data[[visit_var]], levels = visit_levels),
+            y = .data[[timing_var]]
         )
     ) +
-        ggplot2::geom_violin(alpha = 0.7, colour = NA) +
+        ggplot2::geom_violin(fill = fill_color, alpha = 0.7, colour = NA) +
         ggplot2::geom_boxplot(width = 0.12, fill = "white",
                               colour = "grey30", outlier.size = 0.8) +
-        ggplot2::scale_fill_manual(values = colors, guide = "none") +
-        ggplot2::labs(
-            title = title,
-            x     = "Time point",
-            y     = y_title
-        ) +
-        .theme_visit()
+        ggplot2::labs(title = NULL, x = "Time point", y = y_label) +
+        .theme_visit() +
+        ggplot2::theme(
+            axis.line   = ggplot2::element_line(colour = "black", linewidth = 0.5),
+            axis.ticks  = ggplot2::element_line(colour = "black", linewidth = 0.4)
+        )
 
     summary <- df |>
         dplyr::group_by(visit = factor(.data[[visit_var]], levels = visit_levels)) |>

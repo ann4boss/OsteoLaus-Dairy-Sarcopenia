@@ -130,7 +130,12 @@ run_exclusions <- function(
   }
 
   # All rows of pts excluded at shared stages (observed data only).
-  data_excluded_shared <- dplyr::filter(obs, !(.data[[pt_col]] %in% keep_ids_shared))
+  # Use the FINAL long_shared (after covariate + min_visit steps) so that
+  # participants removed in steps 2b/2c are included in the excluded set.
+  final_shared_ids     <- unique(
+    (if (is_mids) dplyr::filter(long_shared, .imp == 0L) else long_shared)[[pt_col]]
+  )
+  data_excluded_shared <- dplyr::filter(obs, !(.data[[pt_col]] %in% final_shared_ids))
 
   # ── 3a. Build data_shared_out (needed by outcome loop below) ───────────────
   if (is_mids) {

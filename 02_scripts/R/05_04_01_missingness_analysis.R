@@ -150,66 +150,128 @@ plot_missing_by_var <- function(data,
 
 # ── 4. Comparison: missingness across named datasets ──────────────────────────
 #
-# Designed to compare e.g.:
-#   "Before imputation" (mice_merged_derived$data)  — NAs present
-#   "After MICE"        (mice::complete(mids, 1))   — imputed vars → 0%
-#   "CC"                (cc_analysis$data_shared)   — complete cases, 0% but fewer rows
-#
-# Only variables with any missingness in at least one dataset are shown.
-# Variables absent from a dataset are treated as 0% missing.
+# by_time = FALSE : one panel pooled across time (original behaviour).
+# by_time = TRUE  : faceted by time_col; variable×time combinations that are
+#                   100% missing in ALL datasets are dropped (structural absence).
 
 plot_missing_comparison <- function(data_list,
-                                    vars     = NULL,
-                                    time_col = "time_point") {
+                                    vars      = NULL,
+                                    time_col  = "time_point",
+                                    by_time   = FALSE,
+                                    var_order = NULL) {
+
+  if (!by_time) {
+    # ── Pooled (original behaviour) ──────────────────────────────────────────
+    miss <- purrr::imap_dfr(data_list, function(data, nm) {
+      df    <- extract_data(data)
+      v_use <- intersect(vars %||% setdiff(names(df), time_col), names(df))
+      tibble::tibble(dataset = nm, variable = v_use,
+                     label = label_var(v_use),
+                     pct   = colMeans(is.na(df[v_use])) * 100)
+    })
+
+    any_miss <- miss |>
+      dplyr::group_by(variable) |>
+      dplyr::filter(any(pct > 0)) |>
+      dplyr::pull(variable) |> unique()
+
+    if (length(any_miss) == 0) {
+      cli::cli_inform("No missing values found — comparison plot skipped.")
+      return(invisible(NULL))
+    }
+
+    ref_order <- miss |>
+      dplyr::filter(dataset == names(data_list)[1], variable %in% any_miss) |>
+      dplyr::arrange(pct) |> dplyr::pull(label)
+
+    miss <- miss |>
+      dplyr::filter(variable %in% any_miss) |>
+      dplyr::mutate(label   = factor(label, levels = ref_order),
+                    dataset = factor(dataset, levels = names(data_list)))
+
+    return(
+      ggplot2::ggplot(miss, ggplot2::aes(x = pct, y = label, fill = dataset)) +
+        ggplot2::geom_col(position = "dodge", alpha = 0.85, width = 0.7) +
+        ggplot2::scale_fill_manual(values = .pal_cat(length(data_list)), name = NULL) +
+        ggplot2::scale_x_continuous(limits = c(0, 100),
+                                    labels = scales::label_percent(scale = 1)) +
+        theme_proj() +
+        ggplot2::labs(title    = "Missingness comparison across datasets",
+                      subtitle = "Only variables with missingness in at least one dataset shown",
+                      x = "% missing", y = NULL)
+    )
+  }
+
+  # ── Faceted by time point ─────────────────────────────────────────────────
   miss <- purrr::imap_dfr(data_list, function(data, nm) {
     df    <- extract_data(data)
     v_use <- intersect(vars %||% setdiff(names(df), time_col), names(df))
-    tibble::tibble(
-      dataset  = nm,
-      variable = v_use,
-      label    = label_var(v_use),
-      pct      = colMeans(is.na(df[v_use])) * 100
-    )
+
+    df |>
+      dplyr::group_by(.data[[time_col]]) |>
+      dplyr::summarise(
+        dplyr::across(dplyr::all_of(v_use), ~ mean(is.na(.)) * 100),
+        .groups = "drop"
+      ) |>
+      tidyr::pivot_longer(-dplyr::all_of(time_col),
+                          names_to = "variable", values_to = "pct") |>
+      dplyr::mutate(dataset = nm, label = label_var(variable))
   })
 
-  # Variables with any missingness in any dataset
-  any_miss <- miss |>
-    dplyr::group_by(variable) |>
-    dplyr::filter(any(pct > 0)) |>
-    dplyr::pull(variable) |>
-    unique()
+  # Remove variable×time combos that are 100% missing in ALL datasets
+  # (structural absence — variable does not exist at that time point).
+  structural <- miss |>
+    dplyr::group_by(.data[[time_col]], variable) |>
+    dplyr::summarise(all_missing = all(pct >= 100), .groups = "drop") |>
+    dplyr::filter(all_missing) |>
+    dplyr::select(dplyr::all_of(time_col), "variable")
 
-  if (length(any_miss) == 0) {
+  miss <- dplyr::anti_join(miss, structural, by = c(time_col, "variable"))
+
+  any_miss_vars <- miss |>
+    dplyr::filter(pct > 0) |>
+    dplyr::pull(variable) |> unique()
+
+  if (length(any_miss_vars) == 0) {
     cli::cli_inform("No missing values found — comparison plot skipped.")
     return(invisible(NULL))
   }
 
-  # Sort variables by missingness in the reference (first) dataset
-  ref_order <- miss |>
-    dplyr::filter(dataset == names(data_list)[1], variable %in% any_miss) |>
-    dplyr::arrange(pct) |>
-    dplyr::pull(label)
+  # Determine y-axis factor levels (ggplot2: first level = bottom of axis).
+  if (!is.null(var_order)) {
+    # User-specified top-to-bottom order → reverse for ggplot2 bottom-to-top.
+    ordered_labels <- label_var(var_order)
+    available      <- unique(miss$label)
+    y_levels <- rev(ordered_labels[ordered_labels %in% available])
+    # Any labels not in var_order go at the very bottom.
+    extra    <- setdiff(available, y_levels)
+    y_levels <- c(extra, y_levels)
+  } else {
+    y_levels <- miss |>
+      dplyr::filter(dataset == names(data_list)[1], variable %in% any_miss_vars) |>
+      dplyr::group_by(variable, label) |>
+      dplyr::summarise(mean_pct = mean(pct), .groups = "drop") |>
+      dplyr::arrange(mean_pct) |>
+      dplyr::pull(label)
+  }
 
   miss <- miss |>
-    dplyr::filter(variable %in% any_miss) |>
+    dplyr::filter(variable %in% any_miss_vars) |>
     dplyr::mutate(
-      label   = factor(label, levels = ref_order),
+      label   = factor(label, levels = y_levels),
       dataset = factor(dataset, levels = names(data_list))
     )
 
   ggplot2::ggplot(miss, ggplot2::aes(x = pct, y = label, fill = dataset)) +
     ggplot2::geom_col(position = "dodge", alpha = 0.85, width = 0.7) +
     ggplot2::scale_fill_manual(values = .pal_cat(length(data_list)), name = NULL) +
-    ggplot2::scale_x_continuous(
-      limits = c(0, 100),
-      labels = scales::label_percent(scale = 1)
-    ) +
+    ggplot2::scale_x_continuous(limits = c(0, 50),
+                                breaks = seq(0, 50, 10),
+                                labels = scales::label_percent(scale = 1)) +
+    ggplot2::facet_wrap(~ .data[[time_col]], scales = "free_y", ncol = 2) +
     theme_proj() +
-    ggplot2::labs(
-      title    = "Missingness comparison across datasets",
-      subtitle = "Only variables with missingness in at least one dataset shown",
-      x = "% missing", y = NULL
-    )
+    ggplot2::theme(strip.text = ggplot2::element_text(face = "bold")) +
+    ggplot2::labs(x = "% missing", y = NULL)
 }
 
 # ── Main entry point ───────────────────────────────────────────────────────────
@@ -223,16 +285,20 @@ plot_missing_comparison <- function(data_list,
 #'                 list("After MICE" = mice::complete(mids, 1),
 #'                      "CC"         = cc_analysis$data_shared)
 #'                 Each entry can be a data.frame or mids (extract_data() applied).
-#' @param vars     Variables to assess; default: all non-time columns.
-#' @param time_col Column name for visit/time stratification.
-#' @param out_dir  Directory for PNG and CSV output; NULL to skip saving.
+#' @param vars             Variables for all plots; default: all non-time columns.
+#' @param comparison_vars  Variables shown only in the comparison plot (subset of
+#'                         vars). When NULL, falls back to `vars`. Useful for
+#'                         restricting the time-faceted comparison to a curated list.
+#' @param time_col         Column name for visit/time stratification.
+#' @param out_dir          Directory for PNG and CSV output; NULL to skip saving.
 #' @param width,height,dpi Plot dimensions.
 #' @return Named list: $heatmap, $patterns, $by_var, $comparison, $data.
 describe_missingness <- function(data,
-                                 compare  = NULL,
-                                 vars     = NULL,
-                                 time_col = "time_point",
-                                 out_dir  = NULL,
+                                 compare         = NULL,
+                                 vars            = NULL,
+                                 comparison_vars = NULL,
+                                 time_col        = "time_point",
+                                 out_dir         = NULL,
                                  width = 10, height = 7, dpi = 180) {
   df   <- extract_data(data)
   vars <- intersect(vars %||% setdiff(names(df), time_col), names(df))
@@ -247,10 +313,17 @@ describe_missingness <- function(data,
   )
 
   if (!is.null(compare)) {
+    comp_vars <- if (!is.null(comparison_vars))
+      intersect(comparison_vars, names(df))
+    else
+      vars
+
     plots$comparison <- plot_missing_comparison(
       data_list = c(list("Before imputation" = df), compare),
-      vars      = vars,
-      time_col  = time_col
+      vars      = comp_vars,
+      time_col  = time_col,
+      by_time   = TRUE,
+      var_order = comp_vars
     )
   }
 
@@ -278,6 +351,8 @@ describe_missingness <- function(data,
 
     if (!is.null(compare)) {
       data_list <- c(list("Before imputation" = df), compare)
+
+      # Pooled summary (original)
       purrr::imap_dfr(data_list, function(data, nm) {
         d     <- extract_data(data)
         v_use <- intersect(vars, names(d))
@@ -297,6 +372,38 @@ describe_missingness <- function(data,
         dplyr::filter(.data[["Before imputation"]] > 0) |>
         dplyr::arrange(dplyr::desc(.data[["Before imputation"]])) |>
         readr::write_csv(file.path(out_dir, "missing_imputation_summary.csv"))
+
+      # By-time-point comparison (mirrors the comparison plot)
+      purrr::imap_dfr(data_list, function(data, nm) {
+        d     <- extract_data(data)
+        v_use <- intersect(comp_vars, names(d))
+        d |>
+          dplyr::group_by(.data[[time_col]]) |>
+          dplyr::summarise(
+            dplyr::across(dplyr::all_of(v_use), ~ round(mean(is.na(.)) * 100, 1)),
+            .groups = "drop"
+          ) |>
+          tidyr::pivot_longer(-dplyr::all_of(time_col),
+                              names_to = "variable", values_to = "pct") |>
+          dplyr::mutate(dataset = nm, label = label_var(variable))
+      }) |>
+        tidyr::pivot_wider(names_from = dataset, values_from = pct,
+                           values_fill = NA_real_) |>
+        dplyr::mutate(
+          reduction_pct = .data[["Before imputation"]] -
+                          .data[[names(compare)[1]]],
+          label = label_var(variable)
+        ) |>
+        # Drop structural absences: 100% missing in ALL datasets at that time point.
+        dplyr::filter(
+          !(.data[["Before imputation"]] >= 100 &
+            .data[[names(compare)[1]]] >= 100)
+        ) |>
+        dplyr::filter(!is.na(.data[["Before imputation"]])) |>
+        # Match the plot's variable order (order of comp_vars).
+        dplyr::arrange(.data[[time_col]], match(variable, comp_vars)) |>
+        dplyr::select(dplyr::all_of(time_col), variable, label, dplyr::everything()) |>
+        readr::write_csv(file.path(out_dir, "missing_comparison_by_time.csv"))
     }
 
     cli::cli_inform(c("v" = "Missingness report saved to {.path {out_dir}}"))
