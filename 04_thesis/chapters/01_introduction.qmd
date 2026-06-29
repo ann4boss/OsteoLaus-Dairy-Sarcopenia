@@ -1,9 +1,6 @@
 # Introduction {#sec-introduction}
 
-<!-- ------------------------------------------------------------------ -->
-<!-- SOURCE: ../04_manuscript/sections/02_introduction.qmd              -->
-<!-- Copy or adapt your manuscript introduction here.                   -->
-<!-- ------------------------------------------------------------------ -->
+
 
 ## The ageing population and the burden of sarcopenia
 

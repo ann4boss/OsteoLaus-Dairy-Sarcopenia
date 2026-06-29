@@ -1,44 +1,35 @@
 # Discussion {#sec-discussion}
 
-<!-- ------------------------------------------------------------------ -->
-<!-- SOURCE: ../04_manuscript/sections/05_discussion.qmd                -->
-<!-- ------------------------------------------------------------------ -->
+## Dataset matching
 
-## Principal findings
+T1/T2 CoLaus precedes OsteoLaus almost a year on average. T3 CoLaus half a year later than OsteoLaus
 
-<!-- Summarise the key findings in the context of the study objectives.
-     State whether the primary hypothesis was supported or refuted. -->
+why problematic: ??
 
-## Comparison with existing literature
+why not problematic: taking cumulative average of dairy intake represents long-term intake anyway rather than snapshot
 
-<!-- Dataset matching (T1/T2 CoLaus precedes OsteoLaus ~1 year on
-     average; T3 CoLaus ~0.5 year after OsteoLaus). -->
+## Covariat selection
 
-<!-- HGS: Q3 significantly higher than Q1 but Q4 is not — no simple
-     dose-response relationship. Possible threshold / plateau effect. -->
+Despite careful selection, residual confounding from unmeasured or incompletely measured factors may still be present.
 
-<!-- ALMI: … -->
+Alcohol: While this categorization provides structured metrics for analysis, self-reported dietary and alcohol questionnaires often underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative FFQs tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
 
-<!-- Gait speed: … -->
+## HGS
 
-## Biological mechanisms
+Q3 is sig higher HGS compare to Q1, but Q4 is not: it does not support a simple dose-response relationship.
 
-<!-- Protein quality (leucine content of dairy), calcium and vitamin D,
-     insulin-like growth factor-1 (IGF-1) signalling, anti-inflammatory
-     effects. -->
+-\> interpretations:
 
-## Strengths {#sec-strengths}
+Threshold or plateau effect Moderate-to-high dairy consumption (Q3) may be associated with better muscle strength, but additional intake beyond this level does not confer further benefit. If true, the biological relationship would plateau rather than increase linearly.
 
-<!-- Large sample size, repeated measures, food frequency questionnaire
-     validated in the Swiss population, objective muscle assessments. -->
+<!-- -->
 
-## Limitations {#sec-limitations}
+Residual confounding Participants in Q4 may differ from those in Q3 in characteristics not fully captured by the adjustment variables. For example, very high dairy consumers might have different dietary patterns, health conditions, or energy requirements.
 
-<!-- Acknowledge potential for residual confounding; observational
-     design; FFQ measurement error; restricted to women ≥ 50 years;
-     generalisability. -->
+Random variation The effect estimates for Q3 ($\beta$= 1.02 kg) and Q4 ($\beta$ = 0.56 kg) are not dramatically different. Their confidence intervals overlap substantially. Therefore, the apparent drop from Q3 to Q4 may simply reflect sampling variability rather than a true biological phenomenon.
 
-## Implications for public health {#sec-implications}
+Consistency with the continuous model The continuous model showed a positive association of 0.20 kg per 100 g/day increase in dairy intake (p = 0.01). Therefore, the overall evidence still points toward a positive association. The quartile analysis suggests that the association may not be perfectly linear across the full intake range.
 
-<!-- Translate findings into dietary recommendations and identify
-     priority target groups. -->
+-\> Although the third quartile exhibited significantly higher handgrip strength compared with the lowest quartile, the highest quartile did not. This lack of a monotonic dose-response pattern may indicate a plateau effect at higher levels of dairy consumption or may reflect random variation, as confidence intervals for the quartile estimates overlapped substantially. Nevertheless, the positive association observed in the continuous analysis supports an overall beneficial relationship between dairy intake and handgrip strength.
+
+The strong positive association between educational attainment and handgrip strength may reflect socioeconomic differences in lifelong health behaviours, occupational exposures, healthcare access, and overall health status. Notably, physical activity and diabetes were not independently associated with handgrip strength in the fully adjusted model, suggesting that their effects may be partially mediated or explained by other covariates included in the model.
