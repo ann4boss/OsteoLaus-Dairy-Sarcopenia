@@ -3,7 +3,7 @@ project:
   output-dir: _output
 
 book:
-  title: "Dairy intake and muscle ageing in older women"
+  title: "Dairy intake and muscle aging in older women"
   subtitle: "A prospective analysis from the OsteoLaus cohort"
   author: "Anna Boss"
   date: today
@@ -39,3 +39,7 @@ format:
     keep-tex: true
     include-in-header: tex/header.tex
     include-before-body: tex/frontmatter.tex
+  docx:
+    number-sections: true
+    toc: true
+    toc-depth: 3

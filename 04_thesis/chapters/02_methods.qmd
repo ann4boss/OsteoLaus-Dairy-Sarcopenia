@@ -6,7 +6,7 @@ I analyzed longitudinal data from the CoLaus\textbar{}PsyCoLaus cohort and its n
 
 Eligibility criteria for the OsteoLaus study included written informed consent, body mass index (BMI) between 15 and 40 kg/m², and availability of dual-energy X-ray absorptiometry (DXA) data (obtained in vertebrae and femur) <!--# I am not sure if this is correct like this! old version: and availability of relevant skeletal measurement sites (vertebrae and femur) -->. In addition, ultrasound bone density measurements in the heel and information on previous osteoporotic fractures had to be available. Women with known diseases affecting bone metabolism or skeletal sites were excluded.
 
-Data were collected approximately every 2.5 years at five visits: baseline (2010-2012, n = $1\,475$), second visit (2012-2015, n = $1\,349$), third visit (2015-2018, n = $1\,242$), fourth visit (2017-2020, n = $1\,104$), and fifth visit (2020-2022, n = 944). Loss to follow-up of participants were mainly due to, death, institutionalisation, refusal to participate, BMI above 40 kg/m², or severe psychiatric disease [@vendrami2025a].
+Data were collected approximately every 2.5 years at five visits: baseline (2010-2012, n = $1\,475$), second visit (2012-2015, n = $1\,349$), third visit (2015-2018, n = $1\,242$), fourth visit (2017-2020, n = $1\,104$), and fifth visit (2020-2022, n = 944). Loss to follow-up of participants were mainly due to, death, institutionalisation, refusal to participate, BMI above 40 kg/m^2^, or severe psychiatric disease [@vendrami2025a].
 
 Further details on recruitment and methodology for CoLaus and OsteoLaus were described by Firmann et al. [@firmann2008] and Shevroja et al. [@shevroja2019], respectively. Additional study information is available at the CoLaus\textbar{}PsyCoLaus [website](https://www.colaus-psycolaus.ch/). @fig-timeline shows the study population sizes, visit time intervals, and the variables collected at each visit.
 
@@ -70,8 +70,6 @@ Total dairy intake was the primary exposure and was modeled both as a continuous
 For longitudinal outcomes (handgrip strength and ALMI), I used the cumulative average of total dairy intake, calculated as the mean of all available previous intakes up to each visit. For gait speed, I utilized a lagged cumulative average (mean of previous intakes, excluding the most recent visit) to account for the absence of dairy data at the T4 time point. For sarcopenia incidence, the Cox proportional hazards model incorporated both continuous and quartile-based intake measures. Sensitivity analyses were conducted to test the robustness of our findings, including the assessment of adherence to dietary guidelines and the use of quartiles in mixed linear models.
 
 ## Covariates
-
-### Covariate selection
 
 Covariates were selected based on prior evidence of direct or indirect associations with muscle mass, muscle strength, physical function, sarcopenia, and dairy intake. A directed acyclic graph (DAG) was used to represent the assumed relationships between variables (Supplementary Figure XX <!--# add to supplements -->). The DAG guided the selection of a minimal sufficient adjustment set to control for confounding. Variables that did not contribute to blocking confounding paths, as well as potential mediators, colliders, or redundant variables, were not included in the final models.
 
@@ -140,7 +138,7 @@ Hormonal replacement therapy (HRT) status was assessed for a potential covariate
 
 HRT use was assessed using self-reported questionnaire data. Participants were asked whether they were currently using HRT and at what age HRT was started. Based on these responses, HRT status was classified into three categories: current HRT use, past HRT use, and never or not current HRT use. Participants who answered 'Yes' to current HRT use were classified as current users. Participants who answered 'No' but provided a valid age at HRT initiation were classified as past users. Participants who answered 'No' and had no indication of previous HRT use were classified as never or not current users. HRT status was set to missing when no information on current HRT use was available.
 
-Hypertension was considered as a covariate because of the established association between hypertension and reduced muscle mass [@han2020]. Hypertension status was derived using a hierarchical approach based on three sources of information: measured hypertension, documented antihypertensive treatment, and self-reported antihypertensive medication use. Measured hypertension was defined as systolic blood pressure \$\\geq\$ 140 mmHg and/or diastolic blood pressure \$\\geq\$ 90 mmHg and was considered the primary source. Participants were classified as having hypertension if hypertension was measured. If measured hypertension data were missing, documented antihypertensive treatment was used. If both measured hypertension and documented treatment data were unavailable, self-reported antihypertensive medication use was considered. Participants were classified as not having hypertension if at least one data source was available and none indicated hypertension. Hypertension status was set to missing if all three sources were unavailable.
+Hypertension was considered as a covariate because of the established association between hypertension and reduced muscle mass [@han2020]. Hypertension status was derived using a hierarchical approach based on three sources of information: measured hypertension, documented antihypertensive treatment, and self-reported antihypertensive medication use. Measured hypertension was defined as systolic blood pressure $\geq$ 140 mmHg and/or diastolic blood pressure $\geq$ 90 mmHg and was considered the primary source. Participants were classified as having hypertension if hypertension was measured. If measured hypertension data were missing, documented antihypertensive treatment was used. If both measured hypertension and documented treatment data were unavailable, self-reported antihypertensive medication use was considered. Participants were classified as not having hypertension if at least one data source was available and none indicated hypertension. Hypertension status was set to missing if all three sources were unavailable.
 
 Cardiovascular disease (CVD) is associated with reduced muscle mass and function via multiple mechanisms, including reduced physical activity due to symptoms such as fatigue and dyspnoea, impaired muscle perfusion and oxygen delivery, systemic inflammation, and shared metabolic risk factors such as insulin resistance and age-related pathways.
 
@@ -176,11 +174,11 @@ A study within the same cohort revealed that the Hologic Horizon A System genera
 
 Because systematic differences were observed between devices, ALM values were harmonized using previously published cross-calibration equations derived within the same OsteoLaus cohort [@vendrami2024]. Hologic-derived values were converted to Lunar-equivalent values prior to analysis using the following equation: $ALM_{Holigic}=-369.30.967\cdot ALM_{Lunar}$.
 
-Appendicular lean mass index (ALMI) was calculated as ALM divided by height squared (kg/m²). ALM was converted from grams to kilograms and height from centimetres to metres before calculation. Sensitivity analyses additionally included alternative muscle mass index based on ALM adjusted for body mass index (ALM/BMI). <!--# Do I really do it? -->
+Appendicular lean mass index (ALMI) was calculated as ALM divided by height squared (kg/m²). ALM was converted from grams to kilograms and height from centimeters to meters before calculation. Sensitivity analyses additionally included alternative muscle mass index based on ALM adjusted for body mass index (ALM/BMI).
 
 ### Gait speed
 
-Gait speed was used as a measure of physical performance and functional capacity. Gait speed was assessed using a 6-metre walk test performed at usual walking pace and expressed in meters per second (m/s). Detailed procedures are described in Vendrami et al. [@vendrami2025]. Slow gait speed was defined as $\le$ 0.8 m/s.
+Gait speed was used as a measure of physical performance and functional capacity. Gait speed was assessed using a 6-meter walk test performed at usual walking pace and expressed in meters per second (m/s). Detailed procedures are described in Vendrami et al. [@vendrami2025]. Slow gait speed was defined as $\le$ 0.8 m/s.
 
 ### Sarcopenia
 
@@ -210,19 +208,61 @@ Predictor matrices were manually specified to preserve temporal structure. Only 
 
 ### Data cleaning and exclusions
 
-### Covariate selection <!--# need different title -->
+Each CoLaus visit consisted of two separate assessments: physical examination and questionnaire assessment. These assessments were not always performed on the same day, although they usually took place within a few days of each other. Age was originally calculated using the participant’s birth date and the questionnaire examination date. However, these dates were not available for the present study. Therefore, the physical examination date was used as the temporal reference for linking CoLaus and OsteoLaus visits, as described in [Section 1.2](#sec-matching). In some cases, participants completed the questionnaire assessment but did not attend the physical examination, resulting in a missing physical examination date. For these visits, an estimated physical examination date was derived using the available examination date from another visit together with the difference in calculated age between visits. This approach assumed that the questionnaire and physical examination were conducted within a short time interval.
 
-### Linear mixed-effects models
+Data cleaning of outcome, exposure, and covariates is described in the corresponding sections above.
 
-### **Cox proportional hazards model**
+Data exclusion was performed sequentially using predefined quality control criteria. First, participants were excluded if they failed study-level quality checks. These included inconsistent participant identifiers, missing or invalid examination dates, sex inconsistencies across visits, and implausible age trajectories over time. Second, visit-level observations were excluded if data on required exposure, outcome, or covariate data were missing after imputation steps.
+
+Range-based plausibility checks were then applied. Total energy intake was restricted to 500–3500 kcal/day. Handgrip strength values were required to be \> 0 kg. For analyses with sarcopenia as the outcome, participants with prevalent sarcopenia at baseline were excluded to ensure incident case analyses. In line with the EWGSOP2 definition, participants were excluded if baseline sarcopenia status was missing or if they were classified as having sarcopenia (“confirmed” or “severe”). According to the FNIH definition, participants were excluded if baseline sarcopenia status was missing or if sarcopenia was present at baseline. Finally, participants had to have completed at least two valid study visits to be included in longitudinal analyses.
+
+### Covariate selection
+
+Covariates were selected a priori based on existing evidence and a DAG to identify a sufficient adjustment set.
+
+- Handgrip strength**:** Age, BMI, diabetes, education, physical activity, smoking status, total energy intake
+
+- Appendicular lean mass index: Age, BMI, diabetes, education, physical activity, smoking status, total energy intake
+
+- Gait speed: Age, BMI, diabetes, education, physical activity, smoking status
+
+- Sarcopenia**:** Age, BMI, diabetes, education, physical activity, smoking status
+
+Variables were excluded from final models if they were identified as mediators, colliders, redundant measures, or not required to block confounding pathways according to the DAG (\\\@fig-dag).
+
+### Linear mixed-effects models <!--# check if everything is included -->
+
+Linear mixed-effects models were fitted using the lmerTest package (version 3.2-1) in R [@kuznetsova2017]. These models were used to analyze repeated measurements over time while accounting for within-participant correlation, and to assess how changes in exposure were associated with changes in outcomes over time.
+
+Age was modeled using two separate variables: age at baseline and time since baseline. Age at baseline was included to account for differences in participant age at study entry, while time since baseline represented within-person change over follow-up. Chronological age was not included directly because it is mathematically dependent on baseline age and follow-up time, which would lead to collinearity in the model. This approach allowed separation of cross-sectional age differences from longitudinal changes over time.
+
+To enhance numerical stability and model convergence, all continuous covariates were mean-centered. Furthermore, continuous variables were rescaled to facilitate the interpretation of effect estimates: dairy intake was scaled by 100 g/day, total energy intake by 1000 kcal/day, and age by 10 years. This rescaling ensures that coefficients represent the hazard ratio for meaningful increments rather than unit changes. Categorical variables were dummy-coded using pre-specified reference groups to ensure consistent interpretation across all models.
+
+The models included fixed effects for the exposure, time (visit), and selected covariates. To account for within-individual correlation across repeated measurements, random intercepts for participants were included in all models.
+
+For multiple imputed data, models were fitted within each imputed dataset and pooled using Rubin’s rules via the mice package. <!--# source --> Fixed-effect estimates were extracted using standard mixed-model summary procedures and reported as regression coefficients with 95% confidence intervals.
+
+As sensitivity analysis, I reported clubSandwich CR2 robust standard errors as our primary inference, as they are robust to heteroscedasticity and misspecification of the random effects. <!--# TODO add R package, describe more -->
+
+<!--# TODO: add diagnostic tests: QQ plot ect -->
+
+### **Cox proportional hazards model** <!--# check if everything is included -->
+
+Cox proportional hazards regression models were used to examine the association between dairy intake and incident sarcopenia. The package survival (version 3.8.3) was used [@therneau2026]. Sarcopenia was defined according to either the EWGSOP2 [@cruz-jentoft2019] or FNIH criteria [@studenski2014] and analyzed as a binary outcome. Participants were followed from baseline until the first occurrence of sarcopenia or until their last available follow-up visit, whichever occurred first.
+
+Two modelling approaches were applied. In the baseline model, each participant contributed a single observation, and covariates were taken from the baseline visit only. In the time-dependent model, participants contributed repeated observations across follow-up visits, allowing exposure and covariate values to be updated over time. Age was used as the underlying time scale in all models.
+
+Dairy intake was modeled as continuous variable (grams per day). To reduce the risk of model overfitting, alcohol intake, BMI, physical activity, and total energy intake were modeled as continuous variables where appropriate rather than categorical variables. Categorising continuous variables increases the number of model parameters and therefore the degrees of freedom required for estimation. Because the number of incident sarcopenia cases was limited (50 events among 1123 participants), restricting the number of parameters was important to maintain model stability and reduce the risk of overfitting. <!--# check if to be included -->Previous methodological work has shown that regression models with a low number of events per parameter can produce unstable and overly optimistic estimates that may not replicate in other samples [@babyak2004]. Modeling variables continuously preserves statistical power, retains the full information contained in the data, and reduces unnecessary parameter estimation.
+
+Hazard ratios (HRs) and 95% confidence intervals (CIs) were estimated using partial likelihood estimation with Efron’s method <!--# source -->to account for tied event times. For analyses based on multiply imputed datasets, models were fitted separately within each imputed dataset and pooled using Rubin’s rules. <!--# source -->
+
+Model assumptions were assessed for the fully adjusted models. The proportional hazards assumption was evaluated using Schoenfeld residuals <!--# source -->and global proportional hazards tests. Functional form was assessed using martingale residuals, while influential observations were examined using deviance residuals and standardised DFBETA statistics. Multicollinearity among covariates was assessed using variance inflation factors. <!--# add package car if reported --> Kaplan-Meier curves were generated for categorical dairy intake models to visualise differences in sarcopenia-free survival across exposure groups. <!--# add all necessariy packages used for this -->
 
 ## Ethics
 
 CoLaus \textbar{} PsyCoLaus and the OsteoLaus studies were approved by the Institutional Ethics Committee of the University of Lausanne, Switzerland. All participants signed a written informed consent form after having received a detailed description of the goal and funding of the studies.
 
-<!--# How did you anonymise the data? Or were they already anonymised?-->
-
-\
+<!--# How did you anonymise the data? Or were they already anonymised?-->\
 <!--# give date and number of ethics approval -->
 
 ## Data and Code Availability Statement
@@ -231,4 +271,4 @@ This observational cohort study is reported in accordance with the STROBE guidel
 
 The data used in this study are not publicly available but may be requested subject to approval. More information on data request can be found in [www.colaus-psycolaus.ch](www.colaus-psycolaus.ch).
 
-All code used for data processing and statistical analyses is available on GitHub: <https://github.com/ann4boss/OsteoLaus-Dairy-Sarcopenia>.
+The statistical analysis scripts used to generate the results presented in this study are publicly available on GitHub: <https://github.com/ann4boss/OsteoLaus-Dairy-Sarcopenia>.

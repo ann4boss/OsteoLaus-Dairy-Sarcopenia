@@ -49,7 +49,7 @@ Baseline measures of muscle health were broadly comparable between dairy intake 
 <!--# Table 1. Baseline characteristics according to quartiles of total dairy intake at baseline -->
 
 | Characteristic | Q1 (n=273) | Q2 (n=290) | Q3 (n=274) | Q4 (n=282) |
-|---------------|---------------|---------------|---------------|---------------|
+|----|----|----|----|----|
 | Age, years | 62.8 (7.5) | 62.6 (8.1) | 63.0 (7.6) | 63.4 (7.8) |
 | Energy intake, kcal/day | 1311.5 (455.4) | 1495.1 (491.5) | 1693.4 (480.3) | 1969.5 (548.9) |
 | Total dairy intake, g/day | 67.6 (28.3) | 152.8 (25.2) | 244.2 (30.5) | 480.1 (174.2) |
@@ -95,7 +95,7 @@ All three outcomes demonstrated age-related deterioration, but the magnitude dif
 In the adjusted linear mixed-effects model, cumulative average total dairy intake was positively associated with handgrip strength over follow-up. Each 100 g/day higher intake was associated with a 0.204 kg higher handgrip strength ($\beta$ = 0.204, 95% CI 0.050 to 0.358, p = 0.010) (Table XX). Handgrip strength decreased over time ($\beta$ = -0.139 per year, 95% CI -0.186 to -0.092, p \< 0.001) and was lower in participants with higher baseline age ($\beta$ = -2.976, 95% CI -3.354 to -2.597, p \< 0.001). Higher educational attainment and overweight status were associated with higher handgrip strength, whereas underweight participants had lower values. No clear associations were observed for smoking status, physical activity, diabetes, or total energy intake (Table XX).
 
 | Predictor                          | $\beta$   | 95% CI           | p-value   |
-|--------------------|------------------|------------------|------------------|
+|------------------------------------|-----------|------------------|-----------|
 | **Dairy intake** (per 100 g/day)   | **0.204** | **0.050, 0.358** | **0.010** |
 | **Time since baseline** (per year) | -0.139    | -0.186, -0.092   | \<0.001   |
 | **Age at baseline**                | -2.976    | -3.354, -2.597   | \<0.001   |
@@ -142,7 +142,7 @@ When dairy intake was analysed categorically, participants in the third quartile
 #tbl-HGS-sec
 
 | **Exposure** | **Comparison** | $\beta$ | **95% CI** | **p-value** |
-|---------------|---------------|---------------|---------------|---------------|
+|----|----|----|----|----|
 | **Continuous exposures** |  |  |  |  |
 | Fermented dairy | Per 100 g/day | 0.216 | 0.024, 0.407 | 0.027 |
 | Non-fermented dairy | Per 100 g/day | 0.203 | -0.071, 0.477 | 0.146 |

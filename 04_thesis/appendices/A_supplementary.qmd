@@ -28,4 +28,4 @@ alluvia graphs
 
 fermented ect analysis -\> beta values
 
-but also model fit and assumption checks
+- Assumption checks for cook's distance sensitivity analysis

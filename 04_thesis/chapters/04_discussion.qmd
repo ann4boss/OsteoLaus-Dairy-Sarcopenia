@@ -14,6 +14,10 @@ Despite careful selection, residual confounding from unmeasured or incompletely 
 
 Alcohol: While this categorization provides structured metrics for analysis, self-reported dietary and alcohol questionnaires often underestimate absolute intake levels [@kerr2012; @morabia1994]. Validation studies in the Swiss population (Geneva) have specifically demonstrated that semi-quantitative FFQs tend to underestimate absolute alcohol consumption when compared to more intensive 24-hour recall methods [@morabia1994].
 
+## Sample Characteristics
+
+Possible bias in selection of participants since excluded are overall unhealthier
+
 ## HGS
 
 Q3 is sig higher HGS compare to Q1, but Q4 is not: it does not support a simple dose-response relationship.
@@ -21,6 +25,38 @@ Q3 is sig higher HGS compare to Q1, but Q4 is not: it does not support a simple 
 -\> interpretations:
 
 Threshold or plateau effect Moderate-to-high dairy consumption (Q3) may be associated with better muscle strength, but additional intake beyond this level does not confer further benefit. If true, the biological relationship would plateau rather than increase linearly.
+
+after excluding influential participants: \
+
+In the main analysis:
+
+Q3 had significantly higher handgrip strength than Q1. Q2 and Q4 were also estimated to have higher handgrip strength than Q1, but the confidence intervals crossed zero.
+
+After excluding the 31 most influential participants:
+
+All three higher quartiles (Q2, Q3, and Q4) had significantly higher handgrip strength than Q1. The estimated effects for all quartiles increased slightly. Confidence intervals became narrower.
+
+This suggests that a small number of participants were pulling the estimates towards the null.
+
+Does this indicate a dose-response?
+
+Not really.
+
+If there were a clear dose-response, you would expect something like:
+
+Q2 \< Q3 \< Q4
+
+Instead you observe approximately:
+
+Main model: Q2 = 0.46 kg Q3 = 0.98 kg Q4 = 0.56 kg After removing influential observations: Q2 = 0.61 kg Q3 = 1.13 kg Q4 = 0.71 kg
+
+Q3 remains the strongest association, while Q4 is smaller than Q3. Therefore there is no monotonic increase across quartiles.
+
+What might explain this?
+
+Several possibilities exist:
+
+The true relationship may not be linear. There may be a threshold effect, where moderate-to-high dairy intake is associated with better handgrip strength, but additional intake does not confer further benefit. The highest quartile may contain a more heterogeneous group (as you have previously observed), leading to greater variability and attenuation of the estimate. The influential observations may have disproportionately affected the Q2 and Q4 estimates.
 
 <!-- -->
 
