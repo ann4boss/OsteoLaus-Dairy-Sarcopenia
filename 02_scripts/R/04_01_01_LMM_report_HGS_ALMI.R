@@ -1290,7 +1290,7 @@ run_lmm_report <- function(
                             title = paste("Formula —", excl_tag)
                         )
                         .results_page(fit_excl$pooled_tidy, title = excl_tag,
-                                      out_dir = NULL)
+                                      out_dir = if (cov_nm == "other_PA") NULL else out_dir)
                     }
                 }
             }
@@ -1345,7 +1345,7 @@ run_lmm_report <- function(
                         title = paste("Formula —", sens_tag)
                     )
                     .results_page(fit_s$pooled_tidy, title = sens_tag,
-                                  out_dir = out_dir)
+                                  out_dir = NULL)
                 }
             }
 

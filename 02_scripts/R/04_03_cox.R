@@ -1806,7 +1806,10 @@ run_cox_sarcopenia <- function(
 
     .compute_one <- function(d) {
 
-        if (!dairy_col %in% names(d)) return(NULL)
+        # Use dairy_exposure (always present after .prepare_dairy) for quartile
+        # assignment. dairy_col may not survive tmerge in the td route.
+        exposure_col <- if ("dairy_exposure" %in% names(d)) "dairy_exposure" else dairy_col
+        if (!exposure_col %in% names(d)) return(NULL)
 
         # ── Assign quartile groups ──────────────────────────────────────────
         if (covariate_type == "time_dependent") {
@@ -1818,15 +1821,20 @@ run_cox_sarcopenia <- function(
                 dplyr::group_by(pt) |>
                 dplyr::slice(1L) |>
                 dplyr::ungroup() |>
-                dplyr::select(pt, dairy_val = dplyr::all_of(dairy_col))
+                dplyr::select(pt, dairy_val = dplyr::all_of(exposure_col))
 
-            breaks <- stats::quantile(baseline$dairy_val,
-                                      probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
-            baseline$quartile <- cut(
-                baseline$dairy_val, breaks = breaks,
-                labels = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
-                include.lowest = TRUE
-            )
+            if (is.factor(baseline$dairy_val)) {
+                baseline$quartile <- factor(as.character(baseline$dairy_val),
+                                            levels = levels(baseline$dairy_val))
+            } else {
+                breaks <- stats::quantile(baseline$dairy_val,
+                                          probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+                baseline$quartile <- cut(
+                    baseline$dairy_val, breaks = breaks,
+                    labels = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
+                    include.lowest = TRUE
+                )
+            }
 
             # Person-years: sum all intervals per participant
             py_per_pt <- d |>
@@ -1849,19 +1857,31 @@ run_cox_sarcopenia <- function(
                 dplyr::inner_join(ev_per_pt,  by = "pt")
 
         } else {
-            # Fixed: one row per participant
-            breaks <- stats::quantile(d[[dairy_col]],
-                                      probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
-            pt_data <- d |>
-                dplyr::mutate(
-                    dairy_val = .data[[dairy_col]],
-                    quartile  = cut(
-                        dairy_val, breaks = breaks,
-                        labels = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
-                        include.lowest = TRUE
-                    ),
-                    py = time
-                )
+            # Fixed: one row per participant.
+            # For categorical dairy, dairy_exposure is already a factor — use it
+            # directly. quantile() on an unordered factor throws an error.
+            if (is.factor(d[[exposure_col]])) {
+                pt_data <- d |>
+                    dplyr::mutate(
+                        dairy_val = .data[[exposure_col]],
+                        quartile  = factor(as.character(.data[[exposure_col]]),
+                                           levels = levels(.data[[exposure_col]])),
+                        py = time
+                    )
+            } else {
+                breaks <- stats::quantile(d[[exposure_col]],
+                                          probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+                pt_data <- d |>
+                    dplyr::mutate(
+                        dairy_val = .data[[exposure_col]],
+                        quartile  = cut(
+                            dairy_val, breaks = breaks,
+                            labels = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
+                            include.lowest = TRUE
+                        ),
+                        py = time
+                    )
+            }
         }
 
         pt_data <- pt_data[!is.na(pt_data$quartile), ]
@@ -1952,21 +1972,23 @@ run_cox_sarcopenia <- function(
         legend_title       <- "Dairy intake"
 
     } else {
-        # Continuous dairy: tertiles for KM visualisation only
-        if (!dairy_col %in% names(surv_data)) {
-            cli::cli_warn("{.col {dairy_col}} not found — skipping KM plot.")
+        # Continuous dairy: quartiles for KM visualisation only.
+        # Use dairy_exposure (always present) if dairy_col didn't survive tmerge.
+        km_dairy_col <- if (dairy_col %in% names(surv_data)) dairy_col else "dairy_exposure"
+        if (!km_dairy_col %in% names(surv_data)) {
+            cli::cli_warn("{.col {dairy_col}} / dairy_exposure not found — skipping KM plot.")
             return(NULL)
         }
-        breaks <- stats::quantile(surv_data[[dairy_col]],
+        breaks <- stats::quantile(surv_data[[km_dairy_col]],
                                   probs = c(0, 0.25, 0.5, 0.75, 1), na.rm = TRUE)
         surv_data$km_group <- cut(
-            surv_data[[dairy_col]],
+            surv_data[[km_dairy_col]],
             breaks         = breaks,
             labels         = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
             include.lowest = TRUE
         )
         legend_title <- glue::glue(
-            "Dairy quartile ({dairy_col})\n",
+            "Dairy quartile ({km_dairy_col})\n",
             "Q1 ≤{round(breaks[2],1)}  ",
             "Q2 ≤{round(breaks[3],1)}  ",
             "Q3 ≤{round(breaks[4],1)}  ",

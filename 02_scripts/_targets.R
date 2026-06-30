@@ -326,7 +326,7 @@ covariate_sets_hgs <- list(
         "pa_levels_tertile_f1", "diabetes_status", "sumtot1_scaled"
     ),
     other_PA = c(
-        "age_at_baseline_scaled", "BMI_categor", "education_level", "smoking_status",
+        "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
         "pa_levels_who_f1", "diabetes_status", "sumtot1_scaled"
     )
 )
@@ -342,6 +342,12 @@ covariate_sets_alm <- list(
     )
 )
 
+covariate_sets_alm_bmi <- list(
+    other_outcome = c(
+        "age_at_baseline_scaled", "education_level", "smoking_status",
+        "pa_levels_tertile_f1", "diabetes_status", "sumtot1_scaled"
+    )
+)
 
 covariate_sets_gait <- list(
     main = c(
@@ -408,6 +414,20 @@ LMM_targets_ALM <- tar_target(
         random_slope   = FALSE,
         interaction    = FALSE,
         out_dir        = "03_outputs/LMM_exploratory/ALMI"
+    ),
+    format = "file")
+
+LMM_targets_ALM_BMI <- tar_target(
+    lmm_report_alm_bmi,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$ALM_HT2_harmonised,
+        outcome        = "ALM_BMI_harmonised",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions,
+        covariate_sets = covariate_sets_alm_bmi,
+        random_slope   = FALSE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory/ALMI_BMI"
     ),
     format = "file")
 
@@ -825,11 +845,13 @@ variable_descriptives_target <- tar_target(
                     y    = "gait_speed"
                 )
             ),
-            loess_span       = 0.75,
-            out_dir          = out_dir,
-            width            = 8,
-            height           = 5,
-            dpi              = 180
+            loess_span           = 0.75,
+            quartile_cuts_file   = dairy_quartile_cuts,
+            quartile_dataset     = "MICE",
+            out_dir              = out_dir,
+            width                = 8,
+            height               = 5,
+            dpi                  = 180
         )
         list.files(out_dir, full.names = TRUE)
     },
@@ -978,11 +1000,13 @@ variable_descriptives_target_cc <- tar_target(
                     y    = "gait_speed"
                 )
             ),
-            loess_span       = 0.75,
-            out_dir          = out_dir,
-            width            = 8,
-            height           = 5,
-            dpi              = 180
+            loess_span           = 0.75,
+            quartile_cuts_file   = dairy_quartile_cuts,
+            quartile_dataset     = "CC",
+            out_dir              = out_dir,
+            width                = 8,
+            height               = 5,
+            dpi                  = 180
         )
         list.files(out_dir, full.names = TRUE)
     },
@@ -1024,17 +1048,19 @@ c(
     mice_exclusion,
 
     # ── Models ────────────────────────────────────────────────────────────────
-    #LMM_targets_HGS,
-    #LMM_targets_ALM
-    #LMM_targets_gait
+    # LMM_targets_HGS,
+    # LMM_targets_ALM,
+    # LMM_targets_ALM_BMI,
+    # LMM_targets_gait
+    cox_targets,
+    cox_targets_fnih
 
     # ── Model specification sensitivity ──────────────────────────────────────
     # LMM_modspec_HGS,
     # LMM_modspec_ALM,
     # LMM_modspec_gait
-    #cox_targets,
-    #cox_targets_fnih,
-    #
+    
+    
     # ── Descriptives ──────────────────────────────────────────────────────────
     # consort
     # tableOne_targets_1,
@@ -1044,11 +1070,11 @@ c(
     # tableOne_save
     # visit_descriptives_targets
     # missingness_target
-    variable_descriptives_target,
-    variable_descriptives_target_cc,
-    # dairy_quartile_cuts_target
-    age_trajectories_target,
-    age_trajectories_target_cc,
-    followup_targets
+    # dairy_quartile_cuts_target,
+    # variable_descriptives_target,
+    # variable_descriptives_target_cc
+    # age_trajectories_target,
+    # age_trajectories_target_cc,
+    # followup_targets
 
 )

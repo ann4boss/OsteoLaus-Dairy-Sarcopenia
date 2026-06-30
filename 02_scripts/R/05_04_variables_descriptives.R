@@ -30,11 +30,16 @@ VAR_LABELS <- c(
   dairy_non_fermented_gday = "Non-fermented dairy [g/day",
   dairy_lowfat_gday        = "Low-fat dairy [g/day",
   dairy_highfat_gday       = "High-fat dairy [g/day",
-  dairy_total_gday_cumavg          = "Cumulative total dairy intake [g/day]",
-  dairy_fermented_gday_cumavg      = "Fermented dairy cumulative average [g/day",
-  dairy_non_fermented_gday_cumavg  = "Non-fermented dairy cumulative average [g/day",
-  dairy_lowfat_gday_cumavg         = "Low-fat dairy cumulative average [g/day",
-  dairy_highfat_gday_cumavg        = "High-fat dairy cumulative average [g/day",
+  dairy_total_gday_cumavg              = "Cumulative total dairy intake [g/day]",
+  dairy_fermented_gday_cumavg          = "Fermented dairy cumulative average [g/day]",
+  dairy_non_fermented_gday_cumavg      = "Non-fermented dairy cumulative average [g/day]",
+  dairy_lowfat_gday_cumavg             = "Low-fat dairy cumulative average [g/day]",
+  dairy_highfat_gday_cumavg            = "High-fat dairy cumulative average [g/day]",
+  dairy_total_gday_cumavg_lag          = "Lagged Cumulative total dairy intake [g/day]",
+  dairy_fermented_gday_cumavg_lag      = "Lagged Fermented dairy cumulative average [g/day]",
+  dairy_non_fermented_gday_cumavg_lag  = "Lagged Non-fermented dairy cumulative average [g/day]",
+  dairy_lowfat_gday_cumavg_lag         = "Lagged Low-fat dairy cumulative average [g/day]",
+  dairy_highfat_gday_cumavg_lag        = "Lagged High-fat dairy cumulative average [g/day]",
   dairy_quartile_baseline  = "Dairy quartile",
   dairy_guidelines_port    = "Dairy Swiss serving guidelines",
   days_colaus_minus_osteo  = "Days CoLaus – OsteoLaus",
@@ -280,7 +285,8 @@ plot_exposure_outcome <- function(data,
                                   quartile_cuts = NULL) {
   df     <- extract_data(data)
   visits <- sort(unique(df[[time_col]]))
-  cols   <- .pal_seq(length(visits))
+  # Single dark blue for all time points (facet labels already distinguish visits)
+  col_pt <- PALETTE[10]
   combos <- expand.grid(x = x, y = y, stringsAsFactors = FALSE)
 
   purrr::pmap(combos, function(x, y) {
@@ -295,20 +301,34 @@ plot_exposure_outcome <- function(data,
       ggplot2::geom_point(alpha = 0.35, size = 1.2) +
       ggplot2::geom_smooth(method = "loess", formula = y ~ x,
                            span = span, se = TRUE, alpha = 0.15, linewidth = 0.8) +
-      ggplot2::facet_wrap(~ visit, scales = "free") +
-      ggplot2::scale_color_manual(values = cols, guide = "none") +
-      ggplot2::scale_fill_manual(values  = cols, guide = "none") +
+      ggplot2::facet_wrap(~ visit, scales = "free_x") +
+      ggplot2::scale_color_manual(values = rep(col_pt, length(visits)), guide = "none") +
+      ggplot2::scale_fill_manual(values  = rep(col_pt, length(visits)), guide = "none") +
       theme_proj() +
-      ggplot2::labs(
-        title = paste(label_var(y), "~", label_var(x)),
-        x = label_var(x), y = label_var(y)
-      )
+      ggplot2::theme(
+        axis.line = ggplot2::element_line(color = "black", linewidth = 0.4)
+      ) +
+      ggplot2::labs(x = label_var(x), y = label_var(y))
 
     if (!is.null(quartile_cuts) && x %in% names(quartile_cuts)) {
-      p <- p + ggplot2::geom_vline(
+      cuts_df <- tibble::tibble(
         xintercept = quartile_cuts[[x]],
-        linetype = "dashed", color = PALETTE[10], linewidth = 0.4, alpha = 0.6
+        qlabel     = c("Q1", "Q2", "Q3")
       )
+      p <- p +
+        ggplot2::geom_vline(
+          data = cuts_df,
+          ggplot2::aes(xintercept = xintercept),
+          linetype = "solid", color = PALETTE[1], linewidth = 0.45, alpha = 0.8,
+          inherit.aes = FALSE
+        ) +
+        ggplot2::geom_text(
+          data = cuts_df,
+          ggplot2::aes(x = xintercept, label = qlabel),
+          y = Inf, vjust = 1.5, hjust = 1.15,
+          size = 2.5, family = FONT, color = PALETTE[1],
+          inherit.aes = FALSE
+        )
     }
     p
   }) |> rlang::set_names(paste(combos$y, "vs", combos$x))
@@ -334,14 +354,16 @@ plot_exposure_outcome <- function(data,
 #' @param width,height,dpi Plot dimensions.
 #' @return Named list: $missing, $densities, $boxplots, $bars, $alluvials, $scatter.
 describe_variables <- function(data,
-                               time_col         = "time_point",
-                               id_var           = "pt",
-                               continuous_vars  = NULL,
-                               categorical_vars = NULL,
-                               missing_vars     = NULL,
-                               scatter_pairs    = NULL,
-                               loess_span       = 0.75,
-                               out_dir          = NULL,
+                               time_col           = "time_point",
+                               id_var             = "pt",
+                               continuous_vars    = NULL,
+                               categorical_vars   = NULL,
+                               missing_vars       = NULL,
+                               scatter_pairs      = NULL,
+                               loess_span         = 0.75,
+                               quartile_cuts_file = NULL,
+                               quartile_dataset   = "MICE",
+                               out_dir            = NULL,
                                width = 8, height = 5, dpi = 150) {
   df     <- extract_data(data)
   cont_v <- intersect(continuous_vars  %||% CONTINUOUS_VARS,               names(df))
@@ -363,10 +385,32 @@ describe_variables <- function(data,
   )
 
   if (!is.null(scatter_pairs)) {
+    # Pre-load baseline cuts from saved CSV (MICE-averaged, F1/T1 only).
+    # These match the derivation cuts used in dairy_quartile_baseline.
+    # Applied to dairy_total_gday_cumavg and its lagged variant; all other
+    # exposure variables keep their data-derived cuts.
+    file_baseline_cuts <- NULL
+    if (!is.null(quartile_cuts_file) && file.exists(quartile_cuts_file)) {
+      raw <- readr::read_csv(quartile_cuts_file, show_col_types = FALSE)
+      q_rows <- raw |>
+        dplyr::filter(dataset == quartile_dataset, quartile_var == "baseline") |>
+        dplyr::arrange(boundary) |>
+        dplyr::pull(cut_g_day)
+      if (length(q_rows) == 3)
+        file_baseline_cuts <- stats::setNames(q_rows, c("25%", "50%", "75%"))
+    }
+
     # Compute cuts first (keeps mids object before extract_data strips it)
-    all_cuts <- purrr::imap(scatter_pairs, function(pair, nm)
-      compute_quartile_cuts(pair$data %||% data, pair$x)
-    )
+    all_cuts <- purrr::imap(scatter_pairs, function(pair, nm) {
+      cuts <- compute_quartile_cuts(pair$data %||% data, pair$x)
+      # Override total-dairy cuts with file-based baseline derivation cuts
+      if (!is.null(file_baseline_cuts)) {
+        total_dairy_vars <- c("dairy_total_gday_cumavg", "dairy_total_gday_cumavg_lag")
+        for (v in intersect(pair$x, total_dairy_vars))
+          cuts[[v]] <- file_baseline_cuts
+      }
+      cuts
+    })
     plots$scatter <- purrr::imap(scatter_pairs, function(pair, nm) {
       pair_df <- extract_data(pair$data %||% data)
       plot_exposure_outcome(pair_df, x = pair$x, y = pair$y,

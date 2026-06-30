@@ -723,7 +723,7 @@ run_lmm_report_gait <- function(
                             title = paste("Formula —", excl_tag)
                         )
                         .results_page_gait(fit_excl$pooled_tidy, title = excl_tag,
-                                           out_dir = NULL)
+                                           out_dir = if (cov_nm == "other_PA") NULL else out_dir)
                     }
                 }
             }
@@ -778,7 +778,7 @@ run_lmm_report_gait <- function(
                         title = paste("Formula —", sens_tag)
                     )
                     .results_page_gait(fit_s$pooled_tidy, title = sens_tag,
-                                       out_dir = out_dir)
+                                       out_dir = NULL)
                 }
             }
 
