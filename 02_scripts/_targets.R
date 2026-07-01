@@ -514,7 +514,7 @@ cox_targets <- list(
     tar_target(cox_results_cc_cont, cc_ewgsop2_fixed_cont$results_adj),
     
     tar_target(
-        mice_ewgsop2_fixed_cat,
+        mice_ewgsop2_fixed_continuous,
         run_cox_sarcopenia(
             data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
             sarcopenia_def = "ewgsop2",
@@ -530,7 +530,7 @@ cox_targets <- list(
     tar_target(cox_km_mice_cat,          mice_ewgsop2_fixed_cat$km_plot),
     
     tar_target(
-        mice_ewgsop2_fixed_cat_2,
+        mice_ewgsop2_fixed_cat,
         run_cox_sarcopenia(
             data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
             sarcopenia_def = "ewgsop2",
@@ -541,7 +541,7 @@ cox_targets <- list(
         )
     ),
     tar_target(
-        mice_ewgsop2_timedep,
+        mice_ewgsop2_timedep_cat,
         run_cox_sarcopenia(
             data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
             sarcopenia_def = "ewgsop2",
@@ -560,6 +560,28 @@ cox_targets <- list(
             dairy_type     = "continuous",
             dairy_cat_col  = "dairy_total_gday_cumavg",
             analysis_route = "mice"
+        )
+    ),
+    tar_target(
+        mice_ewgsop2_fixed_cont_spline,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
+            sarcopenia_def = "ewgsop2",
+            covariate_type = "fixed",
+            dairy_type     = "continuous",
+            analysis_route = "mice",
+            spline_df      = 3 
+        )
+    ),
+    tar_target(
+        mice_ewgsop2_timdep_cont_spline,
+        run_cox_sarcopenia(
+            data           = mice_analysis$data$ewgsop2_sarcopenia_stage,
+            sarcopenia_def = "ewgsop2",
+            covariate_type = "time_dependent",
+            dairy_type     = "continuous",
+            analysis_route = "mice",
+            spline_df      = 3 
         )
     )
 )
@@ -763,7 +785,8 @@ visit_descriptives_targets <- list(
                                 datasets_list = list(
                                     "HGS"        = mice_analysis$mids$HGS_MAX,
                                     "ALMI"       = mice_analysis$mids$ALM_HT2_harmonised,
-                                    "Gait speed" = mice_analysis$mids$gait_speed
+                                    "Gait speed" = mice_analysis$mids$gait_speed,
+                                    "Sarcopenia" = mice_analysis$mids$ewgsop2_sarcopenia_stage
                                 )
                             )$plot,
                             width = 8, height = 5, dpi = 180)
@@ -1052,8 +1075,8 @@ c(
     # LMM_targets_ALM,
     # LMM_targets_ALM_BMI,
     # LMM_targets_gait
-    cox_targets,
-    cox_targets_fnih
+    # cox_targets
+    #cox_targets_fnih
 
     # ── Model specification sensitivity ──────────────────────────────────────
     # LMM_modspec_HGS,
@@ -1068,7 +1091,7 @@ c(
     # tableOne_targets_compare,
     # tableOne_incl_vs_excl,
     # tableOne_save
-    # visit_descriptives_targets
+    visit_descriptives_targets
     # missingness_target
     # dairy_quartile_cuts_target,
     # variable_descriptives_target,

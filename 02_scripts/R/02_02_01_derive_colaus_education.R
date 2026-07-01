@@ -41,19 +41,17 @@ derive_education <- function(df) {
     # in Step 2 fills those gaps.
     df <- df |>
         dplyr::mutate(
-            education_level = dplyr::case_when(
-                is.na(edtyp4)                          ~ NA_integer_,
-                edtyp4 == "University"                 ~ 3L,
-                edtyp4 %in% c("High school",
-                              "Apprenticeship")         ~ 2L,
-                edtyp4 == "Mandatory"                  ~ 1L,
-                TRUE                                   ~ NA_integer_
-            ) |>
-                factor(
-                    levels  = 1:3,
-                    labels  = c("Low (ISCED 0-2)", "Medium (ISCED 3-4)", "High (ISCED 5-8)"),
-                    ordered = TRUE
-                )
+            education_level = factor(
+                dplyr::case_when(
+                    edtyp4 == "University"                 ~ "High (ISCED 5-8)",
+                    edtyp4 %in% c("High school",
+                                  "Apprenticeship")        ~ "Medium (ISCED 3-4)",
+                    edtyp4 == "Mandatory"                  ~ "Low (ISCED 0-2)",
+                    TRUE                                   ~ NA_character_
+                ),
+                levels  = c("Low (ISCED 0-2)", "Medium (ISCED 3-4)", "High (ISCED 5-8)"),
+                ordered = FALSE
+            )
         )
 
     # ── Step 2: Carry Baseline value forward to all visits per participant ---

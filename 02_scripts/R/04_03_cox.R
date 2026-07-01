@@ -125,7 +125,8 @@ run_cox_sarcopenia <- function(
         dairy_col        = "dairy_total_gday_cumavg",
         dairy_cat_col    = "dairy_quartile_baseline",
         interaction_var  = NULL,
-        death_col        = NULL   # column name for all-cause death (0/1); enables Fine-Gray
+        death_col        = NULL,  # column name for all-cause death (0/1); enables Fine-Gray
+        spline_df        = NULL   # integer; if set, dairy_exposure modelled as ns(df=spline_df)
 ) {
     # ── mids → long format conversion ----------------------------------------
     if (inherits(data, "mids")) {
@@ -138,11 +139,14 @@ run_cox_sarcopenia <- function(
     covariate_type  <- match.arg(covariate_type)
     dairy_type      <- match.arg(dairy_type)
     analysis_route  <- match.arg(analysis_route)
+    
 
     # ── Output directory (computed before log capture starts) ──────────────
     timestamp  <- format(Sys.time(), "%d%m%Y_%H%M")
-    config_tag <- paste(analysis_route, sarcopenia_def, covariate_type,
-                        dairy_type, interaction_var, sep = "_")
+    spline_tag <- if (!is.null(spline_df)) paste0("spline", spline_df) else NULL
+    config_tag <- paste(c(analysis_route, sarcopenia_def, covariate_type,
+                          dairy_type, spline_tag, interaction_var),
+                        collapse = "_")
     out_dir    <- file.path("03_outputs", "Cox", paste0(config_tag, "_", timestamp))
     dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
@@ -170,6 +174,7 @@ run_cox_sarcopenia <- function(
                 dairy_cat_col   = dairy_cat_col,
                 interaction_var = interaction_var,
                 death_col       = death_col,
+                spline_df       = spline_df,
                 timestamp       = timestamp,
                 out_dir         = out_dir
             )
@@ -194,6 +199,7 @@ run_cox_sarcopenia <- function(
                     covariates      = covariates,
                     interaction_var = interaction_var,
                     death_col       = death_col,
+                    spline_df       = spline_df,
                     out_dir         = out_dir
                 )
 
@@ -209,6 +215,7 @@ run_cox_sarcopenia <- function(
                     covariates      = covariates,
                     interaction_var = interaction_var,
                     death_col       = death_col,
+                    spline_df       = spline_df,
                     out_dir         = out_dir
                 )
 
@@ -321,6 +328,22 @@ run_cox_sarcopenia <- function(
 #' One row per participant. Time = Age at first event or last follow-up.
 #' Covariates taken from OsteoLaus Baseline visit.
 #' @keywords internal
+# Convert any ordered factor covariates to unordered, preserving level order
+# (so the first level remains the reference). Ordered factors produce
+# polynomial contrasts (.L, .Q) in coxph, which are rarely desired.
+.unorder_covariates <- function(data, covariates) {
+    for (cv in intersect(covariates, names(data))) {
+        if (is.ordered(data[[cv]])) {
+            data[[cv]] <- factor(data[[cv]],
+                                 levels  = levels(data[[cv]]),
+                                 ordered = FALSE)
+            cli::cli_inform(c("i" = "Covariate {.col {cv}}: converted from ordered to unordered factor (ref = '{levels(data[[cv]])[1L]}')."))
+        }
+    }
+    data
+}
+
+
 .build_fixed_dataset <- function(
         data, dairy_type, dairy_col, dairy_cat_col,
          covariates
@@ -375,11 +398,14 @@ run_cox_sarcopenia <- function(
     # ── Drop rows with missing time or dairy --------------------------------
     surv_data <- surv_data |>
         dplyr::filter(!is.na(time), !is.na(event), !is.na(dairy_exposure))
-    
+
+    # ── Convert ordered factor covariates to unordered ──────────────────────
+    surv_data <- .unorder_covariates(surv_data, covariates)
+
     cli::cli_inform(c(
         "v" = "Fixed dataset: {nrow(surv_data)} rows | {sum(surv_data$event)} events"
     ))
-    
+
     surv_data
 }
 
@@ -487,6 +513,9 @@ run_cox_sarcopenia <- function(
     ))
     attr(td_obj, "person_years") <- person_years
 
+    # ── Convert ordered factor covariates to unordered ──────────────────────
+    td_obj <- .unorder_covariates(td_obj, covariates)
+
     td_obj
 }
 
@@ -532,7 +561,7 @@ run_cox_sarcopenia <- function(
 #' @keywords internal
 .build_cox_formula <- function(
         covariate_type, dairy_type, covariates,
-        interaction_var = NULL, adjusted = TRUE
+        interaction_var = NULL, adjusted = TRUE, spline_df = NULL
 ) {
     # ── Time specification --------------------------------------------------
     if (covariate_type == "fixed") {
@@ -540,17 +569,23 @@ run_cox_sarcopenia <- function(
     } else {
         surv_term <- "survival::Surv(age_start, age_stop, event)"
     }
-    
+
     # ── Dairy term ----------------------------------------------------------
-    dairy_term <- "dairy_exposure"
-    
+    # For continuous dairy with spline_df set, wrap in splines::ns().
+    # Categorical dairy is already a factor — spline does not apply.
+    dairy_term <- if (!is.null(spline_df) && dairy_type == "continuous") {
+        glue::glue("splines::ns(dairy_exposure, df = {as.integer(spline_df)})")
+    } else {
+        "dairy_exposure"
+    }
+
     # ── Interaction term ----------------------------------------------------
     if (!is.null(interaction_var)) {
         dairy_main <- glue::glue("{dairy_term} * {interaction_var}")
     } else {
         dairy_main <- dairy_term
     }
-    
+
     # ── Unadjusted / adjusted ---------------------------------------------
     if (!adjusted || length(covariates) == 0L) {
         rhs <- dairy_main
@@ -558,7 +593,7 @@ run_cox_sarcopenia <- function(
         adj_vars <- setdiff(covariates, interaction_var)  # avoid double entry
         rhs <- paste(c(dairy_main, adj_vars), collapse = " + ")
     }
-    
+
     as.formula(glue::glue("{surv_term} ~ {rhs}"))
 }
 
@@ -627,21 +662,36 @@ run_cox_sarcopenia <- function(
     fits <- if (is.list(fit) && !inherits(fit, "coxph")) fit else list(fit)
 
     extract_tests <- function(f) {
-        s <- summary(f)
-        c(
-            lr_chisq    = unname(s$logtest["test"]),
-            lr_df       = unname(s$logtest["df"]),
-            lr_p        = unname(s$logtest["pvalue"]),
-            wald_chisq  = unname(s$waldtest["test"]),
-            wald_df     = unname(s$waldtest["df"]),
-            wald_p      = unname(s$waldtest["pvalue"]),
-            score_chisq = unname(s$sctest["test"]),
-            score_df    = unname(s$sctest["df"]),
-            score_p     = unname(s$sctest["pvalue"])
-        )
+        tryCatch({
+            s <- summary(f)
+            c(
+                lr_chisq    = unname(s$logtest["test"]),
+                lr_df       = unname(s$logtest["df"]),
+                lr_p        = unname(s$logtest["pvalue"]),
+                wald_chisq  = unname(s$waldtest["test"]),
+                wald_df     = unname(s$waldtest["df"]),
+                wald_p      = unname(s$waldtest["pvalue"]),
+                score_chisq = unname(s$sctest["test"]),
+                score_df    = unname(s$sctest["df"]),
+                score_p     = unname(s$sctest["pvalue"])
+            )
+        }, error = function(e) {
+            cli::cli_warn("Global tests: could not extract from one fit — {conditionMessage(e)}")
+            c(lr_chisq=NA_real_, lr_df=NA_real_, lr_p=NA_real_,
+              wald_chisq=NA_real_, wald_df=NA_real_, wald_p=NA_real_,
+              score_chisq=NA_real_, score_df=NA_real_, score_p=NA_real_)
+        })
     }
 
-    vals <- do.call(rbind, lapply(fits, extract_tests))
+    vals_list <- lapply(fits, extract_tests)
+    vals_ok   <- Filter(function(x) !all(is.na(x)), vals_list)
+
+    if (length(vals_ok) == 0L) {
+        cli::cli_warn("Global model tests could not be computed for any fit.")
+        return(NULL)
+    }
+
+    vals <- do.call(rbind, vals_ok)
     out  <- colMeans(vals, na.rm = TRUE)
 
     cli::cli_inform(c(
@@ -712,6 +762,196 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
+# SECTION 3E — Spline HR plot & linearity test
+# =============================================================================
+
+#' Plot HR vs dairy intake from a restricted cubic spline Cox model.
+#'
+#' Computes the log HR (and 95% CI) relative to the median of dairy_exposure
+#' across a grid of values spanning the observed range. For MICE, predictions
+#' are averaged across imputations before exponentiating.
+#'
+#' @param fits        A single \code{coxph} object or a list of \code{coxph}
+#'                    objects (one per MICE imputation).
+#' @param surv_data   data.frame used to fit the first model (used for
+#'                    covariate reference values and exposure range).
+#' @param spline_df   Integer. df passed to \code{splines::ns()} — must match
+#'                    what was used in the model.
+#' @param covariates  Character vector of adjustment covariates.
+#' @param out_dir     Character. Output directory for saving the plot.
+#' @param label       Character. File-name label.
+#' @return A \code{ggplot} object, invisibly. Also saves a PNG.
+#' @keywords internal
+.plot_spline_hr <- function(fits, surv_data, spline_df, covariates,
+                             out_dir, label = "cc") {
+
+    fits <- if (is.list(fits) && !inherits(fits, "coxph")) fits else list(fits)
+
+    dairy_vals <- surv_data$dairy_exposure
+    dairy_vals <- dairy_vals[is.finite(dairy_vals)]
+
+    ref_val   <- stats::median(dairy_vals, na.rm = TRUE)
+    grid_vals <- seq(stats::quantile(dairy_vals, 0.01, na.rm = TRUE),
+                     stats::quantile(dairy_vals, 0.99, na.rm = TRUE),
+                     length.out = 200L)
+
+    # Build reference row (all covariates at reference level)
+    ref_row <- lapply(covariates, function(cv) {
+        col <- surv_data[[cv]]
+        if (is.factor(col) || is.character(col)) {
+            factor(levels(factor(col))[1L], levels = levels(factor(col)))
+        } else {
+            stats::median(col, na.rm = TRUE)
+        }
+    })
+    names(ref_row) <- covariates
+    ref_row$dairy_exposure <- ref_val
+
+    make_nd <- function(dval) {
+        nd <- as.data.frame(ref_row)
+        nd$dairy_exposure <- dval
+        nd
+    }
+
+    nd_ref  <- as.data.frame(ref_row)
+    nd_grid <- do.call(rbind, lapply(grid_vals, make_nd))
+
+    # Compute log HR at each grid point relative to median, averaged over fits
+    lp_grid_mat <- vapply(fits, function(fit) {
+        tryCatch({
+            lp_g <- stats::predict(fit, newdata = nd_grid, type = "lp")
+            lp_r <- stats::predict(fit, newdata = nd_ref,  type = "lp")
+            lp_g - as.numeric(lp_r)
+        }, error = function(e) rep(NA_real_, nrow(nd_grid)))
+    }, numeric(nrow(nd_grid)))
+
+    if (is.vector(lp_grid_mat)) lp_grid_mat <- matrix(lp_grid_mat, ncol = 1L)
+
+    log_hr_mean <- rowMeans(lp_grid_mat, na.rm = TRUE)
+
+    # SE: for CC use vcov-derived SE from each fit; average SEs across MICE
+    se_mat <- vapply(fits, function(fit) {
+        tryCatch({
+            # Design matrix for the ns() dairy term only
+            x_grid <- splines::ns(nd_grid$dairy_exposure, df = spline_df,
+                                   knots = attr(splines::ns(surv_data$dairy_exposure, df = spline_df), "knots"),
+                                   Boundary.knots = attr(splines::ns(surv_data$dairy_exposure, df = spline_df), "Boundary.knots"))
+            x_ref  <- splines::ns(nd_ref$dairy_exposure,  df = spline_df,
+                                   knots = attr(splines::ns(surv_data$dairy_exposure, df = spline_df), "knots"),
+                                   Boundary.knots = attr(splines::ns(surv_data$dairy_exposure, df = spline_df), "Boundary.knots"))
+
+            # Get coefficients and vcov for the spline columns only
+            coef_all <- stats::coef(fit)
+            vc_all   <- stats::vcov(fit)
+            spline_nm <- grep("^splines::ns\\(dairy|^ns\\(dairy", names(coef_all), value = TRUE)
+            if (length(spline_nm) == 0L) return(rep(NA_real_, nrow(nd_grid)))
+
+            b  <- coef_all[spline_nm]
+            V  <- vc_all[spline_nm, spline_nm, drop = FALSE]
+
+            # contrast = x_grid - x_ref (relative LP)
+            contrast <- sweep(x_grid, 2L, as.numeric(x_ref), "-")
+            sqrt(pmax(0, rowSums((contrast %*% V) * contrast)))
+        }, error = function(e) rep(NA_real_, nrow(nd_grid)))
+    }, numeric(nrow(nd_grid)))
+
+    if (is.vector(se_mat)) se_mat <- matrix(se_mat, ncol = 1L)
+    se_mean <- rowMeans(se_mat, na.rm = TRUE)
+
+    plot_df <- data.frame(
+        dairy   = grid_vals,
+        log_hr  = log_hr_mean,
+        se      = se_mean,
+        hr      = exp(log_hr_mean),
+        hr_low  = exp(log_hr_mean - 1.96 * se_mean),
+        hr_high = exp(log_hr_mean + 1.96 * se_mean)
+    )
+
+    p <- ggplot2::ggplot(plot_df, ggplot2::aes(x = dairy, y = hr)) +
+        ggplot2::geom_ribbon(ggplot2::aes(ymin = hr_low, ymax = hr_high),
+                             fill = "steelblue", alpha = 0.2) +
+        ggplot2::geom_line(colour = "steelblue", linewidth = 1) +
+        ggplot2::geom_hline(yintercept = 1, linetype = "dashed", colour = "grey40") +
+        ggplot2::geom_vline(xintercept = ref_val, linetype = "dotted", colour = "grey60") +
+        ggplot2::annotate("text", x = ref_val, y = max(plot_df$hr_high, na.rm = TRUE),
+                          label = paste0("ref = ", round(ref_val, 1), " g/day"),
+                          hjust = -0.1, size = 3.5, colour = "grey40") +
+        ggplot2::scale_y_continuous(
+            trans  = "log",
+            breaks = c(0.25, 0.5, 1, 2, 4),
+            labels = c("0.25", "0.50", "1", "2", "4")
+        ) +
+        ggplot2::labs(
+            x     = "Total dairy intake (g/day)",
+            y     = "Hazard ratio (log scale)",
+            title = glue::glue("Dose-response: dairy → sarcopenia (ns, df = {spline_df})"),
+            caption = glue::glue("Reference: median = {round(ref_val, 1)} g/day. Shading = 95% CI.")
+        ) +
+        ggplot2::theme_classic(base_size = 13) +
+        ggplot2::theme(
+            text            = ggplot2::element_text(family = "Helvetica"),
+            plot.title      = ggplot2::element_text(face = "bold"),
+            axis.title      = ggplot2::element_text(size = 13),
+            axis.text       = ggplot2::element_text(size = 12),
+            plot.caption    = ggplot2::element_text(size = 10, colour = "grey50")
+        )
+
+    out_path <- file.path(out_dir, glue::glue("{label}_spline_hr.png"))
+    ggplot2::ggsave(out_path, plot = p, width = 7, height = 5, dpi = 300)
+    cli::cli_inform(c("v" = "Spline HR plot saved: {out_path}"))
+
+    invisible(p)
+}
+
+
+#' LR test of linearity: spline model vs linear model for dairy exposure.
+#'
+#' Fits an additional linear (no-spline) adjusted model and computes the
+#' log-likelihood ratio test against the spline model.
+#'
+#' @param fit_spline   Fitted spline \code{coxph} (or first imputation).
+#' @param surv_data    data.frame used to fit the model.
+#' @param covariates   Character vector of adjustment covariates.
+#' @param spline_df    Integer. df of the spline term.
+#' @param covariate_type "fixed" or "time_dependent".
+#' @return Named numeric: \code{chisq}, \code{df}, \code{p}.
+#' @keywords internal
+.test_linearity <- function(fit_spline, surv_data, covariates, spline_df,
+                             covariate_type) {
+    tryCatch({
+        formula_linear <- .build_cox_formula(
+            covariate_type  = covariate_type,
+            dairy_type      = "continuous",
+            covariates      = covariates,
+            interaction_var = NULL,
+            adjusted        = TRUE,
+            spline_df       = NULL   # linear term
+        )
+        fit_linear <- survival::coxph(formula_linear, data = surv_data,
+                                       ties = "efron")
+
+        ll_spline <- fit_spline$loglik[2L]
+        ll_linear <- fit_linear$loglik[2L]
+        chisq     <- 2 * (ll_spline - ll_linear)
+        df        <- spline_df - 1L   # extra df vs 1 linear coefficient
+        p         <- stats::pchisq(chisq, df = df, lower.tail = FALSE)
+
+        cli::cli_h3("Linearity test: spline vs linear dairy term")
+        cli::cli_inform(c(
+            "i" = "χ²({df}) = {round(chisq, 2)}, p = {signif(p, 3)}",
+            if (p < 0.05) "!" = "Non-linear relationship supported (p < 0.05)."
+            else          "v" = "No significant departure from linearity (p ≥ 0.05)."
+        ))
+
+        c(chisq = chisq, df = df, p = p)
+    }, error = function(e) {
+        cli::cli_warn("Linearity test failed: {conditionMessage(e)}")
+        c(chisq = NA_real_, df = NA_real_, p = NA_real_)
+    })
+}
+
+
+# =============================================================================
 # SECTION 4 — Complete-case model fitting
 # =============================================================================
 
@@ -719,24 +959,31 @@ run_cox_sarcopenia <- function(
 #' @keywords internal
 .fit_cox_cc <- function(
         surv_data, covariate_type, dairy_type, dairy_col,
-        covariates, interaction_var, death_col = NULL, out_dir
+        covariates, interaction_var, death_col = NULL, spline_df = NULL, out_dir
 ) {
     cli::cli_h2("Fitting Cox models (CC)")
-    
+
+    if (!is.null(spline_df) && dairy_type != "continuous")
+        cli::cli_warn("spline_df is ignored for dairy_type = '{dairy_type}'.")
+    if (!is.null(spline_df) && dairy_type == "continuous")
+        cli::cli_inform(c("i" = "Dairy modelled as natural cubic spline (ns, df = {spline_df})."))
+
     # ── Formulae -----------------------------------------------------------
     formula_unadj <- .build_cox_formula(
-        covariate_type = covariate_type,
-        dairy_type     = dairy_type,
-        covariates     = covariates,
+        covariate_type  = covariate_type,
+        dairy_type      = dairy_type,
+        covariates      = covariates,
         interaction_var = interaction_var,
-        adjusted       = FALSE
+        adjusted        = FALSE,
+        spline_df       = spline_df
     )
     formula_adj <- .build_cox_formula(
-        covariate_type = covariate_type,
-        dairy_type     = dairy_type,
-        covariates     = covariates,
+        covariate_type  = covariate_type,
+        dairy_type      = dairy_type,
+        covariates      = covariates,
         interaction_var = interaction_var,
-        adjusted       = TRUE
+        adjusted        = TRUE,
+        spline_df       = spline_df
     )
     
     cli::cli_inform("Unadjusted formula: {deparse(formula_unadj)}")
@@ -767,7 +1014,10 @@ run_cox_sarcopenia <- function(
     cindex <- .compute_cindex(fit_adj, label = "cc")
 
     # ── Global model tests ─────────────────────────────────────────────────
-    global_tests <- .global_model_tests(fit_adj, label = "cc")
+    global_tests <- tryCatch(
+        .global_model_tests(fit_adj, label = "cc"),
+        error = function(e) { cli::cli_warn("Global model tests failed: {conditionMessage(e)}"); NULL }
+    )
 
     # ── Person-years ───────────────────────────────────────────────────────
     person_years <- if (!is.null(attr(surv_data, "person_years"))) {
@@ -818,6 +1068,27 @@ run_cox_sarcopenia <- function(
         )
     } else NULL
 
+    # ── Spline HR plot + linearity test (continuous dairy + spline_df set) ────
+    spline_hr_plot  <- NULL
+    linearity_test  <- NULL
+    if (!is.null(spline_df) && dairy_type == "continuous") {
+        spline_hr_plot <- .plot_spline_hr(
+            fits       = fit_adj,
+            surv_data  = surv_data,
+            spline_df  = spline_df,
+            covariates = covariates,
+            out_dir    = out_dir,
+            label      = "cc"
+        )
+        linearity_test <- .test_linearity(
+            fit_spline     = fit_adj,
+            surv_data      = surv_data,
+            covariates     = covariates,
+            spline_df      = spline_df,
+            covariate_type = covariate_type
+        )
+    }
+
     # ── Fine-Gray sensitivity analysis (competing risk of death) ──────────────
     fg_cc <- if (!is.null(death_col)) {
         .fit_finegray_cc(
@@ -854,6 +1125,8 @@ run_cox_sarcopenia <- function(
         results_adj         = results_adj,
         ph_test             = assumptions$ph_test,
         ph_plot             = assumptions$ph_plot,
+        loglog_plot         = assumptions$loglog_plot,
+        cox_km_plot         = assumptions$cox_km_plot,
         vif                 = assumptions$vif,
         linearity_plots     = assumptions$linearity_plots,
         outlier_plot        = assumptions$outlier_plot,
@@ -866,6 +1139,8 @@ run_cox_sarcopenia <- function(
         km_plot             = km_plot,
         km_logrank_p        = km_logrank,
         scenario_plot       = scenario_plot_cc,
+        spline_hr_plot      = spline_hr_plot,
+        linearity_test      = linearity_test,
         fg_results          = fg_cc$results,
         fg_fit              = fg_cc$fit,
         cif_plot            = fg_cc$cif_plot
@@ -882,7 +1157,7 @@ run_cox_sarcopenia <- function(
 .fit_cox_mice <- function(
         data, sarcopenia_def, covariate_type,
         dairy_type, dairy_col, dairy_cat_col,
-        covariates, interaction_var, death_col = NULL, out_dir
+        covariates, interaction_var, death_col = NULL, spline_df = NULL, out_dir
 ) {
   
     cli::cli_h2("MICE route — pooling across imputed datasets")
@@ -896,11 +1171,16 @@ run_cox_sarcopenia <- function(
     
     cli::cli_inform("Detected {m} imputed datasets.")
     
+    if (!is.null(spline_df) && dairy_type == "continuous")
+        cli::cli_inform(c("i" = "Dairy modelled as natural cubic spline (ns, df = {spline_df})."))
+
     # ── Build formulae once -----------------------------------------------
     formula_unadj <- .build_cox_formula(covariate_type, dairy_type, covariates,
-                                        interaction_var, adjusted = FALSE)
+                                        interaction_var, adjusted = FALSE,
+                                        spline_df = spline_df)
     formula_adj   <- .build_cox_formula(covariate_type, dairy_type, covariates,
-                                        interaction_var, adjusted = TRUE)
+                                        interaction_var, adjusted = TRUE,
+                                        spline_df = spline_df)
     
     # ── Fit on each imputed dataset ----------------------------------------
     fits_unadj <- vector("list", m)
@@ -968,7 +1248,10 @@ run_cox_sarcopenia <- function(
     cindex <- .compute_cindex(fits_adj, label = "mice (averaged)")
 
     # ── Global model tests (averaged across imputations) ────────────────────
-    global_tests <- .global_model_tests(fits_adj, label = "mice (averaged)")
+    global_tests <- tryCatch(
+        .global_model_tests(fits_adj, label = "mice (averaged)"),
+        error = function(e) { cli::cli_warn("Global model tests failed: {conditionMessage(e)}"); NULL }
+    )
 
     # ── Person-years (summed across all imputed datasets, divided by m) ─────
     person_years <- {
@@ -1014,6 +1297,27 @@ run_cox_sarcopenia <- function(
         )
     } else NULL
 
+    # ── Spline HR plot + linearity test (continuous dairy + spline_df set) ────
+    spline_hr_plot <- NULL
+    linearity_test <- NULL
+    if (!is.null(spline_df) && dairy_type == "continuous") {
+        spline_hr_plot <- .plot_spline_hr(
+            fits       = fits_adj,
+            surv_data  = surv_data_list[[1L]],
+            spline_df  = spline_df,
+            covariates = covariates,
+            out_dir    = out_dir,
+            label      = "mice"
+        )
+        linearity_test <- .test_linearity(
+            fit_spline     = fits_adj[[1L]],
+            surv_data      = surv_data_list[[1L]],
+            covariates     = covariates,
+            spline_df      = spline_df,
+            covariate_type = covariate_type
+        )
+    }
+
     # ── Fine-Gray sensitivity analysis across imputations ─────────────────────
     fg_mice <- if (!is.null(death_col)) {
         .fit_finegray_mice(
@@ -1050,6 +1354,8 @@ run_cox_sarcopenia <- function(
         results_adj         = results_adj,
         ph_test             = assumptions$ph_test,
         ph_plot             = assumptions$ph_plot,
+        loglog_plot         = assumptions$loglog_plot,
+        cox_km_plot         = assumptions$cox_km_plot,
         vif                 = assumptions$vif,
         linearity_plots     = assumptions$linearity_plots,
         outlier_plot        = assumptions$outlier_plot,
@@ -1062,6 +1368,8 @@ run_cox_sarcopenia <- function(
         km_plot             = km_plot,
         km_logrank_p        = km_logrank,
         scenario_plot       = scenario_plot_mice,
+        spline_hr_plot      = spline_hr_plot,
+        linearity_test      = linearity_test,
         fg_results          = fg_mice$results,
         fg_fit              = fg_mice$fit,
         cif_plot            = fg_mice$cif_plot
@@ -1750,6 +2058,238 @@ run_cox_sarcopenia <- function(
     }, error = function(e) {
         cli::cli_warn("VIF failed: {conditionMessage(e)}")
         results$vif <<- NULL
+    })
+
+    # ── 7. Log-log survival plot ─────────────────────────────────────────────────
+    # Under proportional hazards, log(-log(S(t))) curves for different exposure
+    # groups should be parallel across log(time). Crossing or converging lines
+    # indicate PH violation. Complements the formal cox.zph() test.
+    cli::cli_h3("7. Log-log survival plot | pass: parallel lines across log(time)")
+    tryCatch({
+        # Derive group variable from dairy_exposure if available
+        if (!"dairy_exposure" %in% names(surv_data)) {
+            cli::cli_inform("dairy_exposure not found — skipping log-log plot.")
+        } else {
+            d_ll <- surv_data
+
+            # Time and event columns
+            if (all(c("age_start", "age_stop", "event") %in% names(d_ll))) {
+                # For td data reduce to one row per participant (last interval)
+                if ("pt" %in% names(d_ll)) {
+                    d_ll <- d_ll |>
+                        dplyr::arrange(pt, age_start) |>
+                        dplyr::group_by(pt) |>
+                        dplyr::slice_tail(n = 1L) |>
+                        dplyr::ungroup()
+                }
+                d_ll$ll_time  <- d_ll$age_stop
+                d_ll$ll_event <- d_ll$event
+            } else {
+                d_ll$ll_time  <- d_ll$time
+                d_ll$ll_event <- d_ll$event
+            }
+
+            # Group: use factor levels for categorical, quartiles for continuous
+            if (is.factor(d_ll$dairy_exposure)) {
+                d_ll$ll_group <- d_ll$dairy_exposure
+            } else {
+                breaks <- stats::quantile(d_ll$dairy_exposure,
+                                          probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+                d_ll$ll_group <- cut(
+                    d_ll$dairy_exposure, breaks = breaks,
+                    labels = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
+                    include.lowest = TRUE
+                )
+            }
+
+            d_ll <- d_ll[!is.na(d_ll$ll_group) & is.finite(d_ll$ll_time), ]
+            d_ll$ll_event <- as.integer(d_ll$ll_event)
+
+            km_ll <- survival::survfit(
+                survival::Surv(ll_time, ll_event) ~ ll_group, data = d_ll
+            )
+
+            # Build data frame for plotting
+            df_ll <- data.frame(
+                time  = km_ll$time,
+                surv  = km_ll$surv,
+                strata = rep(names(km_ll$strata), km_ll$strata)
+            )
+            df_ll$strata <- sub("ll_group=", "", df_ll$strata, fixed = TRUE)
+            df_ll <- df_ll[df_ll$surv > 0 & df_ll$surv < 1 & df_ll$time > 0, ]
+            df_ll$log_time   <- log(df_ll$time)
+            df_ll$log_neg_log <- log(-log(df_ll$surv))
+
+            n_groups <- length(unique(df_ll$strata))
+            pal <- if (n_groups <= 4L) {
+                c("#4e79a7", "#f28e2b", "#e15759", "#76b7b2")[seq_len(n_groups)]
+            } else {
+                scales::hue_pal()(n_groups)
+            }
+
+            p_ll <- ggplot2::ggplot(df_ll,
+                                     ggplot2::aes(x = log_time, y = log_neg_log,
+                                                  colour = strata)) +
+                ggplot2::geom_step(linewidth = 0.9) +
+                ggplot2::scale_colour_manual(values = pal, name = "Dairy group") +
+                ggplot2::labs(
+                    title    = glue::glue("Log-log survival plot [{label}]"),
+                    subtitle = "Parallel lines support proportional hazards",
+                    x        = "log(time)",
+                    y        = expression(log(-log(hat(S)(t))))
+                ) +
+                ggplot2::theme_classic(base_size = 12) +
+                ggplot2::theme(
+                    text         = ggplot2::element_text(family = "Helvetica"),
+                    legend.position = "right"
+                )
+
+            results$loglog_plot <- p_ll
+
+            if (!is.null(out_dir)) {
+                ggplot2::ggsave(
+                    file.path(out_dir, glue::glue("{label}_loglog.png")),
+                    p_ll, width = 7, height = 5, dpi = 300
+                )
+                cli::cli_inform("Log-log plot saved to {.path {out_dir}}")
+            }
+        }
+    }, error = function(e) {
+        cli::cli_warn("Log-log plot failed: {conditionMessage(e)}")
+        results$loglog_plot <<- NULL
+    })
+
+    # ── 8. Cox-predicted vs KM survival curves by dairy quartile ────────────────
+    # Calibration visual: overlays observed KM curves (solid) with Cox-predicted
+    # average survival curves (dashed) per dairy quartile. Good calibration =
+    # dashed follows solid within each group.
+    #
+    # Cox predicted S(t): for each participant compute S_i(t) = S0(t)^exp(lp_i)
+    # using the Breslow baseline hazard, then average within quartile at each
+    # event time. This avoids the "mean covariate" bias of survfit(fit, newdata).
+    cli::cli_h3("8. Cox-predicted vs KM — calibration by dairy quartile")
+    tryCatch({
+        if (!"dairy_exposure" %in% names(surv_data)) {
+            cli::cli_inform("dairy_exposure not found — skipping calibration plot.")
+        } else {
+            # Collapse TD data to one row per participant (last interval)
+            d_cal <- surv_data
+            if (all(c("age_start", "age_stop") %in% names(d_cal)) &&
+                "pt" %in% names(d_cal)) {
+                d_cal <- d_cal |>
+                    dplyr::arrange(pt, age_start) |>
+                    dplyr::group_by(pt) |>
+                    dplyr::slice_tail(n = 1L) |>
+                    dplyr::ungroup()
+            }
+            d_cal$cal_time  <- if ("time"    %in% names(d_cal)) d_cal$time    else d_cal$age_stop
+            d_cal$cal_event <- as.integer(d_cal$event)
+
+            # Dairy quartile groups
+            if (is.factor(d_cal$dairy_exposure)) {
+                d_cal$quartile <- d_cal$dairy_exposure
+            } else {
+                breaks <- stats::quantile(d_cal$dairy_exposure,
+                                          probs = c(0, .25, .5, .75, 1), na.rm = TRUE)
+                d_cal$quartile <- cut(
+                    d_cal$dairy_exposure, breaks = breaks,
+                    labels = c("Q1 (low)", "Q2", "Q3", "Q4 (high)"),
+                    include.lowest = TRUE
+                )
+            }
+            d_cal <- d_cal[!is.na(d_cal$quartile), ]
+
+            # ── KM curves per quartile ──────────────────────────────────────
+            km_cal <- survival::survfit(
+                survival::Surv(cal_time, cal_event) ~ quartile, data = d_cal
+            )
+            df_km <- data.frame(
+                time    = km_cal$time,
+                surv    = km_cal$surv,
+                quartile = sub("quartile=", "",
+                               rep(names(km_cal$strata), km_cal$strata),
+                               fixed = TRUE),
+                type    = "Kaplan-Meier"
+            )
+
+            # ── Cox-predicted average survival per quartile ─────────────────
+            # Breslow baseline cumulative hazard at all event times
+            bh      <- survival::basehaz(fit, centered = FALSE)
+            lp      <- as.numeric(stats::predict(fit, newdata = d_cal, type = "lp"))
+            t_grid  <- sort(unique(d_cal$cal_time[d_cal$cal_event == 1L]))
+
+            # For each event time: H0(t) from Breslow estimate
+            H0_at_t <- stats::approx(
+                x      = bh$time,
+                y      = bh$hazard,
+                xout   = t_grid,
+                method = "constant",
+                rule   = 2L
+            )$y
+
+            # Average predicted survival within each quartile at each time
+            q_levels <- levels(factor(d_cal$quartile))
+            df_cox_list <- lapply(q_levels, function(q) {
+                idx    <- which(d_cal$quartile == q)
+                lp_q   <- lp[idx]
+                # S_i(t) = exp(-H0(t) * exp(lp_i)); average over i in quartile
+                surv_q <- colMeans(
+                    outer(exp(lp_q), H0_at_t, function(e, h) exp(-h * e))
+                )
+                data.frame(time = t_grid, surv = surv_q,
+                           quartile = q, type = "Cox-predicted")
+            })
+            df_cox <- do.call(rbind, df_cox_list)
+
+            df_all <- rbind(df_km, df_cox)
+            df_all$quartile <- factor(df_all$quartile, levels = q_levels)
+
+            pal <- c("#4e79a7", "#f28e2b", "#e15759", "#76b7b2")[
+                seq_len(length(q_levels))]
+            names(pal) <- q_levels
+
+            p_cal <- ggplot2::ggplot(
+                df_all,
+                ggplot2::aes(x = time, y = surv,
+                             colour = quartile,
+                             linetype = type)
+            ) +
+                ggplot2::geom_step(linewidth = 0.85) +
+                ggplot2::scale_colour_manual(values = pal, name = "Dairy group") +
+                ggplot2::scale_linetype_manual(
+                    values = c("Kaplan-Meier" = "solid", "Cox-predicted" = "dashed"),
+                    name   = NULL
+                ) +
+                ggplot2::scale_y_continuous(
+                    limits = c(0, 1),
+                    breaks = seq(0, 1, by = 0.2),
+                    labels = scales::percent_format(accuracy = 1)
+                ) +
+                ggplot2::labs(
+                    title    = glue::glue("Cox-predicted vs KM [{label}]"),
+                    subtitle = "Dashed = Cox model; Solid = Kaplan-Meier. Good calibration: dashed follows solid.",
+                    x        = if ("age_stop" %in% names(surv_data)) "Age (years)" else "Time",
+                    y        = "Survival probability"
+                ) +
+                ggplot2::theme_classic(base_size = 12) +
+                ggplot2::theme(
+                    text            = ggplot2::element_text(family = "Helvetica"),
+                    legend.position = "right"
+                )
+
+            results$cox_km_plot <- p_cal
+
+            if (!is.null(out_dir)) {
+                ggplot2::ggsave(
+                    file.path(out_dir, glue::glue("{label}_cox_km_calibration.png")),
+                    p_cal, width = 8, height = 5, dpi = 300
+                )
+                cli::cli_inform("Cox vs KM calibration plot saved to {.path {out_dir}}")
+            }
+        }
+    }, error = function(e) {
+        cli::cli_warn("Cox vs KM calibration plot failed: {conditionMessage(e)}")
+        results$cox_km_plot <<- NULL
     })
 
     results
