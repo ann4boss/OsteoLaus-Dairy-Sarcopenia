@@ -18,14 +18,78 @@ xx
 
 ### Comparisons of baseline characteristics between complete case and imputed dataset
 
-Table with p value
+| **Characteristic** | **Overall (N = 1,473)** | **Included (N = 1,158)** | **Excluded (N = 315)** |
+|----|----|----|----|
+| **Age** | 64.5 (7.6) | 63.9 (7.3) | 66.7 (8.0) |
+| Missing | 6 | 0 | 6 |
+| **Education level (ISCED)** |  |  |  |
+| Low (ISCED 0–2) | 304 (21%) | 206 (18%) | 98 (32%) |
+| Medium (ISCED 3–4) | 966 (66%) | 784 (68%) | 182 (59%) |
+| High (ISCED 5–8) | 197 (13%) | 168 (15%) | 29 (9.4%) |
+| Missing | 6 | 0 | 6 |
+| **BMI category** |  |  |  |
+| Underweight | 32 (2.2%) | 23 (2.0%) | 9 (2.9%) |
+| Normal | 691 (47%) | 572 (49%) | 119 (39%) |
+| Overweight | 505 (34%) | 393 (34%) | 112 (36%) |
+| Obese | 239 (16%) | 170 (15%) | 69 (22%) |
+| Missing | 6 | 0 | 6 |
+| **Smoking status** |  |  |  |
+| Never | 631 (43%) | 507 (44%) | 124 (41%) |
+| Former | 579 (40%) | 469 (41%) | 110 (36%) |
+| Current | 253 (17%) | 182 (16%) | 71 (23%) |
+| Missing | 10 | 0 | 10 |
+| **Physical activity level** |  |  |  |
+| Low | 469 (33%) | 369 (32%) | 100 (35%) |
+| Medium | 546 (38%) | 440 (38%) | 106 (37%) |
+| High | 426 (30%) | 349 (30%) | 77 (27%) |
+| Missing | 32 | 0 | 32 |
+| **Diabetes status** |  |  |  |
+| No diabetes | 1,357 (93%) | 1,088 (94%) | 269 (87%) |
+| Diabetes | 110 (7.5%) | 70 (6.0%) | 40 (13%) |
+| Missing | 6 | 0 | 6 |
+| **Caloric intake (kcal/day)** | 1,562.6 \[1,197.5, 1,981.4\] | 1,563.5 \[1,205.4, 1,987.4\] | 1,522.7 \[1,153.8, 1,961.8\] |
+| Missing | 23 | 0 | 23 |
+| **Total dairy intake (g/day)** | 198.1 \[112.1, 304.9\] | 198.1 \[112.1, 308.1\] | 197.0 \[112.7, 294.0\] |
+| Missing | 23 | 0 | 23 |
+| **Fermented dairy (g/day)** | 121.4 \[63.2, 210.5\] | 123.3 \[64.6, 211.3\] | 118.8 \[55.9, 206.1\] |
+| Missing | 23 | 0 | 23 |
+| **Non-fermented dairy (g/day)** | 44.6 \[13.9, 103.9\] | 43.6 \[13.8, 99.4\] | 46.0 \[15.0, 113.2\] |
+| Missing | 23 | 0 | 23 |
+| **Low-fat dairy (g/day)** | 0.0 \[0.0, 38.6\] | 0.0 \[0.0, 38.6\] | 0.0 \[0.0, 38.0\] |
+| Missing | 23 | 0 | 23 |
+| **High-fat dairy (g/day)** | 160.4 \[87.2, 262.1\] | 163.5 \[87.1, 262.6\] | 150.5 \[88.6, 259.0\] |
+| Missing | 23 | 0 | 23 |
+| **EWGSOP2 sarcopenia stage** | NA | NA | NA |
+| No sarcopenia | 1,308 (90%) | 1,051 (91%) | 257 (86%) |
+| Probable | 138 (9.5%) | 98 (8.5%) | 40 (13%) |
+| Confirmed | 12 (0.8%) | 9 (0.8%) | 3 (1.0%) |
+| Severe | 0 (0%) | 0 (0%) | 0 (0%) |
+| Missing | 15 | 0 | 15 |
+| **Grip strength (kg)** | 23.9 (6.0), 27.7\] | 24.2 (5.9) | 23.1 (6.4) |
+| Missing | 15 | 0 | 15 |
+| **ALMI (kg/m²)** | 6.5 (0.8) | 6.5 (0.8) | 6.6 (0.9) |
+| Missing | 205 | 107 | 98 |
+| **Gait speed at T3 (m/s)** | 1.1 (0.2) | 1.1 (0.2) | 1.0 (0.2) |
+| Missing | 509 | 221 | 288 |
+
+: Baseline characteristics of participants excluded from versus included in the base analytical cohort.{#tbl-excluded-included}
 
 ### Variables over time
 
-alluvia graphs
+![](images/alluvial_BMI_category.png)
+
+![](images/alluvial_smoking_status.png)
+
+![](images/alluvial_diabetes_status.png)
+
+![](images/alluvial_diabetes_status.png)
 
 ### Association between dairy intake and handgrip strength
 
 fermented ect analysis -\> beta values
 
 - Assumption checks for cook's distance sensitivity analysis
+
+### Dose response spline Cox
+
+![Dose-response relationship between cumulative average dairy intake and incident EWGSOP2 sarcopenia, modelled with restricted cubic splines.](images/mice_spline_hr.png){#fig-dose-response fig-align="left"}

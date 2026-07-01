@@ -10,7 +10,7 @@ Data were collected approximately every 2.5 years at five visits: baseline (2010
 
 Further details on recruitment and methodology for CoLaus and OsteoLaus were described by Firmann et al. [@firmann2008] and Shevroja et al. [@shevroja2019], respectively. Additional study information is available at the CoLaus\textbar{}PsyCoLaus [website](https://www.colaus-psycolaus.ch/). @fig-timeline shows the study population sizes, visit time intervals, and the variables collected at each visit.
 
-![](images/Study Overview.png){#fig-timeline fig-align="left"}
+![](images/Study%20Overview.png){#fig-timeline fig-align="left"}
 
 <!--# FIg description -->
 
@@ -246,23 +246,27 @@ As sensitivity analysis, I reported clubSandwich CR2 robust standard errors as o
 
 <!--# TODO: add diagnostic tests: QQ plot ect -->
 
-### **Cox proportional hazards model** <!--# check if everything is included -->
+### **Cox proportional hazards model**
 
-Cox proportional hazards regression models were used to examine the association between dairy intake and incident sarcopenia. The package survival (version 3.8.3) was used [@therneau2026]. Sarcopenia was defined according to either the EWGSOP2 [@cruz-jentoft2019] or FNIH criteria [@studenski2014] and analyzed as a binary outcome. Participants were followed from baseline until the first occurrence of sarcopenia or until their last available follow-up visit, whichever occurred first.
+Cox proportional hazards regression was used to examine the association between dairy intake and incident sarcopenia. Analyses were performed using the survival package (version 3.8.3) in R \[\@therneau2026\]. Sarcopenia was defined according to the EWGSOP2 criteria [@cruz-jentoft2019], with the FNIH definition [@studenski2014] evaluated as a sensitivity analysis. Participants were followed from baseline until the first occurrence of sarcopenia or their last available follow-up visit, whichever occurred first.
 
-Two modelling approaches were applied. In the baseline model, each participant contributed a single observation, and covariates were taken from the baseline visit only. In the time-dependent model, participants contributed repeated observations across follow-up visits, allowing exposure and covariate values to be updated over time. Age was used as the underlying time scale in all models.
+A time-dependent Cox proportional hazards model was fitted, with participants contributing repeated observations across follow-up visits. Dairy intake and time-varying covariates were updated at each visit using a counting-process formulation. Age was used as the underlying time scale, with participants entering the risk set at their age at study entry (left truncation) and exiting at the age of incident sarcopenia or censoring.
 
-Dairy intake was modeled as continuous variable (grams per day). To reduce the risk of model overfitting, alcohol intake, BMI, physical activity, and total energy intake were modeled as continuous variables where appropriate rather than categorical variables. Categorising continuous variables increases the number of model parameters and therefore the degrees of freedom required for estimation. Because the number of incident sarcopenia cases was limited (50 events among 1123 participants), restricting the number of parameters was important to maintain model stability and reduce the risk of overfitting. <!--# check if to be included -->Previous methodological work has shown that regression models with a low number of events per parameter can produce unstable and overly optimistic estimates that may not replicate in other samples [@babyak2004]. Modeling variables continuously preserves statistical power, retains the full information contained in the data, and reduces unnecessary parameter estimation.
+In the primary analysis, dairy intake was assessed as quartiles (Q1 to Q4), with Q1 representing the lowest intake and serving as the reference category. Categorization was chosen to allow for potential non-linear associations and to facilitate clinical interpretation. The number of incident sarcopenia cases was limited (50 events among $1\,123$ participants at risk), resulting in an events-per-variable (EPV) ratio of 5 in the fully adjusted model. Although an EPV of $\ge$ 10 is conventionally recommended, prior simulation work has shown that EPV $\ge$ 5 can yield reliable estimates provided that exposure prevalence is not extreme and effect sizes are moderate [@vittinghoff2007], conditions that were judged to hold in the present data. Nonetheless, results should be interpreted with caution given the limited number of events.
 
-Hazard ratios (HRs) and 95% confidence intervals (CIs) were estimated using partial likelihood estimation with Efron’s method <!--# source -->to account for tied event times. For analyses based on multiply imputed datasets, models were fitted separately within each imputed dataset and pooled using Rubin’s rules. <!--# source -->
+Sensitivity analyses modeled cumulative dairy intake as a continuous variable (per 100 g/day increase) to estimate a linear dose-response association and as a natural cubic spline (three degrees of freedom) to assess departures from linearity. A likelihood ratio test comparing the spline and linear models was used to evaluate evidence for non-linearity.
 
-Model assumptions were assessed for the fully adjusted models. The proportional hazards assumption was evaluated using Schoenfeld residuals <!--# source -->and global proportional hazards tests. Functional form was assessed using martingale residuals, while influential observations were examined using deviance residuals and standardised DFBETA statistics. Multicollinearity among covariates was assessed using variance inflation factors. <!--# add package car if reported --> Kaplan-Meier curves were generated for categorical dairy intake models to visualise differences in sarcopenia-free survival across exposure groups. <!--# add all necessariy packages used for this -->
+Hazard ratios (HRs) and 95% confidence intervals were estimated using partial likelihood with Efron's method for tied event times \[\@efron1977\]. For multiply imputed datasets, models were fitted separately within each imputed dataset and pooled using Rubin's rules \[\@rubin1987\].
+
+Model assumptions were assessed for the fully adjusted models. The proportional hazards assumption was evaluated using Schoenfeld residuals, a global proportional hazards test \[\@schoenfeld1982\]. The functional form of continuous covariates was evaluated using martingale residual plots with LOESS smoothers. Influential observations were examined using deviance residuals and standardized DFBETA statistics, and multicollinearity was assessed using variance inflation factors (VIFs), with generalized VIFs calculated for categorical predictors. Assumption checks were performed using the survival \[\@therneau2026\], survminer \[\@kassambara2021\], and car \[\@fox2019\] packages in R. <!--# add ref -->
 
 ## Ethics
 
 CoLaus \textbar{} PsyCoLaus and the OsteoLaus studies were approved by the Institutional Ethics Committee of the University of Lausanne, Switzerland. All participants signed a written informed consent form after having received a detailed description of the goal and funding of the studies.
 
-<!--# How did you anonymise the data? Or were they already anonymised?-->\
+<!--# How did you anonymise the data? Or were they already anonymised?-->
+
+\
 <!--# give date and number of ethics approval -->
 
 ## Data and Code Availability Statement

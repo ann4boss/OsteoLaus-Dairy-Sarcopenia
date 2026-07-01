@@ -26,6 +26,7 @@ format:
     documentclass: MastersDoctoralThesis
     classoption:
       - 11pt
+      - oneside
       - english
       - onehalfspacing
       - headsepline
@@ -34,7 +35,7 @@ format:
     toc: false
     lof: false
     lot: false
-    colorlinks: false
+    colorlinks: true
     link-citations: true
     keep-tex: true
     include-in-header: tex/header.tex
