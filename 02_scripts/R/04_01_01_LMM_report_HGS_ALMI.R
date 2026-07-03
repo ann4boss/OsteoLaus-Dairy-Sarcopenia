@@ -562,6 +562,80 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
 }
 
 
+# ── Summary forest plot: all dairy definitions, one covariate set -----------
+
+.dairy_summary_forest <- function(rows_list, cov_nm, resp_col,
+                                   term_labels, out_dir = NULL) {
+    if (length(rows_list) == 0L) return(invisible(NULL))
+
+    combined <- dplyr::bind_rows(rows_list) |>
+        dplyr::filter(grepl("^(dairy|fermented|nonfermented|highfat|lowfat)", term)) |>
+        dplyr::mutate(
+            sig = p_value < 0.05,
+            point_colour = dplyr::if_else(sig, "sig", "ns"),
+            term_label_base = {
+                idx <- match(term, names(term_labels))
+                ifelse(is.na(idx), term, term_labels[idx])
+            },
+            row_label = paste0(exposure_label, "\n", term_label_base)
+        )
+
+    if (nrow(combined) == 0L) return(invisible(NULL))
+
+    # Order: group by exposure_label as they appeared, term within
+    combined <- combined |>
+        dplyr::mutate(
+            row_label = factor(row_label, levels = rev(unique(row_label)))
+        )
+
+    p <- ggplot2::ggplot(
+        combined,
+        ggplot2::aes(x = estimate, y = row_label,
+                     xmin = conf_low, xmax = conf_high,
+                     colour = point_colour)
+    ) +
+        ggplot2::geom_vline(xintercept = 0, linetype = "dashed", colour = "grey60") +
+        ggplot2::geom_errorbarh(height = 0.3, linewidth = 0.9) +
+        ggplot2::geom_point(size = 2) +
+        ggplot2::scale_colour_manual(
+            values = c(sig = "#92D050", ns = "#FF6666"),
+            labels = c(sig = "p < 0.05", ns  = "p ≥ 0.05"),
+            name   = NULL
+        ) +
+        ggplot2::scale_y_discrete(expand = ggplot2::expansion(add = 0.6)) +
+        ggplot2::labs(
+            x       = "Estimate (95 % CI)",
+            y       = NULL,
+            title   = paste0("Dairy Definitions Summary — ", resp_col,
+                             "  |  ", cov_nm),
+            caption = "Green = p < 0.05  ·  Red = p ≥ 0.05"
+        ) +
+        .theme_report() +
+        ggplot2::theme(
+            legend.position = "none",
+            axis.text.y     = ggplot2::element_text(size = 9),
+            axis.text.x     = ggplot2::element_text(size = 11)
+        )
+
+    n_rows <- nrow(combined)
+    print(p)
+
+    if (!is.null(out_dir)) {
+        stem <- gsub("[^A-Za-z0-9_-]", "_",
+                     paste0(resp_col, "_dairy_summary_", cov_nm))
+        ggplot2::ggsave(
+            filename = file.path(out_dir, paste0(stem, ".png")),
+            plot     = p,
+            width    = 10,
+            height   = max(4, n_rows * 0.35),
+            dpi      = 300,
+            bg       = "white"
+        )
+    }
+    invisible(p)
+}
+
+
 # ── Sandwich vs standard comparison page ------------------------------------
 
 .sandwich_comparison_page <- function(std_tidy, sand_tidy, title, out_dir = NULL) {
@@ -933,7 +1007,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
                             colour = .pal[1]) +
         ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
                              fill = .pal[4], alpha = 0.2, linewidth = 0.7) +
-        ggplot2::labs(x = "Fitted", y = "Residuals", title = "A  Residuals vs Fitted") +
+        ggplot2::labs(x = "Fitted", y = "Residuals", title = "Residuals vs Fitted") +
         .theme_report()
 
     p_sl <- ggplot2::ggplot(df_d, ggplot2::aes(fitted, sqrt_abs)) +
@@ -941,23 +1015,26 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
         ggplot2::geom_smooth(method = "loess", se = TRUE, colour = .pal[1],
                              fill = .pal[3], alpha = 0.2, linewidth = 0.7) +
         ggplot2::labs(x = "Fitted", y = expression(sqrt("|Residuals|")),
-                      title = "B  Scale-Location") +
+                      title = "Scale-Location") +
         .theme_report()
 
     p_qq <- ggplot2::ggplot(df_d, ggplot2::aes(sample = residuals)) +
         ggplot2::stat_qq(colour = .pal[8], alpha = 0.45, size = 1.2) +
         ggplot2::stat_qq_line(colour = .pal[1], linewidth = 0.7) +
         ggplot2::labs(x = "Theoretical quantiles", y = "Sample quantiles",
-                      title = "C  Q-Q") +
+                      title = "Q-Q") +
         .theme_report()
 
     p_combined <- patchwork::wrap_plots(p_rd, p_sl, p_qq, ncol = 3) +
         patchwork::plot_annotation(
-            title = paste("Model Assumption Checks —", label),
+            title      = paste("Model Assumption Checks —", label),
+            tag_levels = "A",
             theme = ggplot2::theme(
                 plot.title = ggplot2::element_text(
-                    face = "bold", size = 13, family = "Helvetica"
-                )
+                    face = "bold", size = 13, family = "Helvetica",
+                    margin = ggplot2::margin(b = 6)
+                ),
+                plot.tag = ggplot2::element_text(face = "bold", size = 10)
             )
         )
 
@@ -1116,6 +1193,8 @@ run_lmm_report <- function(
             subtitle = paste(covariates, collapse = "  ·  ")
         )
 
+        dairy_summary_rows <- list()   # collect dairy estimates across exposures
+
         for (i in seq_len(nrow(exposures))) {
             exp_row   <- exposures[i, ]
             exp_col   <- exp_row$exposure
@@ -1161,6 +1240,12 @@ run_lmm_report <- function(
                 }
             )
             if (is.null(fit)) next
+
+            # ── Collect dairy rows for summary plot --------------------------
+            dairy_summary_rows[[i]] <- fit$pooled_tidy |>
+                dplyr::mutate(
+                    exposure_label = paste0(exp_col, " (", exp_type, ")")
+                )
 
             # ── Formula page -------------------------------------------------
             .text_page(
@@ -1383,6 +1468,15 @@ run_lmm_report <- function(
                 if (!is.null(p_diag_s)) print(p_diag_s)
             }
         }
+
+        # ── Dairy definitions summary forest (end of covariate set) ---------
+        .dairy_summary_forest(
+            rows_list   = dairy_summary_rows,
+            cov_nm      = cov_nm,
+            resp_col    = resp_col,
+            term_labels = .term_labels,
+            out_dir     = if (cov_nm == "other_PA") NULL else out_dir
+        )
     }
 
     # ── Session info ---------------------------------------------------------

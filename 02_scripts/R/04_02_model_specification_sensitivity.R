@@ -1,23 +1,28 @@
 # =============================================================================
 # Alternative Model Specifications — HGS, ALMI, Gait Speed
 #
-# Fits the following alternatives to the main LMM (M0 reference):
-#   M1   Nonlinear dairy: natural spline ns(dairy, df=3)
-#   M2   Nonlinear dairy: polynomial poly(dairy, 2)
-#   M3a  Log-transformed outcome
-#   M3b  Sqrt-transformed outcome
-#   M4   Dairy × time interaction term
-#   M5   Height + Weight instead of BMI categories
-#   M6   Within-/between-person (Mundlak) decomposition of dairy
-#   M7   Random intercept only  (HGS/ALMI: drop random slope)
-#          / With random slope  (gait: reference has none)
-#   M8   Heteroscedastic residuals: nlme::lme + varPower()
-#   M9   GAMM: mgcv::gamm with s(dairy, k=5)
-#   M10  Quadratic age: poly(age_at_baseline_scaled, 2)
+# Each model type is fitted with BOTH random-effects structures:
+#   "main" = reference RE (RS for HGS/ALMI, RI only for gait)
+#   "alt"  = alternative RE (RI only for HGS/ALMI, RS for gait)
+#
+#   M0 / M0b   Reference (main / alt RE)
+#   M1 / M1b   Natural spline ns(dairy, df=3)
+#   M2 / M2b   Polynomial poly(dairy, 2)
+#   M3a / M3a* Log-transformed outcome
+#   M3b / M3b* Sqrt-transformed outcome
+#   M4 / M4b   Dairy × time interaction
+#   M5 / M5b   Height + Weight instead of BMI (main RE / always RI)
+#   M6 / M6b   Within-/between-person (Mundlak) decomposition
+#   M8 / M8b   Heteroscedastic residuals: nlme::lme + varPower()
+#   M9 / M9b   GAMM: mgcv::gamm with s(dairy, k=5)
+#   M10 / M10b Quadratic age
 #
 # AIC / BIC are evaluated on imputation 1 (IC is not poolable across
 # imputations in a straightforward way).  A note to this effect is printed
 # on the cover page.
+#
+# Assumption-check plots are written to the PDF and also saved as individual
+# PNG files under out_dir/assumption_checks/<outcome>/.
 #
 # Shared helpers (.pal, .theme_report, .text_page, .section_page) are
 # sourced from 04_01_01_LMM_report_HGS_ALMI.R via tar_source().
@@ -410,7 +415,11 @@
 #' @param section_subtitle Short subtitle for the section divider page.
 
 .assumption_checks_section <- function(model_list, model_names,
-                                        section_subtitle = "") {
+                                        section_subtitle = "",
+                                        png_dir = NULL) {
+    if (!is.null(png_dir))
+        dir.create(png_dir, recursive = TRUE, showWarnings = FALSE)
+
     .section_page("Assumption Checks", subtitle = section_subtitle)
 
     .text_page(
@@ -423,7 +432,9 @@
             "",
             "M9 GAMM: standard diagnostics use the lme component (conditional",
             "  residuals at the subject level, comparable to lmer residuals).",
-            "  mgcv::gam.check() is appended as an additional GAMM-specific check."
+            "  mgcv::gam.check() is appended as an additional GAMM-specific check.",
+            "",
+            if (!is.null(png_dir)) paste("PNG files saved to:", png_dir) else ""
         ),
         title = "Assumption Checks — Notes"
     )
@@ -433,7 +444,9 @@
         nm  <- model_names[i]
         if (is.null(mod)) next
 
-        # GAMM: use lme component for conditional residuals (as requested)
+        safe_nm  <- gsub("[^a-zA-Z0-9]", "_", nm)
+
+        # GAMM: use lme component for conditional residuals
         diag_mod <- if (is.list(mod) && !is.null(mod$lme)) mod$lme else mod
 
         # ── Standard 3-panel diagnostic plot --------------------------------
@@ -445,7 +458,14 @@
                 NULL
             }
         )
-        if (!is.null(p)) print(p)
+        if (!is.null(p)) {
+            if (!is.null(png_dir))
+                ggplot2::ggsave(
+                    file.path(png_dir, paste0(safe_nm, "_diagnostics.png")),
+                    plot = p, width = 14, height = 4.5, dpi = 150
+                )
+            print(p)
+        }
 
         # ── Extra: normalized residuals for nlme + varPower ------------------
         if (inherits(mod, "lme")) {
@@ -467,8 +487,7 @@
                                          alpha = 0.2, linewidth = 0.7) +
                     ggplot2::labs(x = "Fitted",
                                   y = "Normalized residuals",
-                                  title = paste("A  Normalized Res. vs Fitted",
-                                                "[varPower check]")) +
+                                  title = "Normalized Residuals vs Fitted [varPower check]") +
                     .theme_report()
 
                 p_sl <- ggplot2::ggplot(
@@ -480,7 +499,7 @@
                                          alpha = 0.2, linewidth = 0.7) +
                     ggplot2::labs(x = "Fitted",
                                   y = expression(sqrt("|Norm. Residuals|")),
-                                  title = "B  Scale-Location (normalized)") +
+                                  title = "Scale-Location (normalized)") +
                     .theme_report()
 
                 p_qq <- ggplot2::ggplot(
@@ -490,10 +509,27 @@
                     ggplot2::stat_qq_line(colour = .pal[1], linewidth = 0.7) +
                     ggplot2::labs(x = "Theoretical quantiles",
                                   y = "Sample quantiles",
-                                  title = "C  Q-Q (normalized residuals)") +
+                                  title = "Q-Q (normalized residuals)") +
                     .theme_report()
 
-                print(patchwork::wrap_plots(p_rd, p_sl, p_qq, ncol = 3))
+                p_norm <- patchwork::wrap_plots(p_rd, p_sl, p_qq, ncol = 3) +
+                    patchwork::plot_annotation(
+                        title      = paste("Normalized Residuals (varPower) —", nm),
+                        tag_levels = "A",
+                        theme = ggplot2::theme(
+                            plot.title = ggplot2::element_text(
+                                face = "bold", size = 13,
+                                margin = ggplot2::margin(b = 6)
+                            ),
+                            plot.tag = ggplot2::element_text(face = "bold", size = 10)
+                        )
+                    )
+                if (!is.null(png_dir))
+                    ggplot2::ggsave(
+                        file.path(png_dir, paste0(safe_nm, "_norm_residuals.png")),
+                        plot = p_norm, width = 14, height = 4.5, dpi = 150
+                    )
+                print(p_norm)
             }, error = function(e) {
                 .text_page(
                     paste("Normalized residual plots failed:", conditionMessage(e)),
@@ -505,6 +541,15 @@
         # ── Extra: gam.check() for GAMM -------------------------------------
         if (is.list(mod) && !is.null(mod$gam)) {
             tryCatch({
+                if (!is.null(png_dir)) {
+                    png_file <- file.path(png_dir, paste0(safe_nm, "_gamcheck.png"))
+                    grDevices::png(png_file, width = 1800, height = 1800, res = 150)
+                    old_par <- graphics::par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
+                    tryCatch(mgcv::gam.check(mod$gam, rep = 500),
+                             error = function(e2) NULL)
+                    graphics::par(old_par)
+                    grDevices::dev.off()
+                }
                 old_par <- graphics::par(mfrow = c(2, 2), mar = c(4, 4, 3, 1))
                 on.exit(graphics::par(old_par), add = TRUE)
                 mgcv::gam.check(mod$gam, rep = 500)
@@ -600,74 +645,71 @@ run_model_specification_sensitivity <- function(
     re_slope   <- paste0("(1 + ", time_var, " | ", id_var, ")")
     re_noSlope <- paste0("(1 | ", id_var, ")")
     re_term    <- if (random_slope) re_slope else re_noSlope
+    re_alt     <- if (random_slope) re_noSlope else re_slope
+    lbl_main   <- if (random_slope) "(RS)" else "(RI)"
+    lbl_alt    <- if (random_slope) "(RI)" else "(RS)"
     ctrl <- lme4::lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 20000))
 
-    # Helper: safe lmer
     .lmer <- function(f) {
         tryCatch(lmerTest::lmer(f, data = df, REML = FALSE, control = ctrl),
                  error = function(e) { warning(conditionMessage(e)); NULL })
     }
 
-    # ── M0: Reference --------------------------------------------------------
-    m0 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
-        paste(c("dairy_100g", time_var, covariates, re_term), collapse = " + ")
-    )))
+    # ── M0 / M0b: Reference — reference RE / alternative RE -----------------
+    m0 <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g", time_var, covariates, re_term), collapse = " + "))))
+    m0b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g", time_var, covariates, re_alt), collapse = " + "))))
 
-    # ── M1: Natural spline on dairy (df = 3) --------------------------------
-    m1 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
+    # ── M1 / M1b: Natural spline on dairy (df = 3) --------------------------
+    m1 <- .lmer(stats::as.formula(paste(resp_col, "~",
         paste(c("splines::ns(dairy_100g, df = 3)", time_var, covariates, re_term),
-              collapse = " + ")
-    )))
+              collapse = " + "))))
+    m1b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("splines::ns(dairy_100g, df = 3)", time_var, covariates, re_alt),
+              collapse = " + "))))
 
-    # ── M2: Quadratic polynomial on dairy -----------------------------------
-    m2 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
+    # ── M2 / M2b: Quadratic polynomial on dairy -----------------------------
+    m2 <- .lmer(stats::as.formula(paste(resp_col, "~",
         paste(c("poly(dairy_100g, 2, raw = TRUE)", time_var, covariates, re_term),
-              collapse = " + ")
-    )))
+              collapse = " + "))))
+    m2b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("poly(dairy_100g, 2, raw = TRUE)", time_var, covariates, re_alt),
+              collapse = " + "))))
 
-    # ── M3a: Log outcome  /  M3b: Sqrt outcome ------------------------------
+    # ── M3a / M3b: Outcome transformations — reference RE -------------------
+    # ── M3a_alt / M3b_alt:  same, alternative RE ----------------------------
     df[[paste0(outcome, "_log")]]  <- log(pmax(df[[outcome]], 1e-6))
     df[[paste0(outcome, "_sqrt")]] <- sqrt(pmax(df[[outcome]], 0))
 
-    m3a <- .lmer(stats::as.formula(paste(
-        paste0(outcome, "_log"), "~",
-        paste(c("dairy_100g", time_var, covariates, re_term), collapse = " + ")
-    )))
-    m3b <- .lmer(stats::as.formula(paste(
-        paste0(outcome, "_sqrt"), "~",
-        paste(c("dairy_100g", time_var, covariates, re_term), collapse = " + ")
-    )))
+    m3a     <- .lmer(stats::as.formula(paste(paste0(outcome, "_log"), "~",
+        paste(c("dairy_100g", time_var, covariates, re_term), collapse = " + "))))
+    m3a_alt <- .lmer(stats::as.formula(paste(paste0(outcome, "_log"), "~",
+        paste(c("dairy_100g", time_var, covariates, re_alt), collapse = " + "))))
+    m3b     <- .lmer(stats::as.formula(paste(paste0(outcome, "_sqrt"), "~",
+        paste(c("dairy_100g", time_var, covariates, re_term), collapse = " + "))))
+    m3b_alt <- .lmer(stats::as.formula(paste(paste0(outcome, "_sqrt"), "~",
+        paste(c("dairy_100g", time_var, covariates, re_alt), collapse = " + "))))
 
-    # ── M4: Dairy × time interaction ----------------------------------------
-    m4 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
+    # ── M4 / M4b: Dairy × time interaction ----------------------------------
+    m4 <- .lmer(stats::as.formula(paste(resp_col, "~",
         paste(c("dairy_100g", time_var, covariates, re_term,
-                paste0("dairy_100g:", time_var)),
-              collapse = " + ")
-    )))
+                paste0("dairy_100g:", time_var)), collapse = " + "))))
+    m4b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g", time_var, covariates, re_alt,
+                paste0("dairy_100g:", time_var)), collapse = " + "))))
 
-    # ── M5 / M5b: Height + Weight instead of BMI categories -----------------
+    # ── M5 / M5b: Height + Weight instead of BMI ----------------------------
+    # M5 uses the reference RE; M5b uses re_noSlope (RI only regardless of ref)
     has_hw <- all(c("height_scaled", "weight_scaled") %in% names(df))
     m5  <- NULL
     m5b <- NULL
     if (has_hw) {
-        cov_hw <- c(setdiff(covariates, "BMI_category"),
-                     "weight_scaled")
-
-        # M5: same random effects structure as reference
-        m5 <- .lmer(stats::as.formula(paste(
-            resp_col, "~",
-            paste(c("dairy_100g", time_var, cov_hw, re_term), collapse = " + ")
-        )))
-
-        # M5b: random intercept only (regardless of reference random effects)
-        m5b <- .lmer(stats::as.formula(paste(
-            resp_col, "~",
-            paste(c("dairy_100g", time_var, cov_hw, re_noSlope), collapse = " + ")
-        )))
+        cov_hw <- c(setdiff(covariates, "BMI_category"), "weight_scaled")
+        m5  <- .lmer(stats::as.formula(paste(resp_col, "~",
+            paste(c("dairy_100g", time_var, cov_hw, re_term), collapse = " + "))))
+        m5b <- .lmer(stats::as.formula(paste(resp_col, "~",
+            paste(c("dairy_100g", time_var, cov_hw, re_alt), collapse = " + "))))
     } else {
         .text_page(
             c("height_scaled and/or weight_scaled not found in data.",
@@ -678,104 +720,104 @@ run_model_specification_sensitivity <- function(
         )
     }
 
-    # ── M6: Within-/between-person decomposition ----------------------------
-    m6 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
-        paste(c("dairy_within_100g", "dairy_pmean_100g",
-                time_var, covariates, re_term),
-              collapse = " + ")
-    )))
+    # ── M6 / M6b: Within-/between-person decomposition ----------------------
+    m6 <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_within_100g", "dairy_pmean_100g", time_var, covariates, re_term),
+              collapse = " + "))))
+    m6b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_within_100g", "dairy_pmean_100g", time_var, covariates, re_alt),
+              collapse = " + "))))
 
-    # ── M7: No random slope (only relevant when reference has random slope) --
-    m7 <- NULL
-    if (random_slope) {
-        m7 <- .lmer(stats::as.formula(paste(
-            resp_col, "~",
-            paste(c("dairy_100g", time_var, covariates, re_noSlope), collapse = " + ")
-        )))
-    } else {
-        .text_page(
-            c("Reference model already uses random intercept only.",
-              "M7 (drop random slope) is identical to M0 and is skipped."),
-            title = paste("M7 skipped —", outcome)
-        )
-    }
-
-    # ── M8: nlme + varPower --------------------------------------------------
-    fixed_nlme  <- stats::as.formula(paste(
-        resp_col, "~",
-        paste(c("dairy_100g", time_var, covariates), collapse = " + ")
-    ))
-    random_nlme <- if (random_slope) {
+    # ── M8 / M8b: nlme + varPower (reference RE / alternative RE) -----------
+    fixed_nlme       <- stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g", time_var, covariates), collapse = " + ")))
+    random_nlme_main <- if (random_slope)
         stats::as.formula(paste0("~ 1 + ", time_var, " | ", id_var))
-    } else {
+    else
         stats::as.formula(paste0("~ 1 | ", id_var))
-    }
-    m8 <- .fit_nlme_varpower(df, fixed_nlme, random_nlme, id_var = id_var)
+    random_nlme_alt  <- if (random_slope)
+        stats::as.formula(paste0("~ 1 | ", id_var))
+    else
+        stats::as.formula(paste0("~ 1 + ", time_var, " | ", id_var))
+    m8  <- .fit_nlme_varpower(df, fixed_nlme, random_nlme_main, id_var = id_var)
+    m8b <- .fit_nlme_varpower(df, fixed_nlme, random_nlme_alt,  id_var = id_var)
 
-    # ── M9: GAMM with smooth on raw dairy intake ----------------------------
+    # ── M9 / M9b: GAMM with smooth on dairy ---------------------------------
     dairy_raw_col <- "dairy_total_gday_cumavg"
-    m9 <- NULL
+    m9  <- NULL
+    m9b <- NULL
     if (dairy_raw_col %in% names(df)) {
-        rand_form <- if (random_slope)
+        rand_form_main <- if (random_slope)
             stats::as.formula(paste0("~ 1 + ", time_var))
         else
             stats::as.formula("~ 1")
-
-        # na.action = na.omit: gamm defaults to na.fail; lmer silently drops NAs.
-        gam_formula <- stats::as.formula(paste(
-            resp_col, "~",
+        rand_form_alt  <- if (random_slope)
+            stats::as.formula("~ 1")
+        else
+            stats::as.formula(paste0("~ 1 + ", time_var))
+        gam_formula <- stats::as.formula(paste(resp_col, "~",
             paste(c(paste0("s(", dairy_raw_col, ", k = 5, bs = 'cr')"),
-                    time_var, covariates),
-                  collapse = " + ")
-        ))
-        m9 <- tryCatch(
-            mgcv::gamm(
-                formula   = gam_formula,
-                random    = stats::setNames(list(rand_form), id_var),
-                data      = df,
-                na.action = na.omit
-            ),
-            error = function(e) {
-                message("GAMM failed (", outcome, "): ", conditionMessage(e))
-                NULL
-            }
-        )
+                    time_var, covariates), collapse = " + ")))
+        .fit_gamm <- function(rf) {
+            tryCatch(
+                mgcv::gamm(formula   = gam_formula,
+                           random    = stats::setNames(list(rf), id_var),
+                           data      = df,
+                           na.action = na.omit),
+                error = function(e) {
+                    message("GAMM failed (", outcome, "): ", conditionMessage(e))
+                    NULL
+                }
+            )
+        }
+        m9  <- .fit_gamm(rand_form_main)
+        m9b <- .fit_gamm(rand_form_alt)
     }
 
-    # ── M10: Quadratic age --------------------------------------------------
+    # ── M10 / M10b: Quadratic age (reference RE / alternative RE) -----------
     cov_no_age <- setdiff(covariates, "age_at_baseline_scaled")
-    m10 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
+    m10 <- .lmer(stats::as.formula(paste(resp_col, "~",
         paste(c("dairy_100g", time_var,
                 "poly(age_at_baseline_scaled, 2, raw = TRUE)",
-                cov_no_age, re_term),
-              collapse = " + ")
-    )))
+                cov_no_age, re_term), collapse = " + "))))
+    m10b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g", time_var,
+                "poly(age_at_baseline_scaled, 2, raw = TRUE)",
+                cov_no_age, re_alt), collapse = " + "))))
 
     # =========================================================================
     # AIC / BIC table + plot
     # =========================================================================
     .section_page("AIC / BIC Comparison", subtitle = outcome)
 
+    ref_label <- paste("M0   Reference", lbl_main)
     ic_rows <- dplyr::bind_rows(
-        .extract_ic_sens(m0,  "M0  Reference"),
-        .extract_ic_sens(m1,  "M1  NS spline on dairy (df=3)"),
-        .extract_ic_sens(m2,  "M2  Poly² on dairy"),
-        .extract_ic_sens(m3a, "M3a Log outcome"),
-        .extract_ic_sens(m3b, "M3b Sqrt outcome"),
-        .extract_ic_sens(m4,  "M4  Dairy × time interaction"),
-        .extract_ic_sens(m5,  "M5  Height + Weight"),
-        .extract_ic_sens(m5b, "M5b Height + Weight, RI only"),
-        .extract_ic_sens(m6,  "M6  Within-/between-person dairy"),
-        .extract_ic_sens(m7,  "M7  Random intercept only"),
-        .extract_ic_sens(m8,  "M8  varPower (nlme)"),
-        .extract_ic_sens(m9,  "M9  GAMM dairy + s(dairy, k=5)"),
-        .extract_ic_sens(m10, "M10 Poly² on age")
+        .extract_ic_sens(m0,      paste("M0   Reference",   lbl_main)),
+        .extract_ic_sens(m0b,     paste("M0b  Reference",   lbl_alt)),
+        .extract_ic_sens(m1,      paste("M1   NS spline",   lbl_main)),
+        .extract_ic_sens(m1b,     paste("M1b  NS spline",   lbl_alt)),
+        .extract_ic_sens(m2,      paste("M2   Poly² dairy", lbl_main)),
+        .extract_ic_sens(m2b,     paste("M2b  Poly² dairy", lbl_alt)),
+        .extract_ic_sens(m3a,     paste("M3a  Log outcome", lbl_main)),
+        .extract_ic_sens(m3a_alt, paste("M3a  Log outcome", lbl_alt)),
+        .extract_ic_sens(m3b,     paste("M3b  Sqrt outcome", lbl_main)),
+        .extract_ic_sens(m3b_alt, paste("M3b  Sqrt outcome", lbl_alt)),
+        .extract_ic_sens(m4,      paste("M4   Dairy×time", lbl_main)),
+        .extract_ic_sens(m4b,     paste("M4b  Dairy×time", lbl_alt)),
+        .extract_ic_sens(m5,      paste("M5   Height+Weight", lbl_main)),
+        .extract_ic_sens(m5b,     paste("M5b  Height+Weight", lbl_alt)),
+        .extract_ic_sens(m6,      paste("M6   W/B dairy",   lbl_main)),
+        .extract_ic_sens(m6b,     paste("M6b  W/B dairy",   lbl_alt)),
+        .extract_ic_sens(m8,      paste("M8   varPower",    lbl_main)),
+        .extract_ic_sens(m8b,     paste("M8b  varPower",    lbl_alt)),
+        .extract_ic_sens(m9,      paste("M9   GAMM s(dairy,k=5)", lbl_main)),
+        .extract_ic_sens(m9b,     paste("M9b  GAMM s(dairy,k=5)", lbl_alt)),
+        .extract_ic_sens(m10,     paste("M10  Poly² age",  lbl_main)),
+        .extract_ic_sens(m10b,    paste("M10b Poly² age",  lbl_alt))
     )
 
-    ref_aic <- ic_rows$AIC[ic_rows$model == "M0  Reference"][1]
-    ref_bic <- ic_rows$BIC[ic_rows$model == "M0  Reference"][1]
+    ref_aic <- ic_rows$AIC[ic_rows$model == ref_label][1]
+    ref_bic <- ic_rows$BIC[ic_rows$model == ref_label][1]
 
     ic_rows <- ic_rows |>
         dplyr::mutate(
@@ -806,7 +848,8 @@ run_model_specification_sensitivity <- function(
 
     .aic_bic_plot_sens(ic_rows,
                        title = paste0("ΔAIC / ΔBIC relative to reference  —  ",
-                                      outcome))
+                                      outcome),
+                       reference_model = ref_label)
 
     # =========================================================================
     # Dairy coefficient comparison (linear-dairy models only)
@@ -814,38 +857,57 @@ run_model_specification_sensitivity <- function(
     .section_page("Dairy Coefficient Comparison", subtitle = outcome)
 
     .coef_comparison_plot_sens(
-        model_list   = list(m0, m4, m5, m5b, m6, m7, m8, m10),
-        model_names  = c("M0  Reference",
-                         "M4  Dairy × time",
-                         "M5  Height + Weight",
-                         "M5b Height + Weight, RI only",
-                         "M6  Within-person dairy",
-                         "M7  RI only",
-                         "M8  varPower",
-                         "M10 Poly² age"),
+        model_list  = list(m0, m0b, m4, m4b, m5, m5b, m6, m6b, m8, m8b, m10, m10b),
+        model_names = c(paste("M0   Reference",    lbl_main),
+                        paste("M0b  Reference",    lbl_alt),
+                        paste("M4   Dairy×time", lbl_main),
+                        paste("M4b  Dairy×time", lbl_alt),
+                        paste("M5   Height+Weight", lbl_main),
+                        paste("M5b  Height+Weight", lbl_alt),
+                        paste("M6   W/B dairy",    lbl_main),
+                        paste("M6b  W/B dairy",    lbl_alt),
+                        paste("M8   varPower",     lbl_main),
+                        paste("M8b  varPower",     lbl_alt),
+                        paste("M10  Poly² age", lbl_main),
+                        paste("M10b Poly² age", lbl_alt)),
         dairy_pattern = "^dairy_100g$|^dairy_within_100g$",
         title = paste("Dairy estimate (95 % CI) across specifications  — ", outcome)
     )
 
     # =========================================================================
-    # Assumption checks
+    # Assumption checks — PDF + PNG export
     # =========================================================================
+    png_dir_assump <- file.path(out_dir, "assumption_checks", outcome)
+
     .assumption_checks_section(
-        model_list  = list(m0, m1, m2, m3a, m3b, m4, m5, m5b, m6, m7, m8, m9, m10),
-        model_names = c("M0  Reference",
-                        "M1  NS spline dairy",
-                        "M2  Poly² dairy",
-                        "M3a Log outcome",
-                        "M3b Sqrt outcome",
-                        "M4  Dairy × time",
-                        "M5  Height + Weight",
-                        "M5b Height + Weight, RI only",
-                        "M6  Within-/between dairy",
-                        "M7  Random intercept only",
-                        "M8  varPower (nlme)",
-                        "M9  GAMM",
-                        "M10 Poly² age"),
-        section_subtitle = outcome
+        model_list  = list(m0, m0b, m1, m1b, m2, m2b,
+                           m3a, m3a_alt, m3b, m3b_alt,
+                           m4, m4b, m5, m5b, m6, m6b,
+                           m8, m8b, m9, m9b, m10, m10b),
+        model_names = c(paste("M0   Reference",       lbl_main),
+                        paste("M0b  Reference",       lbl_alt),
+                        paste("M1   NS spline dairy", lbl_main),
+                        paste("M1b  NS spline dairy", lbl_alt),
+                        paste("M2   Poly² dairy", lbl_main),
+                        paste("M2b  Poly² dairy", lbl_alt),
+                        paste("M3a  Log outcome",     lbl_main),
+                        paste("M3a  Log outcome",     lbl_alt),
+                        paste("M3b  Sqrt outcome",    lbl_main),
+                        paste("M3b  Sqrt outcome",    lbl_alt),
+                        paste("M4   Dairy×time", lbl_main),
+                        paste("M4b  Dairy×time", lbl_alt),
+                        paste("M5   Height+Weight",   lbl_main),
+                        paste("M5b  Height+Weight",   lbl_alt),
+                        paste("M6   W/B dairy",       lbl_main),
+                        paste("M6b  W/B dairy",       lbl_alt),
+                        paste("M8   varPower",        lbl_main),
+                        paste("M8b  varPower",        lbl_alt),
+                        paste("M9   GAMM",            lbl_main),
+                        paste("M9b  GAMM",            lbl_alt),
+                        paste("M10  Poly² age",  lbl_main),
+                        paste("M10b Poly² age",  lbl_alt)),
+        section_subtitle = outcome,
+        png_dir = png_dir_assump
     )
 
     # =========================================================================
@@ -853,13 +915,16 @@ run_model_specification_sensitivity <- function(
     # =========================================================================
     .section_page("GAMM Smooth",
                   subtitle = paste0("s(dairy_total_gday_cumavg, k=5)  |  ", outcome))
-    .gamm_smooth_page(m9, dairy_raw_col, outcome)
 
-    if (!is.null(m9)) {
-        .text_page(utils::capture.output(summary(m9$gam)),
-                   title = paste("GAMM summary  — ", outcome))
-        .text_page(utils::capture.output(summary(m9$lme)),
-                   title = paste("GAMM (lme component) summary  — ", outcome))
+    for (.gm in list(list(m9,  lbl_main), list(m9b, lbl_alt))) {
+        .gamm_smooth_page(.gm[[1]], dairy_raw_col,
+                          paste(outcome, "GAMM", .gm[[2]]))
+        if (!is.null(.gm[[1]])) {
+            .text_page(utils::capture.output(summary(.gm[[1]]$gam)),
+                       title = paste("GAMM summary —", outcome, .gm[[2]]))
+            .text_page(utils::capture.output(summary(.gm[[1]]$lme)),
+                       title = paste("GAMM (lme) summary —", outcome, .gm[[2]]))
+        }
     }
 
     # =========================================================================
@@ -870,12 +935,15 @@ run_model_specification_sensitivity <- function(
     .wb_detail_page(m6, outcome)
 
     # =========================================================================
-    # varPower model summary
+    # varPower model summaries (M8 main + alt)
     # =========================================================================
-    if (!is.null(m8)) {
-        .section_page("nlme + varPower Summary", subtitle = outcome)
-        .text_page(utils::capture.output(summary(m8)),
-                   title = paste("nlme + varPower  — ", outcome))
+    for (.vm in list(list(m8, lbl_main), list(m8b, lbl_alt))) {
+        if (!is.null(.vm[[1]])) {
+            .section_page("nlme + varPower Summary",
+                          subtitle = paste(outcome, .vm[[2]]))
+            .text_page(utils::capture.output(summary(.vm[[1]])),
+                       title = paste("nlme + varPower —", outcome, .vm[[2]]))
+        }
     }
 
     # =========================================================================
@@ -885,6 +953,7 @@ run_model_specification_sensitivity <- function(
                title = "Session Info")
 
     message("PDF written to: ", pdf_path)
+    message("Assumption-check PNGs saved to: ", png_dir_assump)
     invisible(pdf_path)
 }
 
@@ -896,7 +965,7 @@ run_model_specification_sensitivity <- function(
 #' Alternative model specifications for gait speed, written to a PDF.
 #'
 #' Gait speed uses lagged covariates (`_lag` suffix), typically has no random
-#' slope (only 2 visits).  M7 here tests the *addition* of a random slope.
+#' slope (only 2 visits).  M0b / "b" variants add a random slope.
 #'
 #' @param mids_object  A `mids` object for gait speed.
 #' @param outcome      Raw outcome column (default `"gait_speed"`).
@@ -970,6 +1039,9 @@ run_model_specification_sensitivity_gait <- function(
     re_slope   <- paste0("(1 + ", time_var, " | ", id_var, ")")
     re_noSlope <- paste0("(1 | ", id_var, ")")
     re_term    <- if (random_slope) re_slope else re_noSlope
+    re_alt     <- if (random_slope) re_noSlope else re_slope
+    lbl_main   <- if (random_slope) "(RS)" else "(RI)"
+    lbl_alt    <- if (random_slope) "(RI)" else "(RS)"
     ctrl <- lme4::lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 20000))
 
     .lmer <- function(f) {
@@ -977,66 +1049,62 @@ run_model_specification_sensitivity_gait <- function(
                  error = function(e) { warning(conditionMessage(e)); NULL })
     }
 
-    # ── M0: Reference --------------------------------------------------------
-    m0 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
-        paste(c("dairy_100g_lag", time_var, covariates, re_term), collapse = " + ")
-    )))
+    # ── M0 / M0b: Reference — reference RE / alternative RE -----------------
+    m0 <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g_lag", time_var, covariates, re_term), collapse = " + "))))
+    m0b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g_lag", time_var, covariates, re_alt), collapse = " + "))))
 
-    # ── M1: Natural spline on lagged dairy -----------------------------------
-    m1 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
+    # ── M1 / M1b: Natural spline on lagged dairy ----------------------------
+    m1 <- .lmer(stats::as.formula(paste(resp_col, "~",
         paste(c("splines::ns(dairy_100g_lag, df = 3)", time_var, covariates, re_term),
-              collapse = " + ")
-    )))
+              collapse = " + "))))
+    m1b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("splines::ns(dairy_100g_lag, df = 3)", time_var, covariates, re_alt),
+              collapse = " + "))))
 
-    # ── M2: Quadratic polynomial on lagged dairy -----------------------------
-    m2 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
+    # ── M2 / M2b: Quadratic polynomial on lagged dairy ----------------------
+    m2 <- .lmer(stats::as.formula(paste(resp_col, "~",
         paste(c("poly(dairy_100g_lag, 2, raw = TRUE)", time_var, covariates, re_term),
-              collapse = " + ")
-    )))
+              collapse = " + "))))
+    m2b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("poly(dairy_100g_lag, 2, raw = TRUE)", time_var, covariates, re_alt),
+              collapse = " + "))))
 
-    # ── M3a / M3b: Outcome transformations ----------------------------------
+    # ── M3a / M3b: Outcome transformations — reference RE -------------------
+    # ── M3a_alt / M3b_alt: same, alternative RE -----------------------------
     df[[paste0(outcome, "_log")]]  <- log(pmax(df[[outcome]], 1e-6))
     df[[paste0(outcome, "_sqrt")]] <- sqrt(pmax(df[[outcome]], 0))
 
-    m3a <- .lmer(stats::as.formula(paste(
-        paste0(outcome, "_log"), "~",
-        paste(c("dairy_100g_lag", time_var, covariates, re_term), collapse = " + ")
-    )))
-    m3b <- .lmer(stats::as.formula(paste(
-        paste0(outcome, "_sqrt"), "~",
-        paste(c("dairy_100g_lag", time_var, covariates, re_term), collapse = " + ")
-    )))
+    m3a     <- .lmer(stats::as.formula(paste(paste0(outcome, "_log"), "~",
+        paste(c("dairy_100g_lag", time_var, covariates, re_term), collapse = " + "))))
+    m3a_alt <- .lmer(stats::as.formula(paste(paste0(outcome, "_log"), "~",
+        paste(c("dairy_100g_lag", time_var, covariates, re_alt), collapse = " + "))))
+    m3b     <- .lmer(stats::as.formula(paste(paste0(outcome, "_sqrt"), "~",
+        paste(c("dairy_100g_lag", time_var, covariates, re_term), collapse = " + "))))
+    m3b_alt <- .lmer(stats::as.formula(paste(paste0(outcome, "_sqrt"), "~",
+        paste(c("dairy_100g_lag", time_var, covariates, re_alt), collapse = " + "))))
 
-    # ── M4: Dairy × time interaction ----------------------------------------
-    m4 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
+    # ── M4 / M4b: Dairy × time interaction ----------------------------------
+    m4 <- .lmer(stats::as.formula(paste(resp_col, "~",
         paste(c("dairy_100g_lag", time_var, covariates, re_term,
-                paste0("dairy_100g_lag:", time_var)),
-              collapse = " + ")
-    )))
+                paste0("dairy_100g_lag:", time_var)), collapse = " + "))))
+    m4b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g_lag", time_var, covariates, re_alt,
+                paste0("dairy_100g_lag:", time_var)), collapse = " + "))))
 
-    # ── M5 / M5b: Height + Weight instead of BMI categories -----------------
+    # ── M5 / M5b: Height + Weight instead of BMI ----------------------------
+    # M5 uses reference RE; M5b uses alternative RE
     has_hw <- all(c("height_scaled", "weight_scaled") %in% names(df))
     m5  <- NULL
     m5b <- NULL
     if (has_hw) {
         cov_hw <- c(setdiff(covariates, "BMI_category_lag"),
                     "height_scaled", "weight_scaled")
-
-        # M5: same random effects as reference
-        m5 <- .lmer(stats::as.formula(paste(
-            resp_col, "~",
-            paste(c("dairy_100g_lag", time_var, cov_hw, re_term), collapse = " + ")
-        )))
-
-        # M5b: random intercept only
-        m5b <- .lmer(stats::as.formula(paste(
-            resp_col, "~",
-            paste(c("dairy_100g_lag", time_var, cov_hw, re_noSlope), collapse = " + ")
-        )))
+        m5  <- .lmer(stats::as.formula(paste(resp_col, "~",
+            paste(c("dairy_100g_lag", time_var, cov_hw, re_term), collapse = " + "))))
+        m5b <- .lmer(stats::as.formula(paste(resp_col, "~",
+            paste(c("dairy_100g_lag", time_var, cov_hw, re_alt), collapse = " + "))))
     } else {
         .text_page(
             c("height_scaled / weight_scaled not found.",
@@ -1045,94 +1113,104 @@ run_model_specification_sensitivity_gait <- function(
         )
     }
 
-    # ── M6: Within-/between-person decomposition ----------------------------
-    m6 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
-        paste(c("dairy_within_100g", "dairy_pmean_100g",
-                time_var, covariates, re_term),
-              collapse = " + ")
-    )))
+    # ── M6 / M6b: Within-/between-person decomposition ----------------------
+    m6 <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_within_100g", "dairy_pmean_100g", time_var, covariates, re_term),
+              collapse = " + "))))
+    m6b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_within_100g", "dairy_pmean_100g", time_var, covariates, re_alt),
+              collapse = " + "))))
 
-    # ── M7: Add random slope (gait reference has none) ----------------------
-    m7 <- NULL
-    if (!random_slope) {
-        m7 <- .lmer(stats::as.formula(paste(
-            resp_col, "~",
-            paste(c("dairy_100g_lag", time_var, covariates, re_slope),
-                  collapse = " + ")
-        )))
-    } else {
-        .text_page("Reference already has random slope; M7 skipped.",
-                   title = "M7 skipped — gait speed")
-    }
+    # ── M8 / M8b: nlme + varPower (reference RE / alternative RE) -----------
+    fixed_nlme       <- stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g_lag", time_var, covariates), collapse = " + ")))
+    random_nlme_main <- if (random_slope)
+        stats::as.formula(paste0("~ 1 + ", time_var, " | ", id_var))
+    else
+        stats::as.formula(paste0("~ 1 | ", id_var))
+    random_nlme_alt  <- if (random_slope)
+        stats::as.formula(paste0("~ 1 | ", id_var))
+    else
+        stats::as.formula(paste0("~ 1 + ", time_var, " | ", id_var))
+    m8  <- .fit_nlme_varpower(df, fixed_nlme, random_nlme_main, id_var = id_var)
+    m8b <- .fit_nlme_varpower(df, fixed_nlme, random_nlme_alt,  id_var = id_var)
 
-    # ── M8: nlme + varPower --------------------------------------------------
-    fixed_nlme  <- stats::as.formula(paste(
-        resp_col, "~",
-        paste(c("dairy_100g_lag", time_var, covariates), collapse = " + ")
-    ))
-    random_nlme <- stats::as.formula(paste0("~ 1 | ", id_var))
-    m8 <- .fit_nlme_varpower(df, fixed_nlme, random_nlme, id_var = id_var)
-
-    # ── M9: GAMM -------------------------------------------------------------
+    # ── M9 / M9b: GAMM with smooth on lagged dairy --------------------------
     dairy_raw_col <- "dairy_total_gday_cumavg_lag"
-    m9 <- NULL
+    m9  <- NULL
+    m9b <- NULL
     if (dairy_raw_col %in% names(df)) {
-        # na.action = na.omit: gamm defaults to na.fail; lmer silently drops NAs.
-        gam_formula <- stats::as.formula(paste(
-            resp_col, "~",
+        rand_form_main <- if (random_slope)
+            stats::as.formula(paste0("~ 1 + ", time_var))
+        else
+            stats::as.formula("~ 1")
+        rand_form_alt  <- if (random_slope)
+            stats::as.formula("~ 1")
+        else
+            stats::as.formula(paste0("~ 1 + ", time_var))
+        gam_formula <- stats::as.formula(paste(resp_col, "~",
             paste(c(paste0("s(", dairy_raw_col, ", k = 5, bs = 'cr')"),
-                    time_var, covariates),
-                  collapse = " + ")
-        ))
-        rand_form <- stats::as.formula("~ 1")
-        m9 <- tryCatch(
-            mgcv::gamm(
-                formula   = gam_formula,
-                random    = stats::setNames(list(rand_form), id_var),
-                data      = df,
-                na.action = na.omit
-            ),
-            error = function(e) {
-                message("GAMM failed (gait_speed): ", conditionMessage(e))
-                NULL
-            }
-        )
+                    time_var, covariates), collapse = " + ")))
+        .fit_gamm <- function(rf) {
+            tryCatch(
+                mgcv::gamm(formula   = gam_formula,
+                           random    = stats::setNames(list(rf), id_var),
+                           data      = df,
+                           na.action = na.omit),
+                error = function(e) {
+                    message("GAMM failed (gait_speed): ", conditionMessage(e))
+                    NULL
+                }
+            )
+        }
+        m9  <- .fit_gamm(rand_form_main)
+        m9b <- .fit_gamm(rand_form_alt)
     }
 
-    # ── M10: Quadratic age --------------------------------------------------
+    # ── M10 / M10b: Quadratic age (reference RE / alternative RE) -----------
     cov_no_age <- setdiff(covariates, "age_at_baseline_scaled_lag")
-    m10 <- .lmer(stats::as.formula(paste(
-        resp_col, "~",
+    m10 <- .lmer(stats::as.formula(paste(resp_col, "~",
         paste(c("dairy_100g_lag", time_var,
                 "poly(age_at_baseline_scaled_lag, 2, raw = TRUE)",
-                cov_no_age, re_term),
-              collapse = " + ")
-    )))
+                cov_no_age, re_term), collapse = " + "))))
+    m10b <- .lmer(stats::as.formula(paste(resp_col, "~",
+        paste(c("dairy_100g_lag", time_var,
+                "poly(age_at_baseline_scaled_lag, 2, raw = TRUE)",
+                cov_no_age, re_alt), collapse = " + "))))
 
     # =========================================================================
     # AIC / BIC table + plot
     # =========================================================================
     .section_page("AIC / BIC Comparison", subtitle = "Gait speed")
 
+    ref_label <- paste("M0   Reference", lbl_main)
     ic_rows <- dplyr::bind_rows(
-        .extract_ic_sens(m0,  "M0  Reference"),
-        .extract_ic_sens(m1,  "M1  NS spline on dairy (df=3)"),
-        .extract_ic_sens(m2,  "M2  Poly² on dairy"),
-        .extract_ic_sens(m3a, "M3a Log outcome"),
-        .extract_ic_sens(m3b, "M3b Sqrt outcome"),
-        .extract_ic_sens(m4,  "M4  Dairy × time interaction"),
-        .extract_ic_sens(m5,  "M5  Height + Weight"),
-        .extract_ic_sens(m5b, "M5b Height + Weight, RI only"),
-        .extract_ic_sens(m6,  "M6  Within-/between-person dairy"),
-        .extract_ic_sens(m7,  "M7  With random slope"),
-        .extract_ic_sens(m8,  "M8  varPower (nlme)"),
-        .extract_ic_sens(m9,  "M9  GAMM dairy_lag + s(dairy_lag, k=5)"),
-        .extract_ic_sens(m10, "M10 Poly² on age")
+        .extract_ic_sens(m0,      paste("M0   Reference",   lbl_main)),
+        .extract_ic_sens(m0b,     paste("M0b  Reference",   lbl_alt)),
+        .extract_ic_sens(m1,      paste("M1   NS spline",   lbl_main)),
+        .extract_ic_sens(m1b,     paste("M1b  NS spline",   lbl_alt)),
+        .extract_ic_sens(m2,      paste("M2   Poly² dairy", lbl_main)),
+        .extract_ic_sens(m2b,     paste("M2b  Poly² dairy", lbl_alt)),
+        .extract_ic_sens(m3a,     paste("M3a  Log outcome", lbl_main)),
+        .extract_ic_sens(m3a_alt, paste("M3a  Log outcome", lbl_alt)),
+        .extract_ic_sens(m3b,     paste("M3b  Sqrt outcome", lbl_main)),
+        .extract_ic_sens(m3b_alt, paste("M3b  Sqrt outcome", lbl_alt)),
+        .extract_ic_sens(m4,      paste("M4   Dairy×time", lbl_main)),
+        .extract_ic_sens(m4b,     paste("M4b  Dairy×time", lbl_alt)),
+        .extract_ic_sens(m5,      paste("M5   Height+Weight", lbl_main)),
+        .extract_ic_sens(m5b,     paste("M5b  Height+Weight", lbl_alt)),
+        .extract_ic_sens(m6,      paste("M6   W/B dairy",   lbl_main)),
+        .extract_ic_sens(m6b,     paste("M6b  W/B dairy",   lbl_alt)),
+        .extract_ic_sens(m8,      paste("M8   varPower",    lbl_main)),
+        .extract_ic_sens(m8b,     paste("M8b  varPower",    lbl_alt)),
+        .extract_ic_sens(m9,      paste("M9   GAMM s(dairy_lag,k=5)", lbl_main)),
+        .extract_ic_sens(m9b,     paste("M9b  GAMM s(dairy_lag,k=5)", lbl_alt)),
+        .extract_ic_sens(m10,     paste("M10  Poly² age",  lbl_main)),
+        .extract_ic_sens(m10b,    paste("M10b Poly² age",  lbl_alt))
     )
 
-    ref_aic <- ic_rows$AIC[ic_rows$model == "M0  Reference"][1]
-    ref_bic <- ic_rows$BIC[ic_rows$model == "M0  Reference"][1]
+    ref_aic <- ic_rows$AIC[ic_rows$model == ref_label][1]
+    ref_bic <- ic_rows$BIC[ic_rows$model == ref_label][1]
 
     ic_rows <- ic_rows |>
         dplyr::mutate(
@@ -1162,7 +1240,8 @@ run_model_specification_sensitivity_gait <- function(
     )
 
     .aic_bic_plot_sens(ic_rows,
-                       title = "ΔAIC / ΔBIC relative to reference  —  Gait speed")
+                       title = "ΔAIC / ΔBIC relative to reference  —  Gait speed",
+                       reference_model = ref_label)
 
     # =========================================================================
     # Dairy coefficient comparison
@@ -1170,38 +1249,57 @@ run_model_specification_sensitivity_gait <- function(
     .section_page("Dairy Coefficient Comparison", subtitle = "Gait speed")
 
     .coef_comparison_plot_sens(
-        model_list   = list(m0, m4, m5, m5b, m6, m7, m8, m10),
-        model_names  = c("M0  Reference",
-                         "M4  Dairy × time",
-                         "M5  Height + Weight",
-                         "M5b Height + Weight, RI only",
-                         "M6  Within-person dairy",
-                         "M7  With random slope",
-                         "M8  varPower",
-                         "M10 Poly² age"),
+        model_list  = list(m0, m0b, m4, m4b, m5, m5b, m6, m6b, m8, m8b, m10, m10b),
+        model_names = c(paste("M0   Reference",    lbl_main),
+                        paste("M0b  Reference",    lbl_alt),
+                        paste("M4   Dairy×time", lbl_main),
+                        paste("M4b  Dairy×time", lbl_alt),
+                        paste("M5   Height+Weight", lbl_main),
+                        paste("M5b  Height+Weight", lbl_alt),
+                        paste("M6   W/B dairy",    lbl_main),
+                        paste("M6b  W/B dairy",    lbl_alt),
+                        paste("M8   varPower",     lbl_main),
+                        paste("M8b  varPower",     lbl_alt),
+                        paste("M10  Poly² age", lbl_main),
+                        paste("M10b Poly² age", lbl_alt)),
         dairy_pattern = "^dairy_100g_lag$|^dairy_within_100g$",
         title = "Dairy (lagged) estimate (95 % CI) across specifications  — Gait speed"
     )
 
     # =========================================================================
-    # Assumption checks
+    # Assumption checks — PDF + PNG export
     # =========================================================================
+    png_dir_assump <- file.path(out_dir, "assumption_checks", "gait_speed")
+
     .assumption_checks_section(
-        model_list  = list(m0, m1, m2, m3a, m3b, m4, m5, m5b, m6, m7, m8, m9, m10),
-        model_names = c("M0  Reference",
-                        "M1  NS spline dairy",
-                        "M2  Poly² dairy",
-                        "M3a Log outcome",
-                        "M3b Sqrt outcome",
-                        "M4  Dairy × time",
-                        "M5  Height + Weight",
-                        "M5b Height + Weight, RI only",
-                        "M6  Within-/between dairy",
-                        "M7  With random slope",
-                        "M8  varPower (nlme)",
-                        "M9  GAMM",
-                        "M10 Poly² age"),
-        section_subtitle = "Gait speed"
+        model_list  = list(m0, m0b, m1, m1b, m2, m2b,
+                           m3a, m3a_alt, m3b, m3b_alt,
+                           m4, m4b, m5, m5b, m6, m6b,
+                           m8, m8b, m9, m9b, m10, m10b),
+        model_names = c(paste("M0   Reference",       lbl_main),
+                        paste("M0b  Reference",       lbl_alt),
+                        paste("M1   NS spline dairy", lbl_main),
+                        paste("M1b  NS spline dairy", lbl_alt),
+                        paste("M2   Poly² dairy", lbl_main),
+                        paste("M2b  Poly² dairy", lbl_alt),
+                        paste("M3a  Log outcome",     lbl_main),
+                        paste("M3a  Log outcome",     lbl_alt),
+                        paste("M3b  Sqrt outcome",    lbl_main),
+                        paste("M3b  Sqrt outcome",    lbl_alt),
+                        paste("M4   Dairy×time", lbl_main),
+                        paste("M4b  Dairy×time", lbl_alt),
+                        paste("M5   Height+Weight",   lbl_main),
+                        paste("M5b  Height+Weight",   lbl_alt),
+                        paste("M6   W/B dairy",       lbl_main),
+                        paste("M6b  W/B dairy",       lbl_alt),
+                        paste("M8   varPower",        lbl_main),
+                        paste("M8b  varPower",        lbl_alt),
+                        paste("M9   GAMM",            lbl_main),
+                        paste("M9b  GAMM",            lbl_alt),
+                        paste("M10  Poly² age",  lbl_main),
+                        paste("M10b Poly² age",  lbl_alt)),
+        section_subtitle = "Gait speed",
+        png_dir = png_dir_assump
     )
 
     # =========================================================================
@@ -1209,13 +1307,16 @@ run_model_specification_sensitivity_gait <- function(
     # =========================================================================
     .section_page("GAMM Smooth",
                   subtitle = "s(dairy_total_gday_cumavg_lag, k=5)  |  Gait speed")
-    .gamm_smooth_page(m9, dairy_raw_col, "gait_speed")
 
-    if (!is.null(m9)) {
-        .text_page(utils::capture.output(summary(m9$gam)),
-                   title = "GAMM summary  —  Gait speed")
-        .text_page(utils::capture.output(summary(m9$lme)),
-                   title = "GAMM (lme component) summary  —  Gait speed")
+    for (.gm in list(list(m9, lbl_main), list(m9b, lbl_alt))) {
+        .gamm_smooth_page(.gm[[1]], dairy_raw_col,
+                          paste("Gait speed GAMM", .gm[[2]]))
+        if (!is.null(.gm[[1]])) {
+            .text_page(utils::capture.output(summary(.gm[[1]]$gam)),
+                       title = paste("GAMM summary — Gait speed", .gm[[2]]))
+            .text_page(utils::capture.output(summary(.gm[[1]]$lme)),
+                       title = paste("GAMM (lme) summary — Gait speed", .gm[[2]]))
+        }
     }
 
     # =========================================================================
@@ -1225,16 +1326,22 @@ run_model_specification_sensitivity_gait <- function(
                   subtitle = "Mundlak decomposition  |  Gait speed")
     .wb_detail_page(m6, "gait_speed")
 
-    # varPower summary
-    if (!is.null(m8)) {
-        .section_page("nlme + varPower Summary", subtitle = "Gait speed")
-        .text_page(utils::capture.output(summary(m8)),
-                   title = "nlme + varPower  —  Gait speed")
+    # =========================================================================
+    # varPower model summaries (M8 main + alt)
+    # =========================================================================
+    for (.vm in list(list(m8, lbl_main), list(m8b, lbl_alt))) {
+        if (!is.null(.vm[[1]])) {
+            .section_page("nlme + varPower Summary",
+                          subtitle = paste("Gait speed", .vm[[2]]))
+            .text_page(utils::capture.output(summary(.vm[[1]])),
+                       title = paste("nlme + varPower — Gait speed", .vm[[2]]))
+        }
     }
 
     .text_page(utils::capture.output(sessioninfo::session_info()),
                title = "Session Info")
 
     message("PDF written to: ", pdf_path)
+    message("Assumption-check PNGs saved to: ", png_dir_assump)
     invisible(pdf_path)
 }

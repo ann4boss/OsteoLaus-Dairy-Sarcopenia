@@ -1071,10 +1071,10 @@ c(
     mice_exclusion,
 
     # ── Models ────────────────────────────────────────────────────────────────
-    # LMM_targets_HGS,
-    # LMM_targets_ALM,
+    LMM_targets_HGS,
+    LMM_targets_ALM,
     # LMM_targets_ALM_BMI,
-    # LMM_targets_gait
+    LMM_targets_gait
     # cox_targets
     #cox_targets_fnih
 
@@ -1082,7 +1082,7 @@ c(
     # LMM_modspec_HGS,
     # LMM_modspec_ALM,
     # LMM_modspec_gait
-    
+    # 
     
     # ── Descriptives ──────────────────────────────────────────────────────────
     # consort
@@ -1091,7 +1091,7 @@ c(
     # tableOne_targets_compare,
     # tableOne_incl_vs_excl,
     # tableOne_save
-    visit_descriptives_targets
+    # visit_descriptives_targets
     # missingness_target
     # dairy_quartile_cuts_target,
     # variable_descriptives_target,

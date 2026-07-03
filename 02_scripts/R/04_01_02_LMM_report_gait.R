@@ -552,6 +552,8 @@ run_lmm_report_gait <- function(
             subtitle = paste(covariates, collapse = "  ·  ")
         )
 
+        dairy_summary_rows <- list()   # collect dairy estimates across exposures
+
         for (i in seq_len(nrow(exposures))) {
             exp_row   <- exposures[i, ]
             exp_col   <- exp_row$exposure
@@ -596,6 +598,12 @@ run_lmm_report_gait <- function(
                 }
             )
             if (is.null(fit)) next
+
+            # ── Collect dairy rows for summary plot --------------------------
+            dairy_summary_rows[[i]] <- fit$pooled_tidy |>
+                dplyr::mutate(
+                    exposure_label = paste0(exp_col, " (", exp_type, ")")
+                )
 
             # ── Formula page -------------------------------------------------
             .text_page(
@@ -816,6 +824,15 @@ run_lmm_report_gait <- function(
                 if (!is.null(p_diag_s)) print(p_diag_s)
             }
         }
+
+        # ── Dairy definitions summary forest (end of covariate set) ---------
+        .dairy_summary_forest(
+            rows_list   = dairy_summary_rows,
+            cov_nm      = cov_nm,
+            resp_col    = resp_col,
+            term_labels = .term_labels_gait,
+            out_dir     = if (cov_nm == "other_PA") NULL else out_dir
+        )
     }
 
     # ── Session info ---------------------------------------------------------
