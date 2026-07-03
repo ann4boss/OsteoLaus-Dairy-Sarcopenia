@@ -4,6 +4,27 @@
 
 ### Dairy product mapping
 
+| FFQ | Food Item                   | Fermented | Fat Category |
+|-----|-----------------------------|-----------|--------------|
+| 1   | Plain yogurt                | Yes       | High-fat     |
+| 2   | Low-fat yogurt              | Yes       | Low-fat      |
+| 3   | Fruit yogurt                | Yes       | High-fat     |
+| 4   | Cottage cheese 0%           | Yes       | Low-fat      |
+| 5   | Cottage cheese / ricotta    | Yes       | High-fat     |
+| 6   | Feta / mozzarella           | Yes       | High-fat     |
+| 7   | Gruyère / Tomme / Camembert | Yes       | High-fat     |
+| 8   | Cheese fondue               | Yes       | High-fat     |
+| 52  | Butter                      | No        | High-fat     |
+| 53  | Cream (35%)                 | No        | High-fat     |
+| 63  | Cream tart / cake           | No        | High-fat     |
+| 68  | Ice cream / sorbet\*        | No        | High-fat     |
+| 71  | Butter for cooking          | No        | High-fat     |
+| 82  | Milk in coffee (0%)         | No        | Low-fat      |
+| 83  | Milk in coffee (non-0%)     | No        | High-fat     |
+| 84  | Coffee creamer              | No        | High-fat     |
+| 85  | Milk drink (0%)             | No        | Low-fat      |
+| 86  | Milk drink (non-0%)         | No        | High-fat     |
+
 The mapping of dairy products to their dairy category can be seen in Table S1
 
 ### Directed acyclic graph
@@ -59,13 +80,13 @@ xx
 | Missing | 23 | 0 | 23 |
 | **High-fat dairy (g/day)** | 160.4 \[87.2, 262.1\] | 163.5 \[87.1, 262.6\] | 150.5 \[88.6, 259.0\] |
 | Missing | 23 | 0 | 23 |
-| **EWGSOP2 sarcopenia stage** | NA | NA | NA |
+| **EWGSOP2 sarcopenia stage** |  |  |  |
 | No sarcopenia | 1,308 (90%) | 1,051 (91%) | 257 (86%) |
 | Probable | 138 (9.5%) | 98 (8.5%) | 40 (13%) |
 | Confirmed | 12 (0.8%) | 9 (0.8%) | 3 (1.0%) |
 | Severe | 0 (0%) | 0 (0%) | 0 (0%) |
 | Missing | 15 | 0 | 15 |
-| **Grip strength (kg)** | 23.9 (6.0), 27.7\] | 24.2 (5.9) | 23.1 (6.4) |
+| **Handgrip strength (kg)** | 23.9 (6.0), 27.7\] | 24.2 (5.9) | 23.1 (6.4) |
 | Missing | 15 | 0 | 15 |
 | **ALMI (kg/m²)** | 6.5 (0.8) | 6.5 (0.8) | 6.6 (0.9) |
 | Missing | 205 | 107 | 98 |

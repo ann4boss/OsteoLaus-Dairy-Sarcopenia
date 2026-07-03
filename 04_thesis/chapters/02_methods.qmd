@@ -47,7 +47,7 @@ Dietary intake, including dairy consumption, was assessed in the CoLaus study fr
 
 : Food Frequency Questionnaire (FFQ) items and portion sizes for women.
 
-FFQ = food frequency questionnaire; S = small, E = medium, L = large portion. Portion sizes provided by <!--# give source -->.
+FFQ = food frequency questionnaire; S = smaller, E = equal, L = larger to reference portion size. Portion sizes provided by <!--# give source -->.
 
 ### Total dairy intake
 
@@ -57,17 +57,17 @@ zation across units. Ice cream (FFQ68) was reported together with sorbet. The en
 
 ### Dairy subtypes
 
-Dairy subtypes were derived by summing predefined FFQ items. Fermented dairy products included yogurt and cheese. Non-fermented dairy products included milk, cream, and ice cream. Full-fat dairy products comprised full-fat milk, yogurt, cheese, cream, butter, and ice cream, while low-fat dairy products included skimmed milk, low-fat yogurt, and reduced-fat cheese. Detailed FFQ item mappings are provided in the Supplementary Material. <!--# Table S1 remember to include this -->
+Dairy subtypes were derived by summing predefined FFQ items. Fermented dairy products included yogurt and cheese. Non-fermented dairy products included milk, cream, and ice cream. Full-fat dairy products comprised full-fat milk, yogurt, cheese, cream, butter, and ice cream, while low-fat dairy products included skimmed milk, low-fat yogurt, and reduced-fat cheese. Detailed FFQ item mappings are provided in the Supplementary Material <!--# table XX -->().
 
 ### Adherence to dietary guidelines
 
 Adherence to Swiss Society for Nutrition recommendations <!--# of which year? --> for dairy intake was classified as meeting or not meeting recommended intake levels [@dairyguid]. Intake was calculated using weighted frequency scores based on portion size (0.5 for smaller, 1.0 for equal, 1.5 for larger portions) for selected dairy items contributing substantially to total intake (FFQ1 to FFQ8, FFQ85 and FFQ86).
 
-### Exposure modelling
+### Exposure modeling
 
 Total dairy intake was the primary exposure and was modeled both as a continuous variable and in quartiles. Quartile cut-offs were derived from the distribution at the first follow-up visit and applied to all subsequent visits. Secondary analyses explored dairy subtypes, modeled exclusively as continuous variables.
 
-For longitudinal outcomes (handgrip strength and ALMI), I used the cumulative average of total dairy intake, calculated as the mean of all available previous intakes up to each visit. For gait speed, I utilized a lagged cumulative average (mean of previous intakes, excluding the most recent visit) to account for the absence of dairy data at the T4 time point. For sarcopenia incidence, the Cox proportional hazards model incorporated both continuous and quartile-based intake measures. Sensitivity analyses were conducted to test the robustness of our findings, including the assessment of adherence to dietary guidelines and the use of quartiles in mixed linear models.
+For longitudinal outcomes (handgrip strength and ALMI), I used the cumulative average of total dairy intake, calculated as the mean of all available previous intakes up to each visit. For gait speed, I utilized a lagged cumulative average (mean of previous intakes, excluding the most recent visit) to account for the absence of dairy data at the T4 time point. Sensitivity analyses were conducted to test the robustness of our findings, including the assessment of adherence to dietary guidelines and the use of quartiles in mixed linear models. For sarcopenia incidence, the Cox proportional hazards model incorporated both continuous and quartile-based intake measures.
 
 ## Covariates
 
@@ -198,7 +198,7 @@ Missing data were handled using multiple imputation by chained equations (MICE) 
 
 Longitudinal data were reshaped into wide format (one row per participant with separate columns for each visit), allowing within-person correlations across time to be incorporated in the imputation model. A total of 10 imputed datasets were generated, with 30 iterations per dataset.
 
-Continuous variables were imputed using predictive mean matching. <!--# taking d=10 example complete cases instead of 5 which is standard --> Binary variables were imputed using logistic regression, and ordinal variables using proportional odds models. Derived variables were not imputed directly. Instead, they were recomputed after imputation from the underlying variables. This approach preserves internal consistency between raw and derived variables. Auxiliary variables (e.g. participant identifiers, examination dates, and additional clinical or lifestyle variables) were included as predictors to improve imputation accuracy but were not imputed as such.
+Continuous variables were imputed using predictive mean matching (PMM). The PMM donor pool size was increased to 10 (default d=5). This traded matching precision for more better-calibrated uncertainty, which can be important to avoid artificially deflating between-imputation variance. Binary variables were imputed using logistic regression, and ordinal variables using proportional odds models. Derived variables were not imputed directly. Instead, they were recomputed after imputation from the underlying variables. This approach preserves internal consistency between raw and derived variables. Auxiliary variables (e.g. participant identifiers, examination dates, and additional clinical or lifestyle variables) were included as predictors to improve imputation accuracy but were not imputed as such.
 
 For OsteoLaus, visit structure and measurement design were explicitly incorporated. Variables were only imputed at visits where measurement was possible (e.g. gait speed only at T3 and T4). For DXA-derived variables, measurements obtained from different devices were prevented from directly predicting each other to reduce systematic bias across measurement methods.
 
@@ -243,6 +243,8 @@ The models included fixed effects for the exposure, time (visit), and selected c
 For multiple imputed data, models were fitted within each imputed dataset and pooled using Rubin’s rules via the mice package. <!--# source --> Fixed-effect estimates were extracted using standard mixed-model summary procedures and reported as regression coefficients with 95% confidence intervals.
 
 As sensitivity analysis, I reported clubSandwich CR2 robust standard errors as our primary inference, as they are robust to heteroscedasticity and misspecification of the random effects. <!--# TODO add R package, describe more -->
+
+<!--# Cook's Distance to identify influencial values! -->
 
 <!--# TODO: add diagnostic tests: QQ plot ect -->
 

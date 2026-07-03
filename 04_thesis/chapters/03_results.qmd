@@ -47,7 +47,7 @@ Median total dairy intake increased from 69.9 g/day (IQR 45.4 to 91.1) in Q1 to 
 Included participants were generally younger and healthier than excluded participants, exhibiting lower prevalences of obesity, diabetes, and smoking, as well as higher educational attainment (@tbl-excluded-included). However, dairy intake, energy intake, physical activity, and muscle strength, muscle mass, and physical function were comparable between excluded and included participants.
 
 | Characteristic | Q1 (n=273) | Q2 (n=290) | Q3 (n=274) | Q4 (n=282) |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | **Age (years)** | 63.9 (7.1) | 63.7 (7.7) | 64.0 (7.1) | 64.4 (7.5) |
 | **Energy intake (kcal/day)** | 1264.5 \[996.5, 1553.2\] | 1407.8 \[1145.2, 1776.4\] | 1637.1 \[1344.9, 1999.7\] | 1913.9 \[1575.8, 2322.3\] |
 | **Dairy consumption** |  |  |  |  |
@@ -177,7 +177,7 @@ Among dairy subtypes, statistically significant positive associations with handg
 When analysed by dairy intake quartiles, participants in the third quartile had higher handgrip strength than those in the lowest quartile (Q3 vs Q1: $\beta$ = 0.981 kg, 95% CI 0.350 to 1.612, p = 0.002). No significant differences were observed for Q2 or Q4 compared with Q1 (@tbl-HGS-sec). However, after excluding the 31 most influential observations identified by Cook's distance (top 1%), participants in both Q2 ($\beta$ = 0.608 kg, 95% CI 0.052 to 1.164, p = 0.032) and Q4 ($\beta$ = 0.710 kg, 95% CI 0.012 to 1.408, p = 0.046) also exhibited significantly higher handgrip strength than those in Q1, while the association for Q3 remained significant ($\beta$ = 1.128 kg, 95% CI 0.512 to 1.744, p \< 0.001). These findings suggest that the positive association between dairy intake and handgrip strength was strengthened after removal of influential observations. Adherence to dairy consumption guidelines ($\ge$ 2 servings/day) was not associated with handgrip strength (@tbl-HGS-sec).
 
 | **Exposure** | **Comparison** | $\beta$ | **95% CI** | **p-value** |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | **Continuous exposures** |  |  |  |  |
 | Fermented dairy | Per 100 g/day | 0.219 | 0.028, 0.409 | 0.024 |
 | Non-fermented dairy | Per 100 g/day | 0.203 | -0.069, 0.475 | 0.143 |
@@ -239,7 +239,7 @@ No statistically significant associations were observed between dairy intake and
 Dairy guideline adherence ($\ge$ 2 servings/day) was also not associated with ALMI (@tbl-ALMI-sec). Overall, findings were consistent across exposure definitions and did not support an association between dairy intake and ALMI.
 
 | Exposure | Comparison | $\beta$ | 95% CI | p-value |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | **Continuous exposures** |  |  |  |  |
 | Fermented dairy | Per 100 g/day | 0.008 | -0.012, 0.028 | 0.437 |
 | Non-fermented dairy | Per 100 g/day | 0.019 | -0.011, 0.050 | 0.218 |
@@ -267,8 +267,7 @@ Gait speed declined with higher baseline age ($\beta$ = -0.122 m/s, 95% CI -0.13
 
 | Predictor                        | $\beta$ | 95% CI         | p-value |
 |----------------------------------|---------|----------------|---------|
-| **Primary exposure**             |         |                |         |
-| Dairy intake (per 100 g/day)     | 0.001   | -0.005, 0.007  | 0.748   |
+| **Dairy intake** (per 100 g/day) | 0.001   | -0.005, 0.007  | 0.748   |
 | **Time-related variables**       |         |                |         |
 | Time since baseline (per year)   | -0.003  | -0.008, 0.001  | 0.176   |
 | Age at baseline                  | -0.122  | -0.138, -0.105 | \<0.001 |
@@ -285,8 +284,7 @@ Gait speed declined with higher baseline age ($\beta$ = -0.122 m/s, 95% CI -0.13
 | **Physical activity** (ref: low) |         |                |         |
 | Medium                           | 0.007   | -0.022, 0.036  | 0.637   |
 | High                             | 0.017   | -0.013, 0.048  | 0.272   |
-| **Diabetes** (ref: no)           |         |                |         |
-| Diabetes                         | -0.076  | -0.119, -0.034 | \<0.001 |
+| **Diabetes** (ref: no)           | -0.076  | -0.119, -0.034 | \<0.001 |
 
 : Adjusted linear mixed-effects model examining the association between cumulative average dairy intake and gait speed
 
@@ -305,7 +303,7 @@ The variance of the random intercept was 0.0167 (SD = 0.129), while the residual
 No statistically significant associations were observed for any dairy subtype (@tbl-gait-sec). Across all exposure definitions, effect estimates were small and consistently centered around the null, indicating no meaningful relationship between dairy intake and gait speed in this model.
 
 | Exposure | Comparison | $\beta$ | 95% CI | p-value |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | **Continuous exposures** |  |  |  |  |
 | Fermented dairy | Per 100 g/day | 0.005 | -0.003, 0.013 | 0.255 |
 | Non-fermented dairy | Per 100 g/day | -0.005 | -0.017, 0.006 | 0.370 |
@@ -338,7 +336,7 @@ To assess the impact of these deviations on inference, cluster-robust (sandwich)
 During a mean follow-up of 7814 person-years, 50 incident cases of sarcopenia were observed for the EWGSOP2 definition. This corresponds to an overall incidence rate of approximately 0.64 cases per 100 person-years. The number of incident sarcopenia cases was similar across the first three dairy intake quartiles but was higher in the highest quartile (Q4). Correspondingly, crude incidence rates ranged from 5.14 to 6.34 per 1000 person-years in Q1 to Q3 and increased to 8.85 per 1000 person-years in Q4 (@tbl-incidence-rate).
 
 | Dairy intake quartile | Events (n) | Person-years | Incidence rate (per 1000 person-years) |
-|----|----|----|----|
+|------------------|------------------|------------------|------------------|
 | Q1 | 10.0 | 1901.36 | 5.26 |
 | Q2 | 10.5 | 2044.15 | 5.14 |
 | Q3 | 12.0 | 1892.10 | 6.34 |
@@ -349,7 +347,7 @@ During a mean follow-up of 7814 person-years, 50 incident cases of sarcopenia we
 In unadjusted Cox models, no clear association was observed between dairy intake quartiles and incident sarcopenia. After adjustment for covariates, results remained largely unchanged, with no statistically significant differences between Q2, Q3, or Q4 compared with Q1 (@tbl-hazard). BMI was independently associated with sarcopenia risk, while other covariates showed no clear associations.
 
 | **Predictor** | **Comparison** | **Hazard Ratio (HR)** | **95% CI** | **p-value** |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | **Unadjusted model** |  |  |  |  |
 | Dairy intake quartile | Q2 vs Q1 | 0.976 | 0.387, 2.465 | 0.958 |
 |  | Q3 vs Q1 | 1.227 | 0.505, 2.982 | 0.646 |
@@ -385,7 +383,7 @@ Sensitivity analyses using cumulative average dairy intake as a continuous expos
 Using the FNIH definition of sarcopenia, results were similar to those seen with the EWGSOP2 definition but imprecise due to fewer events (n = 30). No consistent associations between dairy intake and sarcopenia risk were observed. BMI remained significantly associated with outcome risk (@tbl-fnih).
 
 | **Predictor** | **Comparison** | **Hazard Ratio (HR)** | **95% CI** | **p-value** |
-|----|----|----|----|----|
+|---------------|---------------|---------------|---------------|---------------|
 | Dairy intake quartile | Q2 vs Q1 | 1.437 | 0.427–4.839 | 0.538 |
 |  | Q3 vs Q1 | 1.340 | 0.392–4.585 | 0.623 |
 |  | Q4 vs Q1 | 1.448 | 0.445–4.717 | 0.518 |
