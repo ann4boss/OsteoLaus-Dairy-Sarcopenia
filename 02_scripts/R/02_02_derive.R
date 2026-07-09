@@ -14,7 +14,8 @@
 # Derivation chains
 # -----------------
 #   CoLaus   : education, alcohol, diabetes, cvd, hrt, pa, dairy_servings,
-#              dairy, dairy_quartile, atc, smoking, bmi, bmi_category, htn
+#              dairy, dairy_quartile, atc, smoking, bmi, bmi_category, htn,
+#              dairy item cumavg + dairy/non-dairy protein content
 #   OsteoLaus: bmi, bmi_category, alm_indices
 #
 # MICE route
@@ -41,6 +42,9 @@
         derive_pa()             |>
         derive_dairy()          |>
         derive_dairy_cumavg()   |>
+        derive_dairy_item_cumavg()       |>
+        derive_dairy_protein()           |>
+        derive_nondairy_protein_cumavg() |>
         derive_dairy_servings() |>
         derive_dairy_quartile() |>
         derive_atc()            |>

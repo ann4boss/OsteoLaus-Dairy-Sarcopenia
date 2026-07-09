@@ -5,6 +5,7 @@ library(splines)
 
 imp1 <- mice::complete(mice_analysis$mids$ALM_HT2_harmonised, action = 1)
 df <- imp1
+df <- filter_baseline_age(imp1, age_threshold = 75)
 
 # Calculate medians from your data
 median_age <- median(df$Age, na.rm = TRUE)
@@ -107,7 +108,7 @@ summary(lm(resid(mod_with_slope) ~ fitted(mod_with_slope)))
 
 # Model 2: WITHOUT random slope (only random intercept)
 mod_no_slope <- lmerTest::lmer(
-    ALM_HT2_log ~ dairy_quartile_baseline + age_at_baseline_scaled +
+  ALM_HT2_harmonised ~ dairy_100g + age_at_baseline_scaled +
         BMI_category + education_level + smoking_status +
         pa_levels_tertile_f1 + diabetes_status + sumtot1_scaled +
       time_since_baseline + (1 | pt), 
@@ -124,6 +125,7 @@ cor(df_stans_scaled$ALM_HT2_harmonised, fitted(mod_with_slope), use = "complete.
 length(df_stans_scaled$ALM_HT2_harmonised)
 length(fitted(mod_with_slope))
 
+summary(mod_no_slope)
 
 # ------------------------------------------------------------------------------
 # 2. LIKELIHOOD RATIO TEST (Formal Comparison)

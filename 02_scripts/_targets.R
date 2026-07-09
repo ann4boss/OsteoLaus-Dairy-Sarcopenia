@@ -387,6 +387,72 @@ exposure_definitions_gait <- tibble::tribble(
     "dairy_guidelines_port_lag",    "categorical",  "< 2 servings/day"
 )
 
+# =============================================================================
+# DAIRY PROTEIN CONTENT — exposures & covariate sets
+# =============================================================================
+# Does the muscle-outcome association depend on the protein content of the
+# dairy product, not just its weight (100g/day)?
+#
+#   1. exposure_definitions_ffq_items      — one row per individual dairy FFQ
+#                                             item (17), to see whether some
+#                                             products drive the association
+#                                             more than others.
+#   2. covariate_sets_*_adj_nondairy_protein — main covariate set + non-dairy
+#                                             protein intake, to check the
+#                                             dairy association is not simply
+#                                             explained by total protein.
+#   3. exposure_definitions_dairy_protein  — dairy protein content
+#                                             (prot_content_dairy_100g) used in
+#                                             place of dairy_100g as exposure.
+# =============================================================================
+
+exposure_definitions_ffq_items <- tibble::tribble(
+    ~exposure,                     ~exposure_type, ~ref_level,
+
+    "FFQ1amount_cumavg_100g",      "linear",       NA,
+    "FFQ2amount_cumavg_100g",      "linear",       NA,
+    "FFQ3amount_cumavg_100g",      "linear",       NA,
+    "FFQ4amount_cumavg_100g",      "linear",       NA,
+    "FFQ5amount_cumavg_100g",      "linear",       NA,
+    "FFQ6amount_cumavg_100g",      "linear",       NA,
+    "FFQ7amount_cumavg_100g",      "linear",       NA,
+    "FFQ8amount_cumavg_100g",      "linear",       NA,
+    "FFQ52amount_cumavg_100g",     "linear",       NA,
+    "FFQ53amount_cumavg_100g",     "linear",       NA,
+    "FFQ63amount_cumavg_100g",     "linear",       NA,
+    "FFQ68amount_cumavg_100g",     "linear",       NA,
+    "FFQ71amount_cumavg_100g",     "linear",       NA,
+    "FFQ82amount_cumavg_100g",     "linear",       NA,
+    "FFQ83amount_cumavg_100g",     "linear",       NA,
+    "FFQ84amount_cumavg_100g",     "linear",       NA,
+    "FFQ85amount_cumavg_100g",     "linear",       NA,
+    "FFQ86amount_cumavg_100g",     "linear",       NA
+)
+
+exposure_definitions_dairy_protein <- tibble::tribble(
+    ~exposure,                  ~exposure_type, ~ref_level,
+
+    "prot_content_dairy_100g",  "linear",       NA
+)
+
+# main covariate set with total calorie intake (sumtot1_scaled) swapped out
+# for non-dairy protein intake — adjusting for both would double up on the
+# same dietary signal (total calories are largely driven by total protein).
+covariate_sets_hgs_adj_nondairy_protein <- list(
+    main_adj_nondairy_protein = c(
+        setdiff(covariate_sets_hgs$main, "sumtot1_scaled"),
+        "prot_content_nondairy_10g"
+    )
+)
+
+covariate_sets_alm_adj_nondairy_protein <- list(
+    main_adj_nondairy_protein = c(
+        setdiff(covariate_sets_alm$main, "sumtot1_scaled"),
+        "prot_content_nondairy_10g"
+    )
+)
+
+
 
 LMM_targets_HGS <- tar_target(
     lmm_report_hgs,
@@ -428,6 +494,94 @@ LMM_targets_ALM_BMI <- tar_target(
         random_slope   = FALSE,
         interaction    = FALSE,
         out_dir        = "03_outputs/LMM_exploratory/ALMI_BMI"
+    ),
+    format = "file")
+
+
+# ── Individual dairy FFQ items: does one product drive the association? ─────
+LMM_targets_HGS_ffq_items <- tar_target(
+    lmm_report_hgs_ffq_items,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$HGS_MAX,
+        outcome        = "HGS_MAX",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions_ffq_items,
+        covariate_sets = list(main = covariate_sets_hgs$main),
+        random_slope   = FALSE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory/HGS_FFQ_items"
+    ),
+    format = "file")
+
+LMM_targets_ALM_ffq_items <- tar_target(
+    lmm_report_alm_ffq_items,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$ALM_HT2_harmonised,
+        outcome        = "ALM_HT2_harmonised",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions_ffq_items,
+        covariate_sets = list(main = covariate_sets_alm$main),
+        random_slope   = FALSE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory/ALMI_FFQ_items"
+    ),
+    format = "file")
+
+# ── Adjusted for non-dairy protein intake ────────────────────────────────────
+LMM_targets_HGS_adj_nondairy_protein <- tar_target(
+    lmm_report_hgs_adj_nondairy_protein,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$HGS_MAX,
+        outcome        = "HGS_MAX",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions,
+        covariate_sets = covariate_sets_hgs_adj_nondairy_protein,
+        random_slope   = FALSE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory/HGS_adj_nondairy_protein"
+    ),
+    format = "file")
+
+LMM_targets_ALM_adj_nondairy_protein <- tar_target(
+    lmm_report_alm_adj_nondairy_protein,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$ALM_HT2_harmonised,
+        outcome        = "ALM_HT2_harmonised",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions,
+        covariate_sets = covariate_sets_alm_adj_nondairy_protein,
+        random_slope   = FALSE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory/ALMI_adj_nondairy_protein"
+    ),
+    format = "file")
+
+# ── Dairy protein content as exposure (instead of 100g dairy weight) ────────
+LMM_targets_HGS_dairy_protein_exposure <- tar_target(
+    lmm_report_hgs_dairy_protein_exposure,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$HGS_MAX,
+        outcome        = "HGS_MAX",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions_dairy_protein,
+        covariate_sets = covariate_sets_hgs,
+        random_slope   = FALSE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory/HGS_dairy_protein_exposure"
+    ),
+    format = "file")
+
+LMM_targets_ALM_dairy_protein_exposure <- tar_target(
+    lmm_report_alm_dairy_protein_exposure,
+    run_lmm_report(
+        mids_object    = mice_analysis$mids$ALM_HT2_harmonised,
+        outcome        = "ALM_HT2_harmonised",
+        outcome_fn     = identity,
+        exposures      = exposure_definitions_dairy_protein,
+        covariate_sets = covariate_sets_alm,
+        random_slope   = FALSE,
+        interaction    = FALSE,
+        out_dir        = "03_outputs/LMM_exploratory/ALMI_dairy_protein_exposure"
     ),
     format = "file")
 
@@ -904,6 +1058,30 @@ age_trajectories_target_cc <- tar_target(
     format = "file"
 )
 
+#------
+# Baseline age group trajectories (outcome vs. Age, coloured by 5-year
+# baseline-age group, with per-group lm fit)
+
+baseline_age_group_trajectories_target <- tar_target(
+    baseline_age_group_trajectories,
+    {
+        out_dir <- "03_outputs/descriptives/baseline_age_group_trajectories/mice"
+        plot_baseline_age_group_trajectories(mice_analysis, out_dir = out_dir)
+        list.files(out_dir, full.names = TRUE)
+    },
+    format = "file"
+)
+
+baseline_age_group_trajectories_target_cc <- tar_target(
+    baseline_age_group_trajectories_cc,
+    {
+        out_dir <- "03_outputs/descriptives/baseline_age_group_trajectories/cc"
+        plot_baseline_age_group_trajectories(cc_analysis, out_dir = out_dir)
+        list.files(out_dir, full.names = TRUE)
+    },
+    format = "file"
+)
+
 
 
 # FOLLOW-UP TIME
@@ -1071,12 +1249,20 @@ c(
     mice_exclusion,
 
     # ── Models ────────────────────────────────────────────────────────────────
-    LMM_targets_HGS,
-    LMM_targets_ALM,
-    # LMM_targets_ALM_BMI,
-    LMM_targets_gait
+    # LMM_targets_HGS,
+    # LMM_targets_ALM,
+    # # LMM_targets_ALM_BMI,
+    # LMM_targets_gait,
     # cox_targets
     #cox_targets_fnih
+
+    # ── Dairy protein content sensitivity analyses ───────────────────────────
+    LMM_targets_HGS_ffq_items,
+    LMM_targets_ALM_ffq_items
+    # LMM_targets_HGS_adj_nondairy_protein,
+    # LMM_targets_ALM_adj_nondairy_protein,
+    # LMM_targets_HGS_dairy_protein_exposure,
+    # LMM_targets_ALM_dairy_protein_exposure
 
     # ── Model specification sensitivity ──────────────────────────────────────
     # LMM_modspec_HGS,
@@ -1098,6 +1284,8 @@ c(
     # variable_descriptives_target_cc
     # age_trajectories_target,
     # age_trajectories_target_cc,
+    # baseline_age_group_trajectories_target,
+    # baseline_age_group_trajectories_target_cc
     # followup_targets
 
 )

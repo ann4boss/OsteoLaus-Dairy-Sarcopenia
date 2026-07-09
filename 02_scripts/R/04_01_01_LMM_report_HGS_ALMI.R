@@ -37,6 +37,7 @@
     scale_centres = NULL
 ) {
     if (is.null(scale_centres)) {
+        ffq_item_cols <- paste0("FFQ", c(1:8, 52, 53, 63, 68, 71, 82:86), "amount_cumavg")
         scale_centres <- list(
             age                  = median(df$Age, na.rm = TRUE),
             age_baseline_median  = median(df$age_at_baseline, na.rm = TRUE),
@@ -48,7 +49,13 @@
             nonfermented         = median(df$dairy_non_fermented_gday_cumavg, na.rm = TRUE),
             highfat              = median(df$dairy_highfat_gday_cumavg, na.rm = TRUE),
             lowfat               = median(df$dairy_lowfat_gday_cumavg, na.rm = TRUE),
-            time                 = median(df[[time_var]],             na.rm = TRUE)
+            time                 = median(df[[time_var]],             na.rm = TRUE),
+            ffq_items            = stats::setNames(
+                vapply(ffq_item_cols, function(v) median(df[[v]], na.rm = TRUE), numeric(1)),
+                ffq_item_cols
+            ),
+            prot_dairy           = median(df$prot_content_dairy_cumavg,    na.rm = TRUE),
+            prot_nondairy        = median(df$prot_content_nondairy_cumavg, na.rm = TRUE)
         )
     }
 
@@ -86,8 +93,25 @@
             lowfat_100g       = as.numeric(scale(dairy_lowfat_gday_cumavg,
                                                     center = scale_centres$lowfat,
                                                     scale  = 100)),
-            
-        
+
+            # Dairy protein content (g protein/day from dairy), per 100 g/day —
+            # scaled to match dairy_100g for direct comparability; alternative
+            # exposure to dairy_100g (weight-based).
+            prot_content_dairy_100g   = as.numeric(scale(prot_content_dairy_cumavg,
+                                                    center = scale_centres$prot_dairy,
+                                                    scale  = 100)),
+            # Non-dairy protein intake, per 10 g/day — adjustment covariate.
+            prot_content_nondairy_10g = as.numeric(scale(prot_content_nondairy_cumavg,
+                                                    center = scale_centres$prot_nondairy,
+                                                    scale  = 10)),
+
+            dplyr::across(
+                dplyr::all_of(names(scale_centres$ffq_items)),
+                ~ as.numeric(scale(.x,
+                                   center = scale_centres$ffq_items[[dplyr::cur_column()]],
+                                   scale  = 100)),
+                .names = "{.col}_100g"
+            ),
 
             dairy_quartile_baseline = factor(dairy_quartile_baseline,
                                              levels  = c("Q1","Q2","Q3","Q4"),
@@ -397,7 +421,32 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
     pa_levels_who_f1.Medium                   = "Physical activity WHO - Medium",
     pa_levels_who_f1.High                    = "Physical activity WHO - High",
     diabetes_statusDiabetes               = "Diabetes - Yes",
-    sumtot1_scaled                        = "Total calorie intake [kcal]"
+    sumtot1_scaled                        = "Total calorie intake [kcal]",
+
+    # Individual dairy FFQ items (cum. avg., per 100g/day)
+    FFQ1amount_cumavg_100g                = "Plain yoghurt cum. avg. [100g/day]",
+    FFQ2amount_cumavg_100g                = "Low-fat yoghurt cum. avg. [100g/day]",
+    FFQ3amount_cumavg_100g                = "Fruit yoghurt cum. avg. [100g/day]",
+    FFQ4amount_cumavg_100g                = "Cottage cheese 0% cum. avg. [100g/day]",
+    FFQ5amount_cumavg_100g                = "Cottage cheese/ricotta cum. avg. [100g/day]",
+    FFQ6amount_cumavg_100g                = "Feta/mozzarella cum. avg. [100g/day]",
+    FFQ7amount_cumavg_100g                = "Gruyere/tomme/camembert cum. avg. [100g/day]",
+    FFQ8amount_cumavg_100g                = "Cheese fondue cum. avg. [100g/day]",
+    FFQ52amount_cumavg_100g                = "Butter cum. avg. [100g/day]",
+    FFQ53amount_cumavg_100g                = "Cream 35% cum. avg. [100g/day]",
+    FFQ63amount_cumavg_100g                = "Cream tart/cake cum. avg. [100g/day]",
+    FFQ68amount_cumavg_100g                = "Ice cream/sorbet cum. avg. [100g/day]",
+    FFQ71amount_cumavg_100g                = "Butter for cooking cum. avg. [100g/day]",
+    FFQ82amount_cumavg_100g                = "Milk in coffee 0% cum. avg. [100g/day]",
+    FFQ83amount_cumavg_100g                = "Milk in coffee non-0% cum. avg. [100g/day]",
+    FFQ84amount_cumavg_100g                = "Coffee creamer cum. avg. [100g/day]",
+    FFQ85amount_cumavg_100g                = "Milk drink 0% cum. avg. [100g/day]",
+    FFQ86amount_cumavg_100g                = "Milk drink non-0% cum. avg. [100g/day]",
+
+    # Dairy protein content — alternative exposure to dairy_100g
+    prot_content_dairy_100g               = "Dairy protein content cum. avg. [100g/day]",
+    # Non-dairy protein intake — adjustment covariate
+    prot_content_nondairy_10g             = "Non-dairy protein intake cum. avg. [10g/day]"
 )
 
 .theme_report <- function() {
@@ -562,14 +611,27 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
 }
 
 
-# ── Summary forest plot: all dairy definitions, one covariate set -----------
+# ── Summary forest plot: one covariate set, many exposures ------------------
+# Generic builder shared by the dairy-definitions summary and the per-item
+# dairy FFQ summary — filters pooled_tidy rows to `term_pattern`, then plots
+# one point + CI per matching term.
 
-.dairy_summary_forest <- function(rows_list, cov_nm, resp_col,
-                                   term_labels, out_dir = NULL) {
+.exposure_summary_forest <- function(rows_list, cov_nm, resp_col,
+                                      term_labels, term_pattern,
+                                      title_prefix, file_tag,
+                                      out_dir = NULL) {
     if (length(rows_list) == 0L) return(invisible(NULL))
 
     combined <- dplyr::bind_rows(rows_list) |>
-        dplyr::filter(grepl("^(dairy|fermented|nonfermented|highfat|lowfat)", term)) |>
+        dplyr::filter(grepl(term_pattern, term))
+
+    # Nothing to plot (e.g. exposures that don't match this summary's term
+    # pattern) — bail out before the mutate() below, which otherwise errors
+    # on a zero-row input (base ifelse() degrades to logical(0) on an empty
+    # vector, which trips up dplyr::if_else()'s type check).
+    if (nrow(combined) == 0L) return(invisible(NULL))
+
+    combined <- combined |>
         dplyr::mutate(
             sig = p_value < 0.05,
             point_colour = dplyr::if_else(sig, "sig", "ns"),
@@ -577,10 +639,13 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
                 idx <- match(term, names(term_labels))
                 ifelse(is.na(idx), term, term_labels[idx])
             },
-            row_label = paste0(exposure_label, "\n", term_label_base)
+            exp_type = sub("^.+\\((.+)\\)$", "\\1", exposure_label),
+            row_label = dplyr::if_else(
+                exp_type == "rcs",
+                paste0(term_label_base, " (spline)"),
+                term_label_base
+            )
         )
-
-    if (nrow(combined) == 0L) return(invisible(NULL))
 
     # Order: group by exposure_label as they appeared, term within
     combined <- combined |>
@@ -606,7 +671,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
         ggplot2::labs(
             x       = "Estimate (95 % CI)",
             y       = NULL,
-            title   = paste0("Dairy Definitions Summary — ", resp_col,
+            title   = paste0(title_prefix, " — ", resp_col,
                              "  |  ", cov_nm),
             caption = "Green = p < 0.05  ·  Red = p ≥ 0.05"
         ) +
@@ -622,7 +687,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
 
     if (!is.null(out_dir)) {
         stem <- gsub("[^A-Za-z0-9_-]", "_",
-                     paste0(resp_col, "_dairy_summary_", cov_nm))
+                     paste0(resp_col, "_", file_tag, "_", cov_nm))
         ggplot2::ggsave(
             filename = file.path(out_dir, paste0(stem, ".png")),
             plot     = p,
@@ -633,6 +698,37 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
         )
     }
     invisible(p)
+}
+
+# Dairy sub-category definitions (dairy_100g, fermented_100g, ...).
+.dairy_summary_forest <- function(rows_list, cov_nm, resp_col,
+                                   term_labels, out_dir = NULL) {
+    .exposure_summary_forest(
+        rows_list    = rows_list,
+        cov_nm       = cov_nm,
+        resp_col     = resp_col,
+        term_labels  = term_labels,
+        term_pattern = "^(dairy|fermented|nonfermented|highfat|lowfat)",
+        title_prefix = "Dairy Definitions Summary",
+        file_tag     = "dairy_summary",
+        out_dir      = out_dir
+    )
+}
+
+# Individual dairy FFQ items (FFQ1amount_cumavg_100g, ...) — one row per
+# product, to see whether specific products drive the dairy association.
+.ffq_items_summary_forest <- function(rows_list, cov_nm, resp_col,
+                                      term_labels, out_dir = NULL) {
+    .exposure_summary_forest(
+        rows_list    = rows_list,
+        cov_nm       = cov_nm,
+        resp_col     = resp_col,
+        term_labels  = term_labels,
+        term_pattern = "^FFQ[0-9]+amount_cumavg_100g$",
+        title_prefix = "Dairy FFQ Item Summary",
+        file_tag     = "ffq_item_summary",
+        out_dir      = out_dir
+    )
 }
 
 
@@ -1471,6 +1567,15 @@ run_lmm_report <- function(
 
         # ── Dairy definitions summary forest (end of covariate set) ---------
         .dairy_summary_forest(
+            rows_list   = dairy_summary_rows,
+            cov_nm      = cov_nm,
+            resp_col    = resp_col,
+            term_labels = .term_labels,
+            out_dir     = if (cov_nm == "other_PA") NULL else out_dir
+        )
+
+        # ── Individual dairy FFQ item summary forest (end of covariate set) -
+        .ffq_items_summary_forest(
             rows_list   = dairy_summary_rows,
             cov_nm      = cov_nm,
             resp_col    = resp_col,

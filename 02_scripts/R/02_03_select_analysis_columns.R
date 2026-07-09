@@ -51,6 +51,13 @@
     "dairy_total_gday_cumavg", "dairy_fermented_gday_cumavg",
     "dairy_non_fermented_gday_cumavg",
     "dairy_lowfat_gday_cumavg", "dairy_highfat_gday_cumavg",
+    # Individual dairy FFQ items (cumavg) and protein content —
+    # kept to test whether the muscle-outcome association depends on the
+    # protein content of the dairy product (not just its weight).
+    paste0("FFQ", c(1:8, 52, 53, 63, 68, 71, 82:86), "amount_cumavg"),
+    "prot_content_dairy_cumavg",
+    "sumprot1_cumavg",
+    "prot_content_nondairy_cumavg",
     #"animal_protein_gday","plant_protein_gday","veg_gday","fru_gday",
     #"grains_gday","fats_gday","processed_gday",
     

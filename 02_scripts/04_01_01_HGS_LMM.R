@@ -8,214 +8,204 @@ library(mgcv)
 library(rms)
 
 
+# Function to create scaled dataset with within/between components
+create_scaled_dataset <- function(data, median_values = NULL) {
+  
+  # Calculate medians if not provided
+  if (is.null(median_values)) {
+    median_values <- list(
+      Age = median(data$Age, na.rm = TRUE),
+      age_at_baseline = median(data$age_at_baseline, na.rm = TRUE),
+      sumtot1 = median(data$sumtot1, na.rm = TRUE),
+      dairy_total = median(data$dairy_total_gday_cumavg, na.rm = TRUE),
+      dairy_fermented = median(data$dairy_fermented_gday_cumavg, na.rm = TRUE),
+      time_since_baseline = median(data$time_since_baseline, na.rm = TRUE),
+      BMI = median(data$BMI, na.rm = TRUE),
+      Height = median(data$Height, na.rm = TRUE),
+      Weight = median(data$Weight, na.rm = TRUE)
+    )
+  }
+  
+  # Create scaled dataset
+  df_scaled <- data %>%
+    group_by(pt) %>%
+    mutate(
+      # ============================================
+      # WITHIN and BETWEEN components for BMI
+      # ============================================
+      BMI_mean = mean(BMI, na.rm = TRUE),
+      BMI_within = BMI - BMI_mean,
+      BMI_scale_mean = scale(BMI_mean, center = median_values$BMI, scale = 1),
+      BMI_scale_within = scale(BMI_within, center = 0, scale = 1),
+      
+      # ============================================
+      # WITHIN and BETWEEN components for Calories
+      # ============================================
+      sumtot1_mean = mean(sumtot1, na.rm = TRUE),
+      sumtot1_within = sumtot1 - sumtot1_mean,
+      sumtot1_scaled_mean = scale(sumtot1_mean, center = median_values$sumtot1, scale = 1000),
+      sumtot1_scaled_within = scale(sumtot1_within, center = 0, scale = 1000),
+      
+      # Smoking components
+      smoking_mean = as.numeric(factor(smoking_status, 
+                                       levels = c("Never", "Former", "Current"))) - 1,
+      
+      # Diabetes components
+      diabetes_mean = as.numeric(diabetes_status == "Diabetes"),
+      
+      # ============================================
+      # Standard scaling for time-invariant predictors
+      # ============================================
+      age_at_baseline_scaled = scale(age_at_baseline, 
+                                     center = median_values$age_at_baseline,    
+                                     scale = 10),
+      age_decades = scale(Age, 
+                          center = median_values$Age,    
+                          scale = 10),
+      
+      Weight_scale = scale(Weight,
+                           center = median_values$Weight,    
+                           scale = 1),
+      Height_scale = scale(Height,
+                           center = median_values$Height,    
+                           scale = 1),
+      
+      # ============================================
+      # Scale time-varying predictors at the within level
+      # ============================================
+      time_years = scale(time_since_baseline,
+                         center = median_values$time_since_baseline,
+                         scale = 1),
+      
+      # ============================================
+      # Scale dairy predictors
+      # ============================================
+      dairy_100g = scale(dairy_total_gday_cumavg,
+                         center = median_values$dairy_total,
+                         scale = 100),
+      fermented_100g = scale(dairy_fermented_gday_cumavg,
+                             center = median_values$dairy_fermented,
+                             scale = 100),
+      
+      # ============================================
+      # Transformations of HGS_MAX
+      # ============================================
+      HGS_MAX_log = log(HGS_MAX),
+      HGS_MAX_sqrt = sqrt(HGS_MAX)
+    ) %>%
+    ungroup() %>%
+    mutate(
+      # ============================================
+      # Create within-person components for categorical variables
+      # ============================================
+      smoking_never = as.numeric(smoking_status == "Never"),
+      smoking_former = as.numeric(smoking_status == "Former"),
+      smoking_current = as.numeric(smoking_status == "Current"),
+      
+      smoking_never_mean = as.numeric(smoking_mean == 0),
+      smoking_former_mean = as.numeric(smoking_mean == 1),
+      smoking_current_mean = as.numeric(smoking_mean == 2),
+      
+      smoking_never_within = smoking_never - smoking_never_mean,
+      smoking_former_within = smoking_former - smoking_former_mean,
+      smoking_current_within = smoking_current - smoking_current_mean,
+      
+      diabetes_no = as.numeric(diabetes_status == "No diabetes"),
+      diabetes_yes = as.numeric(diabetes_status == "Diabetes"),
+      
+      diabetes_yes_mean = diabetes_mean,
+      diabetes_no_mean = 1 - diabetes_mean,
+      
+      diabetes_yes_within = diabetes_yes - diabetes_yes_mean,
+      diabetes_no_within = diabetes_no - diabetes_no_mean,
+      
+      # ============================================
+      # Ensure categorical variables are unordered factors
+      # ============================================
+      dairy_quartile_baseline = factor(dairy_quartile_baseline, 
+                                       levels = c("Q1", "Q2", "Q3", "Q4"), 
+                                       ordered = FALSE) |> 
+        relevel(ref = "Q1"),
+      
+      dairy_guidelines_port = factor(dairy_guidelines_port, 
+                                     levels = c("< 2 servings/day", ">= 2 servings/day"), 
+                                     ordered = FALSE) |> 
+        relevel(ref = "< 2 servings/day"),
+      
+      BMI_category = factor(BMI_category, 
+                            levels = c("Underweight", "Normal", "Overweight", "Obese"), 
+                            ordered = FALSE) |> 
+        relevel(ref = "Normal"),
+      
+      education_level = factor(education_level, 
+                               levels = c("Low (ISCED 0-2)", "Medium (ISCED 3-4)", "High (ISCED 5-8)"), 
+                               ordered = FALSE) |> 
+        relevel(ref = "Low (ISCED 0-2)"),
+      
+      smoking_status = factor(smoking_status, 
+                              levels = c("Never", "Former", "Current"), 
+                              ordered = FALSE) |> 
+        relevel(ref = "Never"),
+      
+      pa_levels_tertile_f1 = factor(pa_levels_tertile_f1, 
+                                    levels = c("Low", "Medium", "High"), 
+                                    ordered = FALSE) |> 
+        relevel(ref = "Low"),
+      
+      diabetes_status = factor(diabetes_status, 
+                               levels = c("No diabetes", "Diabetes"), 
+                               ordered = FALSE) |> 
+        relevel(ref = "No diabetes"),
+      
+      pt = factor(pt, ordered = FALSE)
+    )
+  
+  return(df_scaled)
+}
+
+# Function to filter by baseline age
+filter_baseline_age <- function(data, age_threshold = 75) {
+  keep_ids <- unique(data$pt[data$time_point == "T1" & data$Age < age_threshold])
+  filtered_data <- data[data$pt %in% keep_ids, ]
+  return(filtered_data)
+}
+
+# Get the first imputation
 imp1_hgs <- mice::complete(mice_analysis$mids$HGS_MAX, action = 1)
 
-#imp1 <- mice_analysis$data$HGS_MAX[mice_analysis$data$HGS_MAX$.imp == 1, ]
+# Create filtered version
+imp1_hgs_filtered <- filter_baseline_age(imp1_hgs, age_threshold = 75)
 
-# imp1<- imp1 |>
-#   dplyr::group_by(pt) |>  # or whatever your patient ID column is
-#   dplyr::filter(!any(dairy_total_gday_cumavg > 750, na.rm = TRUE)) |>
-#   dplyr::ungroup()
+# Calculate medians from unfiltered data
+median_values_unfiltered <- list(
+  Age = median(imp1_hgs$Age, na.rm = TRUE),
+  age_at_baseline = median(imp1_hgs$age_at_baseline, na.rm = TRUE),
+  sumtot1 = median(imp1_hgs$sumtot1, na.rm = TRUE),
+  dairy_total = median(imp1_hgs$dairy_total_gday_cumavg, na.rm = TRUE),
+  dairy_fermented = median(imp1_hgs$dairy_fermented_gday_cumavg, na.rm = TRUE),
+  time_since_baseline = median(imp1_hgs$time_since_baseline, na.rm = TRUE),
+  BMI = median(imp1_hgs$BMI, na.rm = TRUE),
+  Height = median(imp1_hgs$Height, na.rm = TRUE),
+  Weight = median(imp1_hgs$Weight, na.rm = TRUE)
+)
 
+# Calculate medians from filtered data
+median_values_filtered <- list(
+  Age = median(imp1_hgs_filtered$Age, na.rm = TRUE),
+  age_at_baseline = median(imp1_hgs_filtered$age_at_baseline, na.rm = TRUE),
+  sumtot1 = median(imp1_hgs_filtered$sumtot1, na.rm = TRUE),
+  dairy_total = median(imp1_hgs_filtered$dairy_total_gday_cumavg, na.rm = TRUE),
+  dairy_fermented = median(imp1_hgs_filtered$dairy_fermented_gday_cumavg, na.rm = TRUE),
+  time_since_baseline = median(imp1_hgs_filtered$time_since_baseline, na.rm = TRUE),
+  BMI = median(imp1_hgs_filtered$BMI, na.rm = TRUE),
+  Height = median(imp1_hgs_filtered$Height, na.rm = TRUE),
+  Weight = median(imp1_hgs_filtered$Weight, na.rm = TRUE)
+)
 
+# Create scaled datasets
+df_stans_scaled_hgs <- create_scaled_dataset(imp1_hgs, median_values_unfiltered)
+df_stans_scaled_hgs_filtered <- create_scaled_dataset(imp1_hgs_filtered, median_values_filtered)
 
-# Calculate medians from your data
-median_age_hgs <- median(imp1_hgs$Age, na.rm = TRUE)
-median_age_baseline_hgs <- median(imp1_hgs$age_at_baseline, na.rm = TRUE)
-median_sumtot1_hgs <- median(imp1_hgs$sumtot1, na.rm = TRUE)
-median_dairy_hgs <- median(imp1_hgs$dairy_total_gday_cumavg, na.rm = TRUE)
-median_fermented_hgs <- median(imp1_hgs$dairy_fermented_gday_cumavg, na.rm = TRUE)
-median_time_hgs <- median(imp1_hgs$time_since_baseline, na.rm = TRUE)
-median_BMI_hgs <- median(imp1_hgs$BMI, na.rm = TRUE)
-median_height_hgs <- median(imp1_hgs$Height, na.rm = TRUE)
-median_weight_hgs <- median(imp1_hgs$Weight, na.rm = TRUE)
-
-# Create within and between components for time-varying predictors
-df_stans_scaled_hgs <- imp1_hgs %>%
-  group_by(pt) %>%
-  mutate(
-    # ============================================
-    # WITHIN and BETWEEN components for BMI
-    # ============================================
-    BMI_mean = mean(BMI, na.rm = TRUE),                          # Between-person (stable)
-    BMI_within = BMI - BMI_mean,                                 # Within-person (change over time)
-    BMI_scale_mean = scale(BMI_mean, center = median_BMI_hgs, scale = 1),
-    BMI_scale_within = scale(BMI_within, center = 0, scale = 1), # Within is already centered
-    
-    # ============================================
-    # WITHIN and BETWEEN components for Calories
-    # ============================================
-    sumtot1_mean = mean(sumtot1, na.rm = TRUE),
-    sumtot1_within = sumtot1 - sumtot1_mean,
-    sumtot1_scaled_mean = scale(sumtot1_mean, center = median_sumtot1_hgs, scale = 1000),
-    sumtot1_scaled_within = scale(sumtot1_within, center = 0, scale = 1000),
-    
-    # Smoking components
-    smoking_mean = as.numeric(factor(smoking_status, 
-                                     levels = c("Never", "Former", "Current"))) - 1,
-    
-    # Diabetes components
-    diabetes_mean = as.numeric(diabetes_status == "Diabetes"),
-    # ============================================
-    # Standard scaling for time-invariant predictors
-    # ============================================
-    age_at_baseline_scaled = scale(age_at_baseline, 
-                                   center = median_age_baseline_hgs,    
-                                   scale = 10),
-    age_decades = scale(Age, 
-                        center = median_age_hgs,    
-                        scale = 10),
-    
-    Weight_scale = scale(Weight,
-                         center = median_weight_hgs,    
-                         scale = 1),
-    Height_scale = scale(Height,
-                         center = median_height_hgs,    
-                         scale = 1),
-    
-    # ============================================
-    # Scale time-varying predictors at the within level
-    # ============================================
-    # For time, the within component is just the centered time
-    time_years = scale(time_since_baseline,
-                       center = median_time_hgs,
-                       scale = 1),
-    
-    # ============================================
-    # Scale dairy predictors
-    # ============================================
-    dairy_100g = scale(dairy_total_gday_cumavg,
-                       center = median_dairy_hgs,
-                       scale = 100),
-    fermented_100g = scale(dairy_fermented_gday_cumavg,
-                           center = median_fermented_hgs,
-                           scale = 100),
-    
-    # ============================================
-    # Transformations of HGS_MAX
-    # ============================================
-    HGS_MAX_log = log(HGS_MAX),
-    HGS_MAX_sqrt = sqrt(HGS_MAX),
-    
-    # ============================================
-    # Spline terms (using scaled predictors)
-    # ============================================
-    
-    # dairy_100g_spline = ns(dairy_100g, 3),
-    # time_since_baseline_spline = ns(time_since_baseline, 2),
-    # BMI_spline = ns(BMI_scale, 3),
-    # age_decades_spline = ns(age_decades, 3),
-    # age_at_baseline_scaled_spline = ns(age_at_baseline_scaled, 3)
-  ) %>%
-  ungroup() %>%
-  mutate(
-    # ============================================
-    # Create within-person components for categorical variables
-    # ============================================
-    # For smoking: create indicators for each level
-    smoking_never = as.numeric(smoking_status == "Never"),
-    smoking_former = as.numeric(smoking_status == "Former"),
-    smoking_current = as.numeric(smoking_status == "Current"),
-    
-    # Between-person smoking (proportion of time in each category)
-    smoking_never_mean = as.numeric(smoking_mean == 0),
-    smoking_former_mean = as.numeric(smoking_mean == 1),
-    smoking_current_mean = as.numeric(smoking_mean == 2),
-    
-    # Within-person smoking (change from usual)
-    smoking_never_within = smoking_never - smoking_never_mean,
-    smoking_former_within = smoking_former - smoking_former_mean,
-    smoking_current_within = smoking_current - smoking_current_mean,
-    
-    # For diabetes: create indicators
-    diabetes_no = as.numeric(diabetes_status == "No diabetes"),
-    diabetes_yes = as.numeric(diabetes_status == "Diabetes"),
-    
-    # Between-person diabetes (proportion of time with diabetes)
-    diabetes_yes_mean = diabetes_mean,
-    diabetes_no_mean = 1 - diabetes_mean,
-    
-    # Within-person diabetes (change from usual)
-    diabetes_yes_within = diabetes_yes - diabetes_yes_mean,
-    diabetes_no_within = diabetes_no - diabetes_no_mean,
-    
-    # ============================================
-    # Ensure categorical variables are unordered factors
-    # ============================================
-    dairy_quartile_baseline = factor(dairy_quartile_baseline, 
-                                     levels = c("Q1", "Q2", "Q3", "Q4"), 
-                                     ordered = FALSE) |> 
-      relevel(ref = "Q1"),
-    
-    dairy_guidelines_port = factor(dairy_guidelines_port, 
-                                   levels = c("< 2 servings/day", ">= 2 servings/day"), 
-                                   ordered = FALSE) |> 
-      relevel(ref = "< 2 servings/day"),
-    
-    BMI_category = factor(BMI_category, 
-                          levels = c("Underweight", "Normal", "Overweight", "Obese"), 
-                          ordered = FALSE) |> 
-      relevel(ref = "Normal"),
-    
-    education_level = factor(education_level, 
-                             levels = c("Low (ISCED 0-2)", "Medium (ISCED 3-4)", "High (ISCED 5-8)"), 
-                             ordered = FALSE) |> 
-      relevel(ref = "Low (ISCED 0-2)"),
-    
-    smoking_status = factor(smoking_status, 
-                            levels = c("Never", "Former", "Current"), 
-                            ordered = FALSE) |> 
-      relevel(ref = "Never"),
-    
-    pa_levels_tertile_f1 = factor(pa_levels_tertile_f1, 
-                                  levels = c("Low", "Medium", "High"), 
-                                  ordered = FALSE) |> 
-      relevel(ref = "Low"),
-    
-    diabetes_status = factor(diabetes_status, 
-                             levels = c("No diabetes", "Diabetes"), 
-                             ordered = FALSE) |> 
-      relevel(ref = "No diabetes"),
-    
-    pt = factor(pt, ordered = FALSE)
-  )
-
-# ============================================
-# Verify the within-person components
-# ============================================
-cat("=== WITHIN-PERSON DECOMPOSITION CHECK ===\n\n")
-
-# Check BMI decomposition
-BMI_check <- df_stans_scaled_hgs %>%
-  group_by(pt) %>%
-  summarise(
-    mean_BMI = mean(BMI, na.rm = TRUE),
-    mean_BMI_mean = mean(BMI_mean, na.rm = TRUE),
-    sum_BMI_within = sum(BMI_within, na.rm = TRUE),  # Should be ~0
-    n = n()
-  )
-
-cat("BMI decomposition check (sum of within should be ~0):\n")
-print(summary(BMI_check$sum_BMI_within))
-
-# Check calories decomposition
-calories_check <- df_stans_scaled_hgs %>%
-  group_by(pt) %>%
-  summarise(
-    sum_calories_within = sum(sumtot1_within, na.rm = TRUE),  # Should be ~0
-    n = n()
-  )
-
-cat("\nCalories decomposition check (sum of within should be ~0):\n")
-print(summary(calories_check$sum_calories_within))
-    
-
-# df_stans_scaled_hgs <- df_stans_scaled_hgs %>%
-#   group_by(pt) %>%
-#   filter(n_distinct(time_since_baseline) > 2) %>%
-#   ungroup()
-# 
-# 
 
 
 
@@ -244,7 +234,48 @@ mod_with_slope <- lmerTest::lmer(
   )
 )
 
+mod_no_slope <- lmerTest::lmer(
+  HGS_MAX ~ 
+    time_since_baseline +
+    age_at_baseline +
+    dairy_100g + 
+    sumtot1_scaled_mean + 
+    BMI_category +
+    education_level + 
+    smoking_status + 
+    pa_levels_tertile_f1 + 
+    diabetes_status +
+    (1 | pt ),
+  data = df_stans_scaled_hgs, 
+  REML = FALSE,
+  control = lmerControl(
+    optimizer = "bobyqa",
+    optCtrl = list(maxfun = 20000)
+  )
+)
 
+
+mod_no_slope_filtered <- lmerTest::lmer(
+  HGS_MAX ~ 
+    time_since_baseline +
+    age_at_baseline +
+    dairy_100g + 
+    sumtot1_scaled_mean + 
+    BMI_category +
+    education_level + 
+    smoking_status + 
+    pa_levels_tertile_f1 + 
+    diabetes_status +
+    (1 | pt ),
+  data = df_stans_scaled_hgs_filtered, 
+  REML = FALSE,
+  control = lmerControl(
+    optimizer = "bobyqa",
+    optCtrl = list(maxfun = 20000)
+  )
+)
+
+summary(mod_no_slope_filtered)
 
 cor(fitted(mod_with_slope), resid(mod_with_slope))
 summary(lm(resid(mod_with_slope) ~ fitted(mod_with_slope)))

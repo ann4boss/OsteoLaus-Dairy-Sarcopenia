@@ -177,10 +177,69 @@ derive_dairy <- function(df) {
 #'
 #' @return `df` with ten new columns added (cumavg + cumavg_lag1 for each of
 #'   the five dairy sub-categories). Row order is restored to match the input.
+
+# Cumulative (running) mean that skips NA and returns NA until the first
+# non-missing observation is seen. Shared by derive_dairy_cumavg() and the
+# per-item / non-dairy protein cumavg helpers in
+# R/02_02_19_derive_colaus_dairy_protein.R.
+cumulative_mean_na <- function(x) {
+
+    out         <- numeric(length(x))
+    running_sum <- 0
+    running_n   <- 0
+
+    for (i in seq_along(x)) {
+
+        if (!is.na(x[i])) {
+            running_sum <- running_sum + x[i]
+            running_n   <- running_n + 1
+        }
+
+        out[i] <- if (running_n == 0) NA_real_ else running_sum / running_n
+    }
+
+    out
+}
+
+# Ensure a visit column is ordered (factor or numeric) before a grouped
+# cumulative-average pass. Returns the checked/coerced df, or NULL if the
+# column can't be ordered (caller should warn and bail out).
+.check_visit_order <- function(df, visit_col) {
+
+    if (is.factor(df[[visit_col]])) {
+
+        if (!is.ordered(df[[visit_col]])) {
+
+            cli::cli_inform(c(
+                "!" = paste0(
+                    visit_col,
+                    " is an unordered factor. Using current factor level order."
+                )
+            ))
+
+            df[[visit_col]] <- factor(
+                df[[visit_col]],
+                levels  = levels(df[[visit_col]]),
+                ordered = TRUE
+            )
+        }
+
+    } else if (!is.numeric(df[[visit_col]])) {
+
+        cli::cli_warn(c(
+            "x" = paste0(visit_col, " must be numeric or factor.")
+        ))
+
+        return(NULL)
+    }
+
+    df
+}
+
 derive_dairy_cumavg <- function(df,
                                 id_col    = "pt",
                                 visit_col = ".visit") {
-    
+
     # ── Dairy variables ------------------------------------------------------
     .DAIRY_VARS <- c(
         "dairy_total_gday",
@@ -189,10 +248,10 @@ derive_dairy_cumavg <- function(df,
         "dairy_lowfat_gday",
         "dairy_highfat_gday"
     )
-    
+
     # ── Checks ---------------------------------------------------------------
     missing_cols <- setdiff(c(id_col, visit_col, .DAIRY_VARS), names(df))
-    
+
     if (length(missing_cols) > 0) {
         cli::cli_warn(c(
             "x" = "derive_dairy_cumavg: Missing required columns.",
@@ -200,55 +259,11 @@ derive_dairy_cumavg <- function(df,
         ))
         return(df)
     }
-    
-    # Ensure factor ordering is respected
-    if (is.factor(df[[visit_col]])) {
-        
-        if (!is.ordered(df[[visit_col]])) {
-            
-            cli::cli_inform(c(
-                "!" = paste0(
-                    visit_col,
-                    " is an unordered factor. Using current factor level order."
-                )
-            ))
-            
-            df[[visit_col]] <- factor(
-                df[[visit_col]],
-                levels  = levels(df[[visit_col]]),
-                ordered = TRUE
-            )
-        }
-        
-    } else if (!is.numeric(df[[visit_col]])) {
-        
-        cli::cli_warn(c(
-            "x" = paste0(visit_col, " must be numeric or factor.")
-        ))
-        
-        return(df)
-    }
-    
-    # ── Helper ---------------------------------------------------------------
-    cumulative_mean_na <- function(x) {
-        
-        out         <- numeric(length(x))
-        running_sum <- 0
-        running_n   <- 0
-        
-        for (i in seq_along(x)) {
-            
-            if (!is.na(x[i])) {
-                running_sum <- running_sum + x[i]
-                running_n   <- running_n + 1
-            }
-            
-            out[i] <- if (running_n == 0) NA_real_ else running_sum / running_n
-        }
-        
-        out
-    }
-    
+
+    checked_df <- .check_visit_order(df, visit_col)
+    if (is.null(checked_df)) return(df)
+    df <- checked_df
+
     # ── Derivation -----------------------------------------------------------
     df <- df |>
         dplyr::mutate(.row_order = dplyr::row_number()) |>

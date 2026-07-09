@@ -26,7 +26,7 @@ create_consort_flowchart <- function(output_path = "03_outputs/descriptives/cons
     e1 [label = 'Excluded (n = 317):\\l• Missing match between OsteoLaus & CoLaus (n=1)\\l• Missing examination data (n=49)\\l• Missing exposure values (n=42)\\l• Missing shared covariates values (n=4)\\l• Extreme calorie intake < 500 or > 3500 kcal (n=7)\\l• < 2 visits (n=214)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 3.0]
     
     # Four analysis trackers (Headers)
-    hgs_h [label = 'Handgrip Strength analysis', shape = box]
+    hgs_h [label = 'Handgrip strength analysis', shape = box]
     alm_h [label = 'ALMI analysis', shape = box]
     gait_h [label = 'Gait speed analysis', shape = box]
     sarc_h [label = 'Sarcopenia analysis', shape = box]
