@@ -162,7 +162,7 @@ In the adjusted linear mixed-effects model for handgrip strength, cumulative ave
 
 ### Sensitivity analysis for handgrip strength
 
-Sensitivity analyses demonstrated that the results were robust for the linear mixed-effect model with handgrip strength. Excluding participants with extreme dairy intake (\>1000 g/day; n = 5) did not materially alter the association between cumulative average dairy intake and handgrip strength ($\beta$ = 0.177, 95% CI 0.014 to 0.341, p = 0.034). Similarly, excluding the top 1% most influential observations identified using Cook's distance (n = 31) produced comparable estimates, with a larger effect estimate ($\beta$ = 0.239, 95% CI 0.086 to 0.392, p = 0.002), indicating that the observed association was not driven by extreme or influential observations and was robust to the exclusion of high-leverage data points.
+Sensitivity analyses demonstrated that the results were robust for the linear mixed-effect model with handgrip strength. Excluding participants with extreme dairy intake (\>1000 g/day; n = 5) did not materially alter the association between cumulative average dairy intake and handgrip strength ($\beta$ = 0.177, 95% CI 0.014 to 0.341, p = 0.034). Similarly, excluding the top 1% most influential observations identified using Cook's distance (n = 31) produced a slightly larger, but otherwise comparable, effect estimate ($\beta$ = 0.239, 95% CI 0.086 to 0.392, p = 0.002). This suggests that the association between dairy intake and handgrip strength was not driven by a small number of influential observations.
 
 ### Model fit and variance decomposition for handgrip strength
 
@@ -344,7 +344,7 @@ During a mean follow-up of 7814 person-years, 50 incident cases of sarcopenia we
 
 In unadjusted Cox models, no clear association was observed between dairy intake quartiles and incident sarcopenia. After adjustment for covariates, results remained largely unchanged, with no statistically significant differences between Q2, Q3, or Q4 compared with Q1 (@tbl-hazard). BMI was independently associated with sarcopenia risk, while other covariates showed no clear associations.
 
-| **Predictor** | **Comparison** | **Hazard Ratio (HR)** | **95% CI** | **p-value** |
+| **Predictor** | **Comparison** | **Hazard Ratio** | **95% CI** | **p-value** |
 |---------------|---------------|---------------|---------------|---------------|
 | **Unadjusted model** |  |  |  |  |
 | Dairy intake quartile | Q2 vs Q1 | 0.976 | 0.387, 2.465 | 0.958 |
@@ -368,11 +368,11 @@ Model discrimination was moderate to good. The C-index was 0.79 (95% CI 0.735-0.
 
 Sensitivity analyses using cumulative average dairy intake as a continuous exposure produced results consistent with the primary categorical model. In the fully adjusted Cox model, the association per 100 g/day increase was close to null (HR = 1.0004, 95% CI: 0.9988, 1.0019, p = 0.633), with no statistically significant effect. Modelling dairy intake using natural cubic splines (3 degrees of freedom) did not improve model fit compared with the linear specification (likelihood ratio test: \$\\chi\$^2^(2) = 2.49, p = 0.288), indicating no evidence for a non-linear dose–response relationship (@tbl-spline-cox). A dose-response plot is available in the supplementary material (@fig-dose-response). Overall, dairy intake was not associated with incident sarcopenia across functional forms of exposure modelling.
 
-| Model    | Term              | HR   | 95% CI       | p-value |
-|----------|-------------------|------|--------------|---------|
-| Adjusted | ns(dairy, df=3) 1 | 5.21 | 0.42, 64.57  | 0.192   |
-| Adjusted | ns(dairy, df=3) 2 | 0.07 | 0.00, 25.14  | 0.370   |
-| Adjusted | ns(dairy, df=3) 3 | 0.01 | 0.00, 147.16 | 0.314   |
+| Model    | Term              | **Hazard Ratio** | 95% CI       | p-value |
+|----------|-------------------|------------------|--------------|---------|
+| Adjusted | ns(dairy, df=3) 1 | 5.21             | 0.42, 64.57  | 0.192   |
+| Adjusted | ns(dairy, df=3) 2 | 0.07             | 0.00, 25.14  | 0.370   |
+| Adjusted | ns(dairy, df=3) 3 | 0.01             | 0.00, 147.16 | 0.314   |
 
 : Association between cumulative average dairy intake and incident sarcopenia using spline and linear Cox models
 
@@ -380,7 +380,7 @@ Sensitivity analyses using cumulative average dairy intake as a continuous expos
 
 Using the FNIH definition of sarcopenia, results were similar to those seen with the EWGSOP2 definition but imprecise due to fewer events (n = 30). No consistent associations between dairy intake and sarcopenia risk were observed. BMI remained significantly associated with outcome risk (@tbl-fnih).
 
-| **Predictor** | **Comparison** | **Hazard Ratio (HR)** | **95% CI** | **p-value** |
+| **Predictor** | **Comparison** | **Hazard Ratio** | **95% CI** | **p-value** |
 |---------------|---------------|---------------|---------------|---------------|
 | Dairy intake quartile | Q2 vs Q1 | 1.437 | 0.427–4.839 | 0.538 |
 |  | Q3 vs Q1 | 1.340 | 0.392–4.585 | 0.623 |

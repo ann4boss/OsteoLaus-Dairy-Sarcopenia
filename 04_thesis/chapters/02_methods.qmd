@@ -1,3 +1,7 @@
+---
+bibliography: references.bib
+---
+
 # Methods {#sec-methods}
 
 ## Study design and population
@@ -250,7 +254,7 @@ As sensitivity analysis, I reported clubSandwich CR2 robust standard errors as o
 
 ### **Cox proportional hazards model**
 
-Cox proportional hazards regression was used to examine the association between dairy intake and incident sarcopenia. Analyses were performed using the survival package (version 3.8.3) in R \[\@therneau2026\]. Sarcopenia was defined according to the EWGSOP2 criteria [@cruz-jentoft2019], with the FNIH definition [@studenski2014] evaluated as a sensitivity analysis. Participants were followed from baseline until the first occurrence of sarcopenia or their last available follow-up visit, whichever occurred first.
+Cox proportional hazards regression was used to examine the association between dairy intake and incident sarcopenia. Analyses were performed using the survival package (version 3.8.3) in R \[@therneau2026\]. Sarcopenia was defined according to the EWGSOP2 criteria [@cruz-jentoft2019], with the FNIH definition [@studenski2014] evaluated as a sensitivity analysis. Participants were followed from baseline until the first occurrence of sarcopenia or their last available follow-up visit, whichever occurred first.
 
 A time-dependent Cox proportional hazards model was fitted, with participants contributing repeated observations across follow-up visits. Dairy intake and time-varying covariates were updated at each visit using a counting-process formulation. Age was used as the underlying time scale, with participants entering the risk set at their age at study entry (left truncation) and exiting at the age of incident sarcopenia or censoring.
 
@@ -258,9 +262,9 @@ In the primary analysis, dairy intake was assessed as quartiles (Q1 to Q4), with
 
 Sensitivity analyses modeled cumulative dairy intake as a continuous variable (per 100 g/day increase) to estimate a linear dose-response association and as a natural cubic spline (three degrees of freedom) to assess departures from linearity. A likelihood ratio test comparing the spline and linear models was used to evaluate evidence for non-linearity.
 
-Hazard ratios (HRs) and 95% confidence intervals were estimated using partial likelihood with Efron's method for tied event times \[\@efron1977\]. For multiply imputed datasets, models were fitted separately within each imputed dataset and pooled using Rubin's rules \[\@rubin1987\].
+Hazard ratios (HRs) and 95% confidence intervals were estimated using partial likelihood with Efron's method for tied event times \[@efron1977\]. For multiply imputed datasets, models were fitted separately within each imputed dataset and pooled using Rubin's rules [@rubin1987].
 
-Model assumptions were assessed for the fully adjusted models. The proportional hazards assumption was evaluated using Schoenfeld residuals, a global proportional hazards test \[\@schoenfeld1982\]. The functional form of continuous covariates was evaluated using martingale residual plots with LOESS smoothers. Influential observations were examined using deviance residuals and standardized DFBETA statistics, and multicollinearity was assessed using variance inflation factors (VIFs), with generalized VIFs calculated for categorical predictors. Assumption checks were performed using the survival \[\@therneau2026\], survminer \[\@kassambara2021\], and car \[\@fox2019\] packages in R. <!--# add ref -->
+Model assumptions were assessed for the fully adjusted models. The proportional hazards assumption was evaluated using Schoenfeld residuals, a global proportional hazards test [@schoenfeld1982]. The functional form of continuous covariates was evaluated using martingale residual plots with LOESS smoothers. Influential observations were examined using deviance residuals and standardized DFBETA statistics, and multicollinearity was assessed using variance inflation factors (VIFs), with generalized VIFs calculated for categorical predictors. Assumption checks were performed using the survival [@therneau2026], survminer [@kassambara2021], and car \[@fox2019\] packages in R. <!--# add ref -->
 
 ## Ethics
 
