@@ -1,7 +1,8 @@
 # =============================================================================
-# R/derive_colaus_smoking.R
+# R/02_02_11_derive_colaus_smoking.R
 # =============================================================================
-# Derives smoking_status — a trajectory-corrected version of sbsmk.
+# Derives smoking_status — a trajectory-corrected version of sbsmk. Defines
+# one function: derive_smoking().
 #
 # Problem
 # -------
@@ -28,6 +29,9 @@
 #
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_smoking()
+# -----------------------------------------------------------------------------
 #' Derive smoking_status (trajectory-corrected sbsmk) for a CoLaus long tibble.
 #'
 #' @param df CoLaus long tibble after harmonisation and stacking.

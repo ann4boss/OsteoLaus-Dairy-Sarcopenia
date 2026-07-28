@@ -302,7 +302,7 @@ fit_pooled_lmm_gait <- function(
     coef_grob <- ggplot2::ggplotGrob(p_coef)
     panel_row <- which(coef_grob$layout$name == "panel")
     coef_grob$heights[coef_grob$layout$t[panel_row]] <-
-        grid::unit(n_terms * 0.18, "in")
+        grid::unit(n_terms * 0.14, "in")
 
     # ── Save forest plot as PNG and coefficients as CSV ----------------------
     if (!is.null(out_dir)) {
@@ -310,8 +310,8 @@ fit_pooled_lmm_gait <- function(
         ggplot2::ggsave(
             filename = file.path(out_dir, paste0(stem, "_forest.png")),
             plot     = p_coef,
-            width    = 10,
-            height   = max(4, n_terms * 0.3),
+            width    = 14,
+            height   = max(3, n_terms * 0.22),
             dpi      = 300,
             bg       = "white"
         )

@@ -1,12 +1,13 @@
 # =============================================================================
-# R/harmonise_osteolaus.R
+# R/01_02_03_harmonise_osteolaus.R
 # =============================================================================
 # Type coercion, date parsing, and factor coding for a single OsteoLaus visit.
+# Defines one function: harmonise_osteo().
 #
 # Column names enter prefixed (e.g. "Bsl_Age") and leave in base format ("Age")
-# after strip_visit_prefix() runs at the top of harmonise_osteo().
-# OsteoLaus V5 DXA columns carry an additional H_ prefix that is stripped
-# separately after the visit prefix is removed.
+# after strip_prefix() (R/01_02_01_utils_harmonise.R) runs at the top of
+# harmonise_osteo(). OsteoLaus V5 DXA columns carry an additional L_ prefix
+# that is stripped separately after the visit prefix is removed.
 # =============================================================================
 
 
@@ -50,9 +51,8 @@
 )
 
 # -----------------------------------------------------------------------------
-# Main function
+# harmonise_osteo()
 # -----------------------------------------------------------------------------
-
 #' Harmonise a single OsteoLaus visit.
 #'
 #' Strips the visit prefix and H_ DXA prefix at V5, parses dates, coerces

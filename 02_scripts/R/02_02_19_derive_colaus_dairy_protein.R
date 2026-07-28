@@ -1,8 +1,14 @@
 # =============================================================================
-# R/derive_colaus_dairy_protein.R
+# R/02_02_19_derive_colaus_dairy_protein.R
 # =============================================================================
 # Per-FFQ-item cumulative averages and protein content for the 17 dairy FFQ
 # items, plus cumulative average protein intake from non-dairy sources.
+#
+# Functions:
+#   .add_grouped_cumavg()            — shared per-participant cumavg helper
+#   derive_dairy_item_cumavg()       — cumavg for each of the 17 dairy FFQ items
+#   derive_dairy_protein()           — converts item cumavgs to protein content
+#   derive_nondairy_protein_cumavg() — non-dairy protein via subtraction
 #
 # Data dictionary — protein content (g protein / 100 g or 100 mL)
 # ─────────────────────────────────────────────────────────────────
@@ -62,9 +68,22 @@
 .DAIRY_ITEM_VARS <- names(.DAIRY_PROTEIN_CONTENT)
 
 
-# ── Shared grouped cumulative-average helper ─────────────────────────────────
-# Adds `<var>_cumavg` for each of `vars`, computed per `id_col`, ordered by
-# `visit_col`. Row order is restored to match the input.
+# -----------------------------------------------------------------------------
+# .add_grouped_cumavg()
+# -----------------------------------------------------------------------------
+#' Add a grouped cumulative-average column for each of `vars`.
+#'
+#' Sorts rows by `visit_col` within each `id_col` group, applies
+#' `cumulative_mean_na()` (defined in R/02_02_08_derive_colaus_dairy.R) to
+#' each column in `vars`, then restores the original row order.
+#'
+#' @param df        Data frame containing `id_col`, `visit_col`, and `vars`.
+#' @param vars      Character vector of column names to compute a cumulative
+#'   average for.
+#' @param id_col    Name of the participant identifier column.
+#' @param visit_col Name of the visit identifier column (see
+#'   `.check_visit_order()` for accepted types).
+#' @return `df` with `<var>_cumavg` added for each of `vars`.
 .add_grouped_cumavg <- function(df, vars, id_col, visit_col) {
 
     missing_cols <- setdiff(c(id_col, visit_col, vars), names(df))
@@ -97,6 +116,9 @@
 }
 
 
+# -----------------------------------------------------------------------------
+# derive_dairy_item_cumavg()
+# -----------------------------------------------------------------------------
 #' Derive per-item cumulative average intake for the 17 dairy FFQ items.
 #'
 #' @param df CoLaus long tibble containing the raw `FFQ<n>amount` columns.
@@ -117,6 +139,9 @@ derive_dairy_item_cumavg <- function(df,
 }
 
 
+# -----------------------------------------------------------------------------
+# derive_dairy_protein()
+# -----------------------------------------------------------------------------
 #' Derive dairy protein content from per-item cumulative averages.
 #'
 #' `Prot_content_FFQ<n>amount_cumavg = FFQ<n>amount_cumavg * content / 100`
@@ -163,6 +188,9 @@ derive_dairy_protein <- function(df) {
 }
 
 
+# -----------------------------------------------------------------------------
+# derive_nondairy_protein_cumavg()
+# -----------------------------------------------------------------------------
 #' Derive cumulative average protein intake from non-dairy sources.
 #'
 #' `sumprot1_cumavg = cumulative_mean_na(sumprot1)`

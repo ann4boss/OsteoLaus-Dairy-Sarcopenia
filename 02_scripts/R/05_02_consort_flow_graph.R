@@ -29,19 +29,19 @@ create_consort_flowchart <- function(output_path = "03_outputs/descriptives/cons
     hgs_h [label = 'Handgrip strength analysis', shape = box]
     alm_h [label = 'ALMI analysis', shape = box]
     gait_h [label = 'Gait speed analysis', shape = box]
-    sarc_h [label = 'Sarcopenia analysis', shape = box]
+    sarc_h [label = 'Sarcopenia analysis \\l (EWGSOP2)', shape = box]
   
     # Four exclusion notes
     hgs_e [label = 'Excluded: < 2 visits with\\l  complete data (n = 23)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
-    alm_e [label = 'Excluded: < 2 visits with\\l  complete data (n = 92)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
+    alm_e [label = 'Excluded: < 2 visits with\\l  complete data (n = 23)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
     gait_e [label = 'Excluded: < 2 visits with\\l  complete data (n = 358)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
-    sarc_e [label = 'Excluded (n = 35):\\l• Sarcopenic at baseline\\l  (n = 12)\\l• < 2 visits with\\l  complete data (n = 23)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
+    sarc_e [label = 'Excluded (n = 37):\\l• Sarcopenic at baseline\\l  (n = 14)\\l• < 2 visits with\\l  complete data (n = 23)\\l', shape = box, fontname = Helvetica, fontsize = 9, fillcolor = '#F8F9FA', align = left, width = 1.5]
   
     # Final analytical cohorts
     hgs_f [label = 'Participants included\\n(n = 1135)', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#37679580', color = '#376795FF', width = 1.8]
-    alm_f [label = 'Participants included\\n(n = 1066)', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#37679580', color = '#376795FF', width = 1.8]
+    alm_f [label = 'Participants included\\n(n = 1135)', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#37679580', color = '#376795FF', width = 1.8]
     gait_f [label = 'Participants included\\n(n = 800)', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#37679580', color = '#376795FF', width = 1.8]
-    sarc_f [label = 'Participants included\\n(n = 1123)', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#37679580', color = '#376795FF', width = 1.8]
+    sarc_f [label = 'Participants included\\n(n = 1121)', shape = box, fontname = Helvetica, fontsize = 10, style = 'filled,bold', fillcolor = '#37679580', color = '#376795FF', width = 1.8]
   
     # ----------------- DEFINE EDGES (CONNECTIONS) -----------------
     

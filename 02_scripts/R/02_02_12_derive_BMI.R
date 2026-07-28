@@ -1,7 +1,10 @@
 # =============================================================================
-# R/derive_bmi.R
+# R/02_02_12_derive_BMI.R
 # =============================================================================
-# Derives BMI from Weight (kg) and Height (cm) using the standard formula:
+# Derives BMI from Weight (kg) and Height (cm) using the standard formula.
+# Defines one function: derive_bmi().
+#
+#   Formula:
 #
 #   BMI = Weight / (Height / 100)^2
 #
@@ -11,6 +14,9 @@
 # Weight is in kg and Height is in cm (as harmonised by harmonise_colaus()).
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_bmi()
+# -----------------------------------------------------------------------------
 #' Derive BMI for a CoLaus long tibble.
 #'
 #' Renames any existing BMI column to BMI_source, then computes BMI from

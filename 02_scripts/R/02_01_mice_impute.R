@@ -1,5 +1,19 @@
 # =============================================================================
-# R/mice_impute.R
+# R/02_01_mice_impute.R
+# =============================================================================
+# MICE (multiple imputation by chained equations) for CoLaus and OsteoLaus,
+# using the FCS-1L-wide approach: each cohort's long-format tibble is
+# reshaped to one row per participant (wide, one column per visit x
+# variable), imputed with mice::mice(), then reshaped back to long format
+# and wrapped as a mids object for downstream derive()/select_analysis_columns().
+#
+# Functions:
+#   .save_diagnostics()       — writes convergence/density/strip PDFs for a mids
+#   .investigate_donor_pool() — reports non-NA donor counts per imputed variable
+#   impute_mice_colaus()      — wide-reshape, impute, reshape back (CoLaus)
+#   impute_mice_osteo()       — wide-reshape, impute, reshape back (OsteoLaus)
+#   post_imputation_checks()  — thin wrapper around .save_diagnostics(),
+#                                kept for back-compat call sites
 # =============================================================================
 
 
@@ -12,6 +26,10 @@
 #' @param mids_obj  A mids object returned by mice::mice().
 #' @param out_dir   Directory to write PDFs into.
 #' @param label     Short label prepended to filenames ("colaus" or "osteo").
+#' @return Invisibly, a list with the three PDF paths: convergence, density, strip.
+# -----------------------------------------------------------------------------
+# .save_diagnostics()
+# -----------------------------------------------------------------------------
 .save_diagnostics <- function(mids_obj, out_dir, label = "imputation") {
   
   dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
@@ -106,6 +124,22 @@
 # Donor pool investigation — non-NA counts for all imputed variables
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# .investigate_donor_pool()
+# -----------------------------------------------------------------------------
+#' Report non-NA donor counts for every variable slated for imputation.
+#'
+#' Flags variables with too few observed values to reliably drive PMM/logreg/
+#' polr imputation ("CRITICAL" < 5 donors, "WARNING" < `min_donors`).
+#' Diagnostic only — called manually / commented out in the pipeline, not
+#' part of the default impute_mice_*() flow.
+#'
+#' @param df_mice     Wide imputation input data frame.
+#' @param all_imputed Character vector of wide column names to check.
+#' @param min_donors  Minimum non-NA count below which a variable is flagged
+#'   "WARNING". Default 20L.
+#' @return Invisibly, a tibble with one row per variable: `n_donors`,
+#'   `n_missing`, `n_total`, `pct_obs`, `flag`.
 .investigate_donor_pool <- function(df_mice, all_imputed, min_donors = 20L) {
   
   donor_counts <- all_imputed |>
@@ -183,6 +217,9 @@
 #' @param out_dir  Directory for diagnostic PDFs. Default "output/mice_diagnostics/colaus".
 #' @param ...      Extra arguments forwarded to mice::mice().
 #' @return List: mids, long, m, seed, imputed_vars, diag_paths.
+# -----------------------------------------------------------------------------
+# impute_mice_colaus()
+# -----------------------------------------------------------------------------
 impute_mice_colaus <- function(df,
                                m       = 20L,
                                maxit   = 20L,
@@ -568,6 +605,24 @@ impute_mice_colaus <- function(df,
                    )))
   
   # ---------------------------------------------------------------------------
+  # RESTRICT: Age as predictor → same visit only
+  # First blank every Age_<visit> predictor column set above (some of the
+  # per-topic blocks above included "Age" without a visit suffix filter), then
+  # re-enable exactly one Age column per imputed target: the Age from that
+  # target's own visit (Age_F1 predicts *_F1, Age_F2 predicts *_F2, etc.),
+  # by pairing each target's row index with its same-visit Age column index.
+  # ---------------------------------------------------------------------------
+
+  pred[, intersect(age_vars, colnames(pred))] <- 0L
+
+  own_age_targets <- intersect(all_imputed, rownames(pred))
+  own_age_cols    <- paste0("Age_", sub("^.*_", "", own_age_targets))
+  matched         <- own_age_cols %in% colnames(pred)
+
+  pred[cbind(match(own_age_targets[matched], rownames(pred)),
+             match(own_age_cols[matched],    colnames(pred)))] <- 1L
+
+  # ---------------------------------------------------------------------------
   # ENFORCE: Age rows never imputed → rows stay 0
   # ENFORCE: diagonal = 0
   # ---------------------------------------------------------------------------
@@ -721,6 +776,9 @@ impute_mice_colaus <- function(df,
 #' @param out_dir  Directory for diagnostic PDFs. Default "output/mice_diagnostics/osteo".
 #' @param ...      Extra arguments forwarded to mice::mice().
 #' @return List: mids, long, m, seed, imputed_vars, diag_paths.
+# -----------------------------------------------------------------------------
+# impute_mice_osteo()
+# -----------------------------------------------------------------------------
 impute_mice_osteo <- function(df,
                               m       = 20L,
                               maxit   = 20L,
@@ -805,60 +863,73 @@ impute_mice_osteo <- function(df,
   # ---------------------------------------------------------------------------
   # 6. Predictor matrix
   # ---------------------------------------------------------------------------
-  
+
   pred <- mice::make.predictorMatrix(df_mice)
   pred[,] <- 0L
-  
-  aux  <- intersect(c(time_vars), colnames(pred))
-  rows <- intersect(all_imputed, rownames(pred))
-  pred[rows, aux] <- 1L
-  
-  add_longitudinal <- function(vars) {
+
+  set_pred <- function(pred, targets, predictors) {
+    targets    <- intersect(targets,    rownames(pred))
+    predictors <- intersect(predictors, colnames(pred))
+    pred[targets, predictors] <- 1L
+    pred
+  }
+
+  add_longitudinal <- function(pred, vars) {
     vars <- intersect(vars, colnames(pred))
     if (length(vars) > 1L) {
-      pred[vars, vars] <<- 1L
+      pred[vars, vars] <- 1L
       idx <- match(vars, colnames(pred))
-      pred[cbind(idx, idx)] <<- 0L
+      pred[cbind(idx, idx)] <- 0L
     }
+    pred
   }
-  
-  add_longitudinal(larm12_vars); add_longitudinal(larm35_vars)
-  add_longitudinal(rarm12_vars); add_longitudinal(rarm35_vars)
-  add_longitudinal(lleg12_vars); add_longitudinal(lleg35_vars)
-  add_longitudinal(rleg12_vars); add_longitudinal(rleg35_vars)
-  
+
   anthro     <- c(weight_vars, height_vars)
   alm35_vars <- c(larm35_vars, rarm35_vars, lleg35_vars, rleg35_vars)
-  
-  for (grp in list(
-    list(larm12_vars, c(anthro, rarm12_vars)),
-    list(larm35_vars, c(anthro, rarm35_vars)),
-    list(rarm12_vars, c(anthro, larm12_vars)),
-    list(rarm35_vars, c(anthro, larm35_vars)),
-    list(lleg12_vars, c(anthro, rleg12_vars)),
-    list(lleg35_vars, c(anthro, rleg35_vars)),
-    list(rleg12_vars, c(anthro, lleg12_vars)),
-    list(rleg35_vars, c(anthro, lleg35_vars)),
-    list(gs_vars,     c(anthro, alm35_vars)),
-    list(hgs_vars,    c(anthro, alm35_vars))
-  )) {
-    r <- intersect(grp[[1]], rownames(pred))
-    c <- intersect(grp[[2]], colnames(pred))
-    if (length(r) && length(c)) pred[r, c] <- 1L
-  }
-  
-  height_rows <- intersect(height_vars, rownames(pred))
-  height_pred  <- intersect(
-    c(weight_vars, alm35_vars, gs_vars, hgs_vars),
-    colnames(pred)
-  )
-  if (length(height_rows) && length(height_pred))
-    pred[height_rows, height_pred] <- 1L
-  
-  
+
+  # =============================================================================
+  # 1. WEIGHT
+  # =============================================================================
+  pred <- set_pred(pred, targets = weight_vars, predictors = height_vars)
+
+  # =============================================================================
+  # 2. HEIGHT
+  # =============================================================================
+  pred <- set_pred(pred,
+                   targets    = height_vars,
+                   predictors = c(weight_vars, alm35_vars, gs_vars, hgs_vars))
+
+  # =============================================================================
+  # 3. LIMB LEAN MASS — same scanner-era visits imputed together
+  #    Hologic (Baseline, V2) and Lunar (V3, V4, V5) are kept as two
+  #    separate longitudinal blocks because the two scanners are on
+  #    different measurement scales.
+  # =============================================================================
+  pred <- add_longitudinal(pred, larm12_vars); pred <- add_longitudinal(pred, larm35_vars)
+  pred <- add_longitudinal(pred, rarm12_vars); pred <- add_longitudinal(pred, rarm35_vars)
+  pred <- add_longitudinal(pred, lleg12_vars); pred <- add_longitudinal(pred, lleg35_vars)
+  pred <- add_longitudinal(pred, rleg12_vars); pred <- add_longitudinal(pred, rleg35_vars)
+
+  pred <- set_pred(pred, targets = larm12_vars, predictors = c(anthro, rarm12_vars))
+  pred <- set_pred(pred, targets = larm35_vars, predictors = c(anthro, rarm35_vars))
+  pred <- set_pred(pred, targets = rarm12_vars, predictors = c(anthro, larm12_vars))
+  pred <- set_pred(pred, targets = rarm35_vars, predictors = c(anthro, larm35_vars))
+  pred <- set_pred(pred, targets = lleg12_vars, predictors = c(anthro, rleg12_vars))
+  pred <- set_pred(pred, targets = lleg35_vars, predictors = c(anthro, rleg35_vars))
+  pred <- set_pred(pred, targets = rleg12_vars, predictors = c(anthro, lleg12_vars))
+  pred <- set_pred(pred, targets = rleg35_vars, predictors = c(anthro, lleg35_vars))
+
+  # =============================================================================
+  # 4. GAIT SPEED (V4, V5) & HAND-GRIP STRENGTH (V5)
+  # =============================================================================
+  pred <- set_pred(pred, targets = gs_vars,  predictors = c(anthro, alm35_vars))
+  pred <- set_pred(pred, targets = hgs_vars, predictors = c(anthro, alm35_vars))
+
+  # ---------------------------------------------------------------------------
+  # Never impute id/time columns; constants are neither imputed nor predictors
+  # ---------------------------------------------------------------------------
   pred[intersect(c(id_vars, time_vars), rownames(pred)), ] <- 0L
-  
-  # Constants are neither imputed nor used as predictors
+
   const_cols <- intersect(c(".cohort"), colnames(pred))
   if (length(const_cols)) {
     pred[, const_cols] <- 0L
@@ -923,7 +994,7 @@ impute_mice_osteo <- function(df,
   # 9b. Reattach non-imputed variables
   # ---------------------------------------------------------------------------
   
-  # delete visit rows that were introduced and did not occure in real life
+  # delete visit rows that were introduced and did not occur in real life
   long_df <- long_df |>
     dplyr::inner_join(
       observed_visits,
@@ -982,6 +1053,18 @@ impute_mice_osteo <- function(df,
 # Internal: post-imputation diagnostics (standalone helper, kept for back-compat)
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# post_imputation_checks()
+# -----------------------------------------------------------------------------
+#' Write convergence/density/strip diagnostic PDFs for a mids object.
+#'
+#' Thin wrapper around `.save_diagnostics()`, called from
+#' `build_analysis_dataset()` (R/02_build_analysis_dataset.R) after each
+#' `impute_mice_*()` call.
+#'
+#' @param mids_obj A mids object returned by mice::mice().
+#' @param out_dir  Directory to write PDFs into.
+#' @return Invisibly, a list with the three PDF paths (see `.save_diagnostics()`).
 post_imputation_checks <- function(mids_obj, out_dir) {
   .save_diagnostics(mids_obj, out_dir, label = "imputation")
 }

@@ -1,8 +1,16 @@
 # =============================================================================
-# R/utils_harmonise.R
+# R/01_02_01_utils_harmonise.R
 # =============================================================================
 # Low-level pure helpers for type coercion and recoding.
-# Shared by harmonise_colaus.R and harmonise_osteo.R.
+# Shared by R/01_02_02_harmonise_colaus.R and R/01_02_03_harmonise_osteolaus.R.
+#
+# Functions:
+#   strip_prefix()           — removes a visit prefix from column names
+#   parse_exam_date()        — parses DDMonYYYY strings to Date
+#   safe_numeric()           — coerces character to numeric, warns on loss
+#   sentinel_to_na()         — replaces sentinel codes (e.g. "8"/"9") with NA
+#   yn_factor()              — builds a Yes/No factor from "0"/"1", NA-ing sentinels
+#   apply_sentinel_numeric() — applies SENTINEL_NUMERIC to all matching df columns
 # =============================================================================
 
 
@@ -36,7 +44,7 @@ SENTINEL_NUMERIC <- list(
 
 
 # -----------------------------------------------------------------------------
-# Strip visit prefixes helper
+# strip_prefix()
 # -----------------------------------------------------------------------------
 #' Strip a prefix from column names
 #'
@@ -87,7 +95,7 @@ strip_prefix <- function(df, prefix = NULL, ...) {
 
 
 # -----------------------------------------------------------------------------
-# Type coercion for exam dates
+# parse_exam_date()
 # -----------------------------------------------------------------------------
 #' Parse DDMonYYYY dates (e.g. "21mar2025") to ISO Date.
 #'
@@ -102,7 +110,7 @@ parse_exam_date <- function(x) {
 
 
 # -----------------------------------------------------------------------------
-# Type coercion numeric
+# safe_numeric()
 # -----------------------------------------------------------------------------
 #' Coerce a character vector to numeric, warning on value loss.
 #'
@@ -119,9 +127,8 @@ safe_numeric <- function(x, col) {
 
 
 # -----------------------------------------------------------------------------
-# Sentinel recoding
+# sentinel_to_na()
 # -----------------------------------------------------------------------------
-
 #' Recode sentinel codes to NA, leaving other values unchanged.
 #'
 #' By default treats "8" and "9" as sentinels. These can mean
@@ -134,6 +141,9 @@ sentinel_to_na <- function(x, codes = c("8", "9")) {
     replace(x, x %in% codes, NA)
 }
 
+# -----------------------------------------------------------------------------
+# yn_factor()
+# -----------------------------------------------------------------------------
 #' Build a Yes/No factor, treating sentinel codes as NA.
 #'
 #' @param x        Character vector with values "0" and "1".
@@ -143,6 +153,9 @@ yn_factor <- function(x, sentinel = c("8", "9"))
     factor(sentinel_to_na(x, sentinel), levels = c("0", "1"), labels = c("No", "Yes"))
 
 
+# -----------------------------------------------------------------------------
+# apply_sentinel_numeric()
+# -----------------------------------------------------------------------------
 #' Apply SENTINEL_NUMERIC to all matching columns in a data frame.
 #'
 #' Iterates over SENTINEL_NUMERIC. For each entry

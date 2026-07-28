@@ -1,12 +1,21 @@
 # =============================================================================
-# R/import.R
+# R/01_01_01_import.R
 # =============================================================================
-# Imports a single raw CSV visit file.
+# Reads a single raw CoLaus/OsteoLaus visit CSV into a tibble and attaches
+# cohort/visit identifier columns. This is the first step of the pipeline:
+# every downstream script (harmonise, QC, stack) consumes the output of
+# import_visit().
+#
+# Defines:
+#   COHORT_META    — nested list of per-cohort visit metadata (see below)
+#   import_visit() — reads one CSV and attaches .cohort/.visit columns
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Cohort metadata
-# visit-prefixed column naming:
+# COHORT_META
+# -----------------------------------------------------------------------------
+# (also used in visit-prefixed column naming used by strip_prefix()
+# (R/01_02_01_utils_harmonise.R) to recover base column names after import.)
 #
 #   CoLaus
 #     .visit      CSV prefix   Example
@@ -60,11 +69,14 @@ COHORT_META <- list(
 )
 
 
+# -----------------------------------------------------------------------------
+# import_visit()
+# -----------------------------------------------------------------------------
 #' Import a single raw CSV visit.
 #'
 #' Reads a semicolon-delimited CSV file produced by SAS, coerces all columns
-#' to character (type coercion is deferred to downstream targets), attaches
-#' visit-level metadata columns, and runs all fast-fail validation checks.
+#' to character (type coercion is deferred to downstream targets) and attaches
+#' visit-level metadata columns.
 #'
 #' @param path   File path tracked by a format = "file" target.
 #' @param cohort "CoLaus" or "OsteoLaus".
@@ -73,8 +85,9 @@ COHORT_META <- list(
 #' @return Tibble; all original columns are character plus attach
 #'   metadata columns: .cohort, .visit.
 import_visit <- function(path, cohort, visit, sep = ";") {
-  
-  
+
+  # Read every column as character; SAS-style blanks/dots become NA.
+  # Numeric/date coercion happens later in harmonise_*() (R/01_02_*.R), not here.
   raw_dt <- data.table::fread(
     file   = path,
     sep    = sep,
@@ -82,19 +95,21 @@ import_visit <- function(path, cohort, visit, sep = ";") {
     na.strings = c("", "NA", "N/A", "."),
     strip.white = TRUE
   )
-  
+
+  # dtplyr defers execution to data.table for speed on large raw files.
   df_lazy <- dtplyr::lazy_dt(raw_dt) |>
     dplyr::mutate(
       .cohort   = cohort,
       .visit = COHORT_META[[cohort]][["visit_num"]][[visit]],
       .before   = 1
     )
-  
+
+  # Materialize the lazy_dt plan into a tibble for downstream dplyr code.
   df <- dplyr::as_tibble(df_lazy)
   cli::cli_h1("Import visit")
   cli::cli_inform(c(
     "i" = "Imported {cohort} {visit}: {nrow(df)} rows \u00d7 {ncol(df)} cols"
   ))
-  
+
   return(df)
 }

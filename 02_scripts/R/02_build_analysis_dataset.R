@@ -1,7 +1,12 @@
 # =============================================================================
-# R/build_analysis_dataset.R
+# R/02_build_analysis_dataset.R
 # =============================================================================
 # One-call wrapper for the complete-case and MICE derivation/merge routes.
+# Defines one function: build_analysis_dataset(). Chains impute_mice_*()
+# (R/02_01_mice_impute.R), derive() (R/02_02_derive.R),
+# select_analysis_columns() (R/02_03_select_analysis_columns.R),
+# merge_visit_pairs() (R/02_04_visit_match.R), and derive_combined()
+# (R/02_05_derive_combined_variables.R).
 #
 # Public interface
 # ----------------
@@ -26,6 +31,9 @@
 # mice::complete(..., include = TRUE) and is not surfaced to this wrapper.
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# build_analysis_dataset()
+# -----------------------------------------------------------------------------
 #' Run the full derivation, selection, merge, and combined-derivation pipeline.
 #'
 #' @param colaus_long CoLaus long data frame (`core$colaus_long`).

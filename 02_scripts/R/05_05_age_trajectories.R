@@ -18,26 +18,26 @@
 .TRAJ_FONT <- "Helvetica"
 
 .TRAJ_LABELS <- c(
-    HGS_MAX                         = "Grip Strength Maximum (kg)",
-    ALM_HT2_harmonised              = "Appendicular Lean Mass Index (kg/m²)",
-    gait_speed                      = "Gait Speed (m/s)",
-    dairy_total_gday_cumavg         = "Total Dairy Intake (g/day)",
-    dairy_fermented_gday_cumavg     = "Fermented Dairy Intake (g/day)",
-    dairy_non_fermented_gday_cumavg = "Non-fermented Dairy Intake (g/day)",
-    dairy_highfat_gday_cumavg       = "High-fat Dairy Intake (g/day)",
-    dairy_lowfat_gday_cumavg        = "Low-fat Dairy Intake (g/day)"
+    HGS_MAX                         = "Handgrip strength [kg]",
+    ALM_HT2_harmonised              = "ALMI [kg/m^2]",
+    gait_speed                      = "Gait speed [m/s]",
+    dairy_total_gday_cumavg         = "Total Dairy Intake [g/day]",
+    dairy_fermented_gday_cumavg     = "Fermented Dairy Intake [g/day]",
+    dairy_non_fermented_gday_cumavg = "Non-fermented Dairy Intake [g/day]",
+    dairy_highfat_gday_cumavg       = "High-fat Dairy Intake [g/day]",
+    dairy_lowfat_gday_cumavg        = "Low-fat Dairy Intake [g/day]"
 )
 
-# Blue tones for muscle outcomes; warm tones for dairy exposures
+# Same blue for every variable's line and points.
 .TRAJ_COLORS <- c(
     HGS_MAX                         = "#1E466EFF",
-    ALM_HT2_harmonised              = "#376795FF",
-    gait_speed                      = "#72BCD5FF",
-    dairy_total_gday_cumavg         = "#E76254FF",
-    dairy_fermented_gday_cumavg     = "#EF8A47FF",
-    dairy_non_fermented_gday_cumavg = "#F7AA58FF",
-    dairy_highfat_gday_cumavg       = "#FFD06FFF",
-    dairy_lowfat_gday_cumavg        = "#AADCE0FF"
+    ALM_HT2_harmonised              = "#1E466EFF",
+    gait_speed                      = "#1E466EFF",
+    dairy_total_gday_cumavg         = "#1E466EFF",
+    dairy_fermented_gday_cumavg     = "#1E466EFF",
+    dairy_non_fermented_gday_cumavg = "#1E466EFF",
+    dairy_highfat_gday_cumavg       = "#1E466EFF",
+    dairy_lowfat_gday_cumavg        = "#1E466EFF"
 )
 
 # Warm → cool gradient across quartiles (low → high dairy)
@@ -52,18 +52,39 @@
     if (var %in% names(.TRAJ_LABELS)) .TRAJ_LABELS[[var]] else gsub("_", " ", var)
 }
 
+# Axis-only variant: superscripts the "2" in ALMI's units via plotmath.
+.traj_axis_label <- function(var) {
+    if (var == "ALM_HT2_harmonised") expression("ALMI [kg/m" ^ 2 * "]")
+    else .traj_label(var)
+}
+
 .theme_traj <- function() {
     ggplot2::theme_minimal(base_family = .TRAJ_FONT) +
         ggplot2::theme(
-            plot.title       = ggplot2::element_text(hjust = 0.5, size = 14, face = "bold"),
-            plot.caption     = ggplot2::element_text(hjust = 0, size = 9, colour = "grey50",
-                                                     margin = ggplot2::margin(t = 8)),
-            axis.title       = ggplot2::element_text(size = 12),
-            axis.text        = ggplot2::element_text(size = 10),
-            panel.grid.minor = ggplot2::element_blank(),
-            panel.grid.major = ggplot2::element_line(colour = "grey90", linewidth = 0.4),
-            legend.position  = "none"
+            axis.title         = ggplot2::element_text(size = 12),
+            axis.text          = ggplot2::element_text(size = 10),
+            axis.line          = ggplot2::element_line(colour = "black", linewidth = 0.4),
+            axis.ticks         = ggplot2::element_line(colour = "black", linewidth = 0.3),
+            axis.ticks.length  = ggplot2::unit(3, "pt"),
+            panel.grid.major.x = ggplot2::element_blank(),
+            panel.grid.minor.x = ggplot2::element_blank(),
+            panel.grid.major.y = ggplot2::element_line(colour = "grey90", linewidth = 0.4),
+            panel.grid.minor.y = ggplot2::element_blank(),
+            legend.position    = "none"
         )
+}
+
+# Doubles the density of y breaks (adds the midpoint of each major interval as
+# its own labeled break) so the extra horizontal grid line also gets a label.
+.scale_y_dense <- function() {
+    ggplot2::scale_y_continuous(
+        breaks = function(limits) {
+            major <- scales::extended_breaks()(limits)
+            step  <- diff(major)[1] / 2
+            sort(unique(c(major, major + step)))
+        },
+        minor_breaks = NULL
+    )
 }
 
 # Return column names regardless of mids vs plain data frame
@@ -89,7 +110,7 @@
         dplyr::group_by(Age_Year) |>
         dplyr::summarise(
             mean    = mean(.data[[var]], na.rm = TRUE),
-            sd      = stats::sd(.data[[var]], na.rm = TRUE),
+            sd      = dplyr::coalesce(stats::sd(.data[[var]], na.rm = TRUE), 0),
             n       = dplyr::n(),
             min_age = min(.data[[age_col]], na.rm = TRUE),
             max_age = max(.data[[age_col]], na.rm = TRUE),
@@ -108,7 +129,7 @@
         dplyr::group_by(.imp, Age_Year) |>
         dplyr::summarise(
             mean_i  = mean(.data[[var]], na.rm = TRUE),
-            sd_i    = stats::sd(.data[[var]], na.rm = TRUE),
+            sd_i    = dplyr::coalesce(stats::sd(.data[[var]], na.rm = TRUE), 0),
             n_i     = dplyr::n(),
             min_age = min(.data[[age_col]], na.rm = TRUE),
             max_age = max(.data[[age_col]], na.rm = TRUE),
@@ -151,7 +172,7 @@
         dplyr::group_by(Age_Year, quartile = .data[[quartile_col]]) |>
         dplyr::summarise(
             mean    = mean(.data[[var]], na.rm = TRUE),
-            sd      = stats::sd(.data[[var]], na.rm = TRUE),
+            sd      = dplyr::coalesce(stats::sd(.data[[var]], na.rm = TRUE), 0),
             n       = dplyr::n(),
             .groups = "drop"
         ) |>
@@ -173,7 +194,7 @@
         dplyr::group_by(.imp, Age_Year, quartile = .data[[quartile_col]]) |>
         dplyr::summarise(
             mean_i = mean(.data[[var]], na.rm = TRUE),
-            sd_i   = stats::sd(.data[[var]], na.rm = TRUE),
+            sd_i   = dplyr::coalesce(stats::sd(.data[[var]], na.rm = TRUE), 0),
             n_i    = dplyr::n(),
             .groups = "drop"
         )
@@ -202,17 +223,10 @@
 
 # ── Plots ──────────────────────────────────────────────────────────────────────
 
-.plot_one_trajectory <- function(summ, var, color, is_pooled = FALSE) {
-    label   <- .traj_label(var)
+.plot_one_trajectory <- function(summ, var, color) {
     y_upper <- max(summ$mean + summ$sd, na.rm = TRUE)
     y_lower <- min(summ$mean - summ$sd, na.rm = TRUE)
     y_pad   <- (y_upper - y_lower) * 0.18
-
-    caption <- if (is_pooled) {
-        "Points: pooled mean across imputations. Error bars: average within-imputation SD. Labels: avg n per imputation."
-    } else {
-        "Points: mean per whole year of age. Error bars: ±1 SD. Labels: n per year."
-    }
 
     ggplot2::ggplot(summ, ggplot2::aes(x = Age_Year, y = mean)) +
         ggplot2::geom_errorbar(
@@ -221,37 +235,34 @@
         ) +
         ggplot2::geom_line(colour = color, alpha = 0.75, linewidth = 0.9) +
         ggplot2::geom_point(colour = color, size = 2.8) +
-        ggplot2::geom_text(
-            ggplot2::aes(y = mean + sd, label = paste0("n=", n)),
-            vjust = -0.7, size = 2.7, colour = "grey40", family = .TRAJ_FONT
+        ggrepel::geom_text_repel(
+            ggplot2::aes(
+                y     = mean + sd + ifelse(n == 1, y_pad * 0.18, 0),
+                label = paste0("n=", n)
+            ),
+            size = 2.7, colour = "grey40", family = .TRAJ_FONT,
+            direction = "y", seed = 42,
+            nudge_y = y_pad * 0.04, point.padding = 0.02, box.padding = 0.02,
+            min.segment.length = 0
         ) +
         ggplot2::scale_x_continuous(
             breaks       = scales::breaks_width(5),
             minor_breaks = scales::breaks_width(1)
         ) +
+        .scale_y_dense() +
         ggplot2::coord_cartesian(ylim = c(y_lower - y_pad * 0.3, y_upper + y_pad)) +
         ggplot2::labs(
-            title   = label,
-            x       = "Age (years)",
-            y       = label,
-            caption = caption
+            x = "Age [years]",
+            y = .traj_axis_label(var)
         ) +
         .theme_traj()
 }
 
-.plot_trajectory_by_quartile <- function(summ, var, is_pooled = FALSE) {
-    label <- .traj_label(var)
-
+.plot_trajectory_by_quartile <- function(summ, var) {
     # Keep only quartile levels that exist in data and appear in .QUARTILE_COLORS
     present_q <- intersect(names(.QUARTILE_COLORS), unique(summ$quartile))
     col_scale  <- .QUARTILE_COLORS[present_q]
     fill_scale <- col_scale
-
-    caption <- if (is_pooled) {
-        "Lines: pooled mean across imputations. Ribbons: average within-imputation SD."
-    } else {
-        "Lines: mean per whole year of age. Ribbons: ±1 SD."
-    }
 
     ggplot2::ggplot(
         summ,
@@ -281,11 +292,10 @@
             breaks       = scales::breaks_width(5),
             minor_breaks = scales::breaks_width(1)
         ) +
+        .scale_y_dense() +
         ggplot2::labs(
-            title   = paste0(label, " by dairy quartile"),
-            x       = "Age (years)",
-            y       = label,
-            caption = caption
+            x = "Age [years]",
+            y = .traj_axis_label(var)
         ) +
         .theme_traj() +
         ggplot2::theme(
@@ -350,7 +360,6 @@ plot_age_trajectories <- function(analysis,
             return(NULL)
         }
 
-        is_pooled <- inherits(data, "mids")
         summ <- .summarise_by_age_year(data, var, age_col)
         if (is.null(summ) || nrow(summ) == 0L) return(NULL)
 
@@ -360,7 +369,7 @@ plot_age_trajectories <- function(analysis,
         readr::write_csv(summ, file.path(out_dir, paste0("trajectory_", var, ".csv")))
 
         color <- if (var %in% names(.TRAJ_COLORS)) .TRAJ_COLORS[[var]] else .TRAJ_PALETTE[7]
-        plt   <- .plot_one_trajectory(summ, var, color, is_pooled)
+        plt   <- .plot_one_trajectory(summ, var, color)
         ggplot2::ggsave(file.path(out_dir, paste0("trajectory_", var, ".png")),
                         plt, width = width, height = height, dpi = dpi)
         plt
@@ -395,7 +404,6 @@ plot_age_trajectories <- function(analysis,
             return(NULL)
         }
 
-        is_pooled <- inherits(data, "mids")
         summ <- .summarise_by_age_quartile(data, var, age_col, quartile_col)
         if (is.null(summ) || nrow(summ) == 0L) return(NULL)
 
@@ -405,7 +413,7 @@ plot_age_trajectories <- function(analysis,
         readr::write_csv(summ,
             file.path(out_dir, paste0("trajectory_by_quartile_", var, ".csv")))
 
-        plt <- .plot_trajectory_by_quartile(summ, var, is_pooled)
+        plt <- .plot_trajectory_by_quartile(summ, var)
         ggplot2::ggsave(
             file.path(out_dir, paste0("trajectory_by_quartile_", var, ".png")),
             plt, width = width + 1.5, height = height, dpi = dpi

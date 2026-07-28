@@ -1,14 +1,18 @@
 # =============================================================================
-# R/stack_visits.R
+# R/01_04_stack_visits.R
 # =============================================================================
 # Row-binds harmonised visit tibbles into a single long tibble per cohort.
-# No transformation, derivation, or column changes occur here.
+# Defines one function: stack_visits(). No transformation, derivation, or
+# column changes occur here.
 #
 # Each input tibble must carry .cohort and .visit (attached by
-# import_visit()) so that every row in the stacked output is traceable to its
-# source visit.
+# import_visit(), R/01_01_01_import.R) so that every row in the stacked
+# output is traceable to its source visit.
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# stack_visits()
+# -----------------------------------------------------------------------------
 #' Stack harmonised visit tibbles into a single long tibble.
 #'
 #' Rows are sorted by pt and .visit so the output is in participant-visit

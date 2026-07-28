@@ -1,17 +1,20 @@
 # =============================================================================
-# R/derive_BMI_category.R
+# R/02_02_13_derive_BMI_category.R
 # =============================================================================
-# Derives BMI_category from BMI (kg/m²).
-#
-# BMI is measured at every OsteoLaus visit.
+# Derives BMI_category from BMI (kg/m²). Defines one function:
+# derive_bmi_category().
 #
 # Categories (WHO standard):
 #   < 18.5           -> 1 = Underweight
 #   18.5 – < 25.0    -> 2 = Normal        (reference)
 #   25.0 – < 30.0    -> 3 = Overweight
 #   >= 30.0          -> 4 = Obese
+# Requires BMI to be present (output of derive_bmi()).
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_bmi_category()
+# -----------------------------------------------------------------------------
 #' Derive BMI_category for an OsteoLaus long tibble.
 #'
 #' @param df OsteoLaus long tibble after harmonisation and stacking.

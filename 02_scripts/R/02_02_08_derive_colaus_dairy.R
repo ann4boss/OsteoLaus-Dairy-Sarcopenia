@@ -1,7 +1,15 @@
 # =============================================================================
-# R/derive_colaus_dairy.R
+# R/02_02_08_derive_colaus_dairy.R
 # =============================================================================
-# Derives dairy intake by summing FFQ amount columns.
+# Derives dairy intake by summing FFQ amount columns, and derives cumulative
+# (running) average dairy intake per participant across visits.
+#
+# Functions:
+#   derive_dairy()          — sums FFQ amounts into dairy sub-category totals
+#   cumulative_mean_na()    — NA-skipping running mean (shared helper)
+#   .check_visit_order()    — coerces/validates a visit column before cumavg
+#   derive_dairy_cumavg()   — adds cumulative-average columns for each
+#                              dairy sub-category
 #
 # Each FFQ item contributes to one or more sub-categories as specified in the
 # data dictionary (see below).
@@ -41,6 +49,9 @@
 # Assumption 2: ice cream/sorbet is assumed a dairy product
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_dairy()
+# -----------------------------------------------------------------------------
 #' Derive dairy sub-category intakes (g/day) for a CoLaus long tibble.
 #' 
 #' @param df CoLaus long tibble after harmonisation and stacking.
@@ -55,7 +66,11 @@ derive_dairy <- function(df) {
     .DAIRY_NON_FERM     <- paste0("FFQ", c(52, 53, 63, 68, 71, 82:86), "amount")
     .DAIRY_LOWFAT       <- paste0("FFQ", c(2, 4, 82, 85), "amount")
     .DAIRY_HIGHFAT      <- paste0("FFQ", c(1, 3, 5, 6, 7, 8, 52, 53, 63, 68, 71, 83, 84, 86), "amount")
-    
+    # Total dairy excluding FFQ8 (cheese fondue) — sensitivity variant to test
+    # whether fondue (an occasional, composite, cheese-heavy dish) drives the
+    # total dairy - muscle outcome association.
+    .DAIRY_TOTAL_NO_FONDUE <- setdiff(.DAIRY_TOTAL, "FFQ8amount")
+
     
     # ── Column Check ----------------------------------------------
     required_cols <- .DAIRY_TOTAL
@@ -109,7 +124,8 @@ derive_dairy <- function(df) {
             dairy_fermented_gday     = sum_block(df, .DAIRY_FERMENT),
             dairy_non_fermented_gday = sum_block(df, .DAIRY_NON_FERM),
             dairy_lowfat_gday        = sum_block(df, .DAIRY_LOWFAT),
-            dairy_highfat_gday       = sum_block(df, .DAIRY_HIGHFAT)
+            dairy_highfat_gday       = sum_block(df, .DAIRY_HIGHFAT),
+            dairy_total_nofondue_gday = sum_block(df, .DAIRY_TOTAL_NO_FONDUE)
         ) |>
         dplyr::as_tibble()
     
@@ -125,7 +141,8 @@ derive_dairy <- function(df) {
             valid_fermented  = sum(!is.na(dairy_fermented_gday)),
             valid_non_ferm   = sum(!is.na(dairy_non_fermented_gday)),
             valid_lowfat     = sum(!is.na(dairy_lowfat_gday)),
-            valid_highfat    = sum(!is.na(dairy_highfat_gday))
+            valid_highfat    = sum(!is.na(dairy_highfat_gday)),
+            valid_nofondue   = sum(!is.na(dairy_total_nofondue_gday))
         )
     
 
@@ -142,7 +159,8 @@ derive_dairy <- function(df) {
         " " = "fermented: {stats$valid_fermented}",
         " " = "non-fermented: {stats$valid_non_ferm}",
         " " = "low-fat: {stats$valid_lowfat}",
-        " " = "high-fat: {stats$valid_highfat}"
+        " " = "high-fat: {stats$valid_highfat}",
+        " " = "total (excl. fondue): {stats$valid_nofondue}"
     ))
     
     return(df)
@@ -166,22 +184,18 @@ derive_dairy <- function(df) {
 #
 # =============================================================================
 
-#' Derive cumulative average dairy intakes for a CoLaus long tibble.
+# -----------------------------------------------------------------------------
+# cumulative_mean_na()
+# -----------------------------------------------------------------------------
+#' Cumulative (running) mean that skips NA and returns NA until the first
+#' non-missing observation is seen.
 #'
-#' @param df  CoLaus long tibble (one row per participant × visit) that already
-#'   contains the five dairy sub-category columns produced by `derive_dairy()`.
-#' @param id_col    Name of the participant identifier column (default `"id"`).
-#' @param visit_col Name of the numeric visit identifier column (default
-#'   `"visit"`). Rows are sorted ascending on this column within each
-#'   participant; no explicit visit order needs to be supplied.
+#' Shared by derive_dairy_cumavg() and the per-item / non-dairy protein
+#' cumavg helpers in R/02_02_19_derive_colaus_dairy_protein.R.
 #'
-#' @return `df` with ten new columns added (cumavg + cumavg_lag1 for each of
-#'   the five dairy sub-categories). Row order is restored to match the input.
-
-# Cumulative (running) mean that skips NA and returns NA until the first
-# non-missing observation is seen. Shared by derive_dairy_cumavg() and the
-# per-item / non-dairy protein cumavg helpers in
-# R/02_02_19_derive_colaus_dairy_protein.R.
+#' @param x Numeric vector, in the order the running mean should accumulate.
+#' @return Numeric vector, same length as `x`: the running mean up to and
+#'   including each position, ignoring NAs; NA before the first observation.
 cumulative_mean_na <- function(x) {
 
     out         <- numeric(length(x))
@@ -201,9 +215,17 @@ cumulative_mean_na <- function(x) {
     out
 }
 
-# Ensure a visit column is ordered (factor or numeric) before a grouped
-# cumulative-average pass. Returns the checked/coerced df, or NULL if the
-# column can't be ordered (caller should warn and bail out).
+# -----------------------------------------------------------------------------
+# .check_visit_order()
+# -----------------------------------------------------------------------------
+#' Ensure a visit column is ordered (factor or numeric) before a grouped
+#' cumulative-average pass.
+#'
+#' @param df        Data frame containing `visit_col`.
+#' @param visit_col Name of the visit column to check/coerce.
+#' @return The checked/coerced `df`, with `visit_col` coerced to an ordered
+#'   factor if it was an unordered factor; or NULL if the column is neither
+#'   numeric nor a factor (caller should warn and bail out).
 .check_visit_order <- function(df, visit_col) {
 
     if (is.factor(df[[visit_col]])) {
@@ -236,6 +258,20 @@ cumulative_mean_na <- function(x) {
     df
 }
 
+# -----------------------------------------------------------------------------
+# derive_dairy_cumavg()
+# -----------------------------------------------------------------------------
+#' Derive cumulative average dairy intakes for a CoLaus long tibble.
+#'
+#' @param df  CoLaus long tibble (one row per participant × visit) that already
+#'   contains the five dairy sub-category columns produced by `derive_dairy()`.
+#' @param id_col    Name of the participant identifier column (default `"pt"`).
+#' @param visit_col Name of the visit identifier column (default `".visit"`).
+#'   Rows are sorted ascending on this column within each participant; no
+#'   explicit visit order needs to be supplied.
+#'
+#' @return `df` with one `<var>_cumavg` column added per dairy sub-category.
+#'   Row order is restored to match the input.
 derive_dairy_cumavg <- function(df,
                                 id_col    = "pt",
                                 visit_col = ".visit") {
@@ -246,7 +282,8 @@ derive_dairy_cumavg <- function(df,
         "dairy_fermented_gday",
         "dairy_non_fermented_gday",
         "dairy_lowfat_gday",
-        "dairy_highfat_gday"
+        "dairy_highfat_gday",
+        "dairy_total_nofondue_gday"
     )
 
     # ── Checks ---------------------------------------------------------------

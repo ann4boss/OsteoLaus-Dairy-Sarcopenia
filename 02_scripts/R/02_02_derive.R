@@ -1,5 +1,5 @@
 # =============================================================================
-# R/derive.R
+# R/02_02_derive.R
 # =============================================================================
 # Single entry-point for all variable derivations, cohort-agnostic and
 # imputation-aware.
@@ -8,6 +8,16 @@
 # ----------------
 #   derive(df)    -- plain data frame (colaus_long / osteo_long)
 #   derive(mids)  -- mids object returned by impute_mice_*()
+#
+# Internal helpers
+# ----------------
+#   .derive_chain_colaus() / .derive_chain_osteo() — ordered pipe chains of
+#     the per-cohort derive_*() functions (defined in R/02_02_*.R)
+#   .DERIVE_CHAINS       — cohort name -> chain function lookup
+#   .is_mice_result()    — TRUE if input is a mids object
+#   .cohort_values()     — reads distinct, non-NA .cohort values from a df
+#   .derive_single()     — detects cohort and applies the matching chain
+#   .derive_mice()       — runs .derive_single() over every mids imputation
 #
 # Cohort is detected automatically from the .cohort column; no argument needed.
 #
@@ -32,6 +42,10 @@
 # Internal helpers
 # -----------------------------------------------------------------------------
 
+# .derive_chain_colaus(): ordered pipe chain of every CoLaus derive_*()
+# function. Order matters — e.g. derive_dairy() must run before
+# derive_dairy_cumavg(), and derive_dairy_protein() depends on the item-level
+# cumavg columns from derive_dairy_item_cumavg().
 .derive_chain_colaus <- function(df) {
     df |>
         derive_education()      |>
@@ -56,6 +70,8 @@
         derive_htn()
 }
 
+# .derive_chain_osteo(): ordered pipe chain of every OsteoLaus derive_*()
+# function.
 .derive_chain_osteo <- function(df) {
     df |>
         derive_bmi()          |>
@@ -74,6 +90,8 @@
 # The MICE route accepts a raw mids object only.
 .is_mice_result <- function(data) inherits(data, "mids")
 
+# Returns the distinct, non-NA .cohort values present in `df`; aborts if
+# `.cohort` is missing entirely.
 .cohort_values <- function(df) {
     if (!".cohort" %in% names(df)) {
         cli::cli_abort("derive() requires a {.field .cohort} column.")

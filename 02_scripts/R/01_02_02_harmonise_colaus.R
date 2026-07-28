@@ -1,12 +1,15 @@
 # =============================================================================
-# R/harmonise_colaus.R
+# R/01_02_02_harmonise_colaus.R
 # =============================================================================
 # Type coercion, date parsing, and factor coding for a single CoLaus visit.
+# Defines one function: harmonise_colaus().
 #
 # Column names enter prefixed (e.g. "F1age") and leave in base format ("age")
-# after strip_visit_prefix() runs at the top of harmonise_colaus().
+# after strip_prefix() (R/01_02_01_utils_harmonise.R) runs at the top of
+# harmonise_colaus().
 # =============================================================================
 # TODO add etsem, income2, datquest?
+# TODO: something goes wrong and all values are NA
 # -----------------------------------------------------------------------------
 # Column lists
 # -----------------------------------------------------------------------------
@@ -63,9 +66,8 @@
 )
 
 # -----------------------------------------------------------------------------
-# Main function
+# harmonise_colaus()
 # -----------------------------------------------------------------------------
-
 #' Harmonise a single CoLaus visit.
 #'
 #' Strips the visit prefix, parses dates, coerces types, codes factors, and
@@ -188,7 +190,7 @@ harmonise_colaus <- function(df) {
   
   
   # ── visit-specific logic (Handgrip & Diabetes) -------------------------------
-  #TODO: something goes wrong and all values are NA
+  # TODO: something goes wrong and all values are NA
   # Handgrip
   # Baseline: 0 = No problem, 1 = Yes (problem noted) -> recode to 3 = Yes, unspecified problem.
   # F2:    0 = No problem, 1 = Pain/arthrosis 

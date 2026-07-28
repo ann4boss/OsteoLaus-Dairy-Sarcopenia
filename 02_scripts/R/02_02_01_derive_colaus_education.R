@@ -1,7 +1,8 @@
 # =============================================================================
-# R/derive_colaus_education.R
+# R/02_02_01_derive_colaus_education.R
 # =============================================================================
 # Re-codes edtyp4 (4-level CoLaus education) to the 3-level ISCED grouping.
+# Defines one function: derive_education().
 #
 # Source → ISCED mapping:
 #   edtyp4 = "University"    -> 3 = High    (ISCED 5-8)
@@ -12,6 +13,9 @@
 # education_level is fixed at Baseline and carried forward to all visits.
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_education()
+# -----------------------------------------------------------------------------
 #' Derive education_level (ISCED 3-group) for a CoLaus long tibble.
 #'
 #' Derives education_level from edtyp4 at Baseline, then propagates the

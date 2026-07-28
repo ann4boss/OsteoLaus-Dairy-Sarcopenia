@@ -1,7 +1,8 @@
 # =============================================================================
-# R/qc.R
+# R/01_03_qc_data.R
 # =============================================================================
-# QC check functions for participant identity, cohort consistency, and visit integrity.
+# QC check function for participant identity, cohort consistency, and visit
+# integrity. Defines one function: qc().
 #
 # This script provides functions to perform quality control on harmonised cohort 
 # data (CoLaus and OsteoLaus). QC checks are performed per participant per visit 
@@ -17,9 +18,11 @@
 # Each QC check produces a TRUE/FALSE flag per participant row. Additionally, a
 # troubleshooting table can include key columns (pt, cohort,exam_date_iso,datbirth, visit, sex)
 # along with the QC flags to inspect why a participant failed any check.
-#
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# qc()
+# -----------------------------------------------------------------------------
 #' Perform QC checks on harmonised cohort files
 #'
 #' @param harmonised_list A named list of data frames, one per visit/cohort,
@@ -34,7 +37,6 @@
 #'
 #' This table can be used to summarize QC failures, inspect problematic participants,
 #' and generate summary messages for data quality reporting.
-# =============================================================================
 qc <- function(harmonised_list) {
     cli::cli_h1("QC Report")
     

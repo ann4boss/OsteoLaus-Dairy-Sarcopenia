@@ -31,6 +31,9 @@ PA
 TotalEnergy
 OtherFoodGroups
 
+Income
+Occupation
+
 BMI
 
 Diabetes
@@ -141,6 +144,26 @@ TotalEnergy -> BMI
 TotalEnergy -> Dairy
 TotalEnergy -> HandgripStrength
 TotalEnergy -> OtherFoodGroups
+
+Education -> Income
+Education -> Occupation
+
+Income -> Dairy
+Income -> OtherFoodGroups
+Income -> TotalEnergy
+Income -> PA
+Income -> VitaminD
+Income -> Calcium
+Income -> BMI
+Income -> Smoking
+Income -> Alcohol
+
+Occupation -> PA
+Occupation -> BMI
+Occupation -> HandgripStrength
+Occupation -> ALMI
+Occupation -> GaitSpeed
+Occupation -> Sarcopenia
 
 }
 

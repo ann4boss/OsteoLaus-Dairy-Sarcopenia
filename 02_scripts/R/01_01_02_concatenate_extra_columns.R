@@ -1,11 +1,11 @@
 # =============================================================================
-# R/concatenate_extra_columns.R
+# R/01_01_02_concatenate_extra_columns.R
 # =============================================================================
 # Helpers that join supplementary columns onto a base visit data frame.
 #
 # Functions:
 #   add_ffq_columns()    — joins FFQ frequency/amount columns for a time point
-#   add_extra_cols()     — joins additional columns
+#   add_extra_cols()     — joins other additional columns
 #   add_death_date()     — joins death date from the Deaths file
 #   add_birth_date()     — joins birth date from the Baseline add-food file
 #
@@ -20,14 +20,14 @@
     "strk", "vslg", "ccth", "cabg", "datquest"
 )
 
-# FFQ item indices to exclude (items not used in the analysis).
+# FFQ item indices to exclude (items already in previous imported files).
 .FFQ_EXCLUDE_NUMS <- c(1:8, 52, 53, 63, 68, 71, 82:86)
 
 
 # -----------------------------------------------------------------------------
 # add_ffq_columns()
 # -----------------------------------------------------------------------------
-#' Join FFQ frequency and amount columns for a given timepoint.
+#' Join FFQ frequency and amount columns for a given time point.
 #'
 #' Selects all columns matching `<timepoint>(freq)?FFQ<n>` from \code{add_df},
 #' drops excluded item indices, then left-joins onto \code{base_df} by "pt".

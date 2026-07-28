@@ -49,6 +49,7 @@
             nonfermented         = median(df$dairy_non_fermented_gday_cumavg, na.rm = TRUE),
             highfat              = median(df$dairy_highfat_gday_cumavg, na.rm = TRUE),
             lowfat               = median(df$dairy_lowfat_gday_cumavg, na.rm = TRUE),
+            nofondue             = median(df$dairy_total_nofondue_gday_cumavg, na.rm = TRUE),
             time                 = median(df[[time_var]],             na.rm = TRUE),
             ffq_items            = stats::setNames(
                 vapply(ffq_item_cols, function(v) median(df[[v]], na.rm = TRUE), numeric(1)),
@@ -92,6 +93,11 @@
                                                     scale  = 100)),
             lowfat_100g       = as.numeric(scale(dairy_lowfat_gday_cumavg,
                                                     center = scale_centres$lowfat,
+                                                    scale  = 100)),
+            # Total dairy excluding FFQ8 (cheese fondue) — sensitivity
+            # exposure to check fondue isn't driving the dairy_100g association.
+            dairy_nofondue_100g = as.numeric(scale(dairy_total_nofondue_gday_cumavg,
+                                                    center = scale_centres$nofondue,
                                                     scale  = 100)),
 
             # Dairy protein content (g protein/day from dairy), per 100 g/day —
@@ -398,9 +404,10 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
 .term_labels <- c(
     dairy_100g                            = "Dairy intake cum. avg. [100g/day]",
     fermented_100g                        = "Fermented Dairy intake cum. avg. [100g/day]",
-    nonfermented_100g                     = "Non- Fermented Dairy intake cum. avg. [100g/day]",
-    highfat_100g                          = "High Fat Dairy intake cum. avg. [100g/day]",
-    lowfat_100g                           = "Low Fat Dairy intake cum. avg. [100g/day]",
+    nonfermented_100g                     = "Non-fermented Dairy intake cum. avg. [100g/day]",
+    highfat_100g                          = "High-fat Dairy intake cum. avg. [100g/day]",
+    lowfat_100g                           = "Low-fat Dairy intake cum. avg. [100g/day]",
+    dairy_nofondue_100g                   = "Dairy intake (excl. fondue) cum. avg. [100g/day]",
     dairy_quartile_baselineQ2             = "Dairy intake Q2",
     dairy_quartile_baselineQ3             = "Dairy intake Q3",
     dairy_quartile_baselineQ4             = "Dairy intake Q4",
@@ -499,18 +506,16 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
         dplyr::mutate(
             dplyr::across(c(estimate, std_error, statistic, conf_low, conf_high),
                           ~ round(.x, 3)),
-            p_value = dplyr::case_when(
-                p_value < 0.001 ~ "<0.001",
-                TRUE            ~ as.character(round(p_value, 3))
-            ),
+            p_value = dplyr::if_else(p_value < 0.001, "<0.001",
+                                     as.character(round(p_value, 3))),
             df = round(df, 1)
         )
-    
+
     # ── Coefficient plot (exclude intercept) ----------------------------------
     plot_df <- tidy_df |>
         dplyr::filter(term != "(Intercept)") |>
         dplyr::mutate(
-            sig = p_value < 0.05,
+            sig      = p_value < 0.05,
             is_dairy = grepl(
                 "^(dairy|fermented|nonfermented|highfat|lowfat)",
                 term
@@ -523,21 +528,16 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
             term_label_base = {
                 idx <- match(term, names(.term_labels))
                 ifelse(is.na(idx), term, .term_labels[idx])
-            }
-        ) |>
-        dplyr::mutate(
+            },
             term_order = factor(
                 term_label_base,
                 levels = rev(c(
-                    unname(.term_labels),
+                    unique(unname(.term_labels)),
                     sort(unique(term_label_base[!(term %in% names(.term_labels))]))
                 ))
-            )
-        ) |>
-        dplyr::mutate(
-            term_label_display = dplyr::case_when(
-                sig ~ paste0(term_label_base, " *"),
-                TRUE ~ term_label_base
+            ),
+            term_label_display = dplyr::if_else(
+                sig, paste0(term_label_base, " *"), term_label_base
             ),
             term_label = term_order
         )
@@ -579,7 +579,7 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
     coef_grob  <- ggplot2::ggplotGrob(p_coef)
     panel_row  <- which(coef_grob$layout$name == "panel")
     coef_grob$heights[coef_grob$layout$t[panel_row]] <-
-        grid::unit(n_terms * 0.18, "in")
+        grid::unit(n_terms * 0.14, "in")
 
     # ── Save forest plot as PNG and coefficients as CSV ----------------------
     if (!is.null(out_dir)) {
@@ -587,8 +587,8 @@ pool_sandwich_lmm <- function(models, id_var = "pt", cr_type = "CR2") {
         ggplot2::ggsave(
             filename = file.path(out_dir, paste0(stem, "_forest.png")),
             plot     = p_coef,
-            width    = 10,
-            height   = max(4, n_terms * 0.3),
+            width    = 14,
+            height   = max(3, n_terms * 0.22),
             dpi      = 300,
             bg       = "white"
         )

@@ -1,5 +1,5 @@
 # =============================================================================
-# R/derive_combined.R
+# R/02_05_derive_combined_variables.R
 # =============================================================================
 # Single entry-point for derivations on the merged OsteoLaus-CoLaus dataset.
 #
@@ -7,6 +7,12 @@
 # ----------------
 #   derive_combined(df)    -- plain merged data frame (complete-case route)
 #   derive_combined(mids)  -- mids object (MICE route)
+#
+# Internal helper
+# ----------------
+#   .derive_chain_combined() — ordered pipe chain of derive_sarcopenia()
+#     (R/02_05_01_derive_sarcopenia.R) and derive_visit_time()
+#     (R/02_05_02_derive_visit_time.R)
 #
 # Derivation chain
 # ----------------
@@ -28,6 +34,9 @@
 #   mids      -> mids with derived variables appended
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# .derive_chain_combined()
+# -----------------------------------------------------------------------------
 # Main derivation chain for merged data.
 .derive_chain_combined <- function(df) {
     df |>
@@ -36,6 +45,9 @@
 }
 
 
+# -----------------------------------------------------------------------------
+# derive_combined()
+# -----------------------------------------------------------------------------
 #' Derive combined variables on the merged dataset.
 #'
 #' @param data Either:

@@ -1,5 +1,5 @@
 # =============================================================================
-# R/derive_osteolaus_alm.R
+# R/02_02_15_derive_osteo_ALM.R
 # =============================================================================
 # Derives ALM-based body composition indices from DXA measurements.
 #
@@ -55,10 +55,9 @@
 .ALM_CAL_INTERCEPT <- -369.3   # grams
 .ALM_CAL_SLOPE     <-   0.967  # dimensionless
 
-# =============================================================================
-# Main derivation function
-# =============================================================================
-
+# -----------------------------------------------------------------------------
+# derive_alm_indices()
+# -----------------------------------------------------------------------------
 #' Derive ALM-based body composition indices for an OsteoLaus long tibble.
 #'
 #' Produces two parallel sets of indices:
@@ -267,10 +266,9 @@ derive_alm_indices <- function(df) {
 }
 
 
-# =============================================================================
-# Split ALM-derived variables by DXA method
-# =============================================================================
-
+# -----------------------------------------------------------------------------
+# split_alm_by_method()
+# -----------------------------------------------------------------------------
 #' Create method-specific ALM columns based on DXA_method.
 #'
 #' @param df Data frame containing ALM-derived variables and DXA_method.

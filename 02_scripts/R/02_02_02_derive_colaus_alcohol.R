@@ -1,9 +1,9 @@
 # =============================================================================
-# R/derive_colaus_alcohol.R
+# R/02_02_02_derive_colaus_alcohol.R
 # =============================================================================
 # Derives alcohol_category from conso_hebdo (units/week) and from sumalco (grams/day)
-# for sensitivity analysis
-# 
+# for sensitivity analysis. Defines one function: derive_alcohol().
+#
 # conso_hebdo is the primary source. sumalco is used as comparison.
 #
 # Thresholds are applied on a per-weekly basis:
@@ -13,11 +13,14 @@
 #   >7 units/week (>12 g/day)           -> 3 = Heavy
 #
 # The g/day thresholds are derived from the Swiss national guidelines defining
-# a standard drink as containing approximately 10-12 g of pure ethanol.
+# a standard drink as containing approximately 10 g of pure ethanol.
 # The conversion from units/week to g/week uses a standard value of 10 g/unit,
 # the lower end of the typical range.
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_alcohol()
+# -----------------------------------------------------------------------------
 #' Derive alcohol_category for a CoLaus long tibble.
 #'
 #' @param df CoLaus long tibble after harmonisation and stacking.

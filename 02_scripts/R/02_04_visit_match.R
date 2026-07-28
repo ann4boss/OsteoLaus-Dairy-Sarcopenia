@@ -1,5 +1,21 @@
 # =============================================================================
+# R/02_04_visit_match.R
+# =============================================================================
 # Visit matching function: CoLaus → OsteoLaus (backbone = OsteoLaus)
+#
+# Functions:
+#   merge_visit_pairs()   — public entry point (complete-case and MICE routes)
+#   .prefix_cols()        — prefixes all non-key columns with a study label
+#   .merge_pairs_slice()  — core merge for one complete-case slice
+#   .prepare_dt()         — coerces to data.table, parses exam_date_iso
+#   .join_visit_pair()    — inner join on pt for one visit pair
+#   .resolve_columns()    — collapses colaus_X/osteo_X pairs into final X
+#   .finalise_column_order() — orders lead columns, sorts rows
+#   .check_required_cols()   — aborts if required columns are missing
+#   .drop_cols()              — drops columns if present
+#   .remove_missing_dates()   — drops rows with missing exam_date_iso
+#   .validate_imp_ids()       — checks CoLaus/OsteoLaus .imp indices match
+#   .combine_mice_results()   — row-binds per-imputation slices back into a mids
 #
 # Fixed visit-pair mapping:
 #   OsteoLaus Baseline  ↔  CoLaus F1   → time_point = "T1"
@@ -29,6 +45,9 @@
 #   MICE:          list(mids = mids,   qc   = list(...))
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# merge_visit_pairs()
+# -----------------------------------------------------------------------------
 merge_visit_pairs <- function(colaus, osteolaus) {
     
     is_mice <- inherits(colaus, "mids") || inherits(osteolaus, "mids")
@@ -122,8 +141,9 @@ merge_visit_pairs <- function(colaus, osteolaus) {
 .JOIN_KEYS <- c("pt", ".imp", ".id")
 
 
-# ── Prefix all non-key columns with a study label ─────────────────────────────
-#
+# -----------------------------------------------------------------------------
+# .prefix_cols()
+# -----------------------------------------------------------------------------
 # Called once per dataset before any joining. After this, every column is
 # unambiguous regardless of which time points are present, so T4 (OsteoLaus-only)
 # requires no special handling.
@@ -135,8 +155,10 @@ merge_visit_pairs <- function(colaus, osteolaus) {
 }
 
 
-# ── Core merge for one complete-case slice ─────────────────────────────────────
-
+# -----------------------------------------------------------------------------
+# .merge_pairs_slice()
+# -----------------------------------------------------------------------------
+# Core merge for one complete-case slice.
 .merge_pairs_slice <- function(colaus_slice, osteo_slice) {
     
     col_dt   <- .prepare_dt(colaus_slice)
@@ -213,17 +235,10 @@ merge_visit_pairs <- function(colaus, osteolaus) {
 }
 
 
-# ── Convert to data.table, coerce date, prefix all non-key columns ────────────
-
-.prepare_dt <- function(df, prefix) {
-    dt <- data.table::as.data.table(df)
-    dt[, exam_date_iso := as.Date(exam_date_iso)]
-    dt
-}
-
-
-# ── inner join on pt for one visit pair ────────────────────────────────────────
-
+# -----------------------------------------------------------------------------
+# .join_visit_pair()
+# -----------------------------------------------------------------------------
+# Inner join on pt for one visit pair.
 .join_visit_pair <- function(osteo_block, col_block, time_point) {
     
     data.table::setkey(col_block,   pt)
@@ -251,6 +266,9 @@ merge_visit_pairs <- function(colaus, osteolaus) {
 # exam_date_iso → exam_date.
 # .visit and .cohort columns are dropped.
 
+# -----------------------------------------------------------------------------
+# .resolve_columns()
+# -----------------------------------------------------------------------------
 .OSTEO_WINS <- c("exam_date_iso", "Age")
 
 .resolve_columns <- function(dt) {
@@ -310,8 +328,10 @@ merge_visit_pairs <- function(colaus, osteolaus) {
 }
 
 
-# ── Put key columns first, sort rows ──────────────────────────────────────────
-
+# -----------------------------------------------------------------------------
+# .finalise_column_order()
+# -----------------------------------------------------------------------------
+# Put key columns first, sort rows.
 .finalise_column_order <- function(dt) {
     
     # Ensure ordered factor
@@ -335,12 +355,18 @@ merge_visit_pairs <- function(colaus, osteolaus) {
 # Shared low-level helpers
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# .check_required_cols()
+# -----------------------------------------------------------------------------
 .check_required_cols <- function(df, cols, label) {
     missing <- setdiff(cols, names(df))
     if (length(missing) > 0L)
         cli::cli_abort("{label} is missing required columns: {.val {missing}}")
 }
 
+# -----------------------------------------------------------------------------
+# .drop_cols()
+# -----------------------------------------------------------------------------
 .drop_cols <- function(df, cols) {
     to_drop <- intersect(cols, names(df))
     if (length(to_drop) == 0L) return(df)
@@ -348,12 +374,19 @@ merge_visit_pairs <- function(colaus, osteolaus) {
     df[, setdiff(names(df), to_drop), drop = FALSE]
 }
 
+# -----------------------------------------------------------------------------
+# .prepare_dt()
+# -----------------------------------------------------------------------------
+# Convert to data.table and coerce exam_date_iso to Date.
 .prepare_dt <- function(df) {
     dt <- data.table::as.data.table(df)
     dt[, exam_date_iso := as.Date(exam_date_iso)]
     dt
 }
 
+# -----------------------------------------------------------------------------
+# .remove_missing_dates()
+# -----------------------------------------------------------------------------
 .remove_missing_dates <- function(col_dt, osteo_dt) {
     # NOTE: called before .prefix_cols, so exam_date_iso is still unprefixed
     n_osteo_removed    <- sum(is.na(osteo_dt$exam_date_iso))
@@ -386,6 +419,9 @@ merge_visit_pairs <- function(colaus, osteolaus) {
     )
 }
 
+# -----------------------------------------------------------------------------
+# .validate_imp_ids()
+# -----------------------------------------------------------------------------
 .validate_imp_ids <- function(colaus_imp, osteo_imp) {
     col_ids   <- sort(setdiff(unique(colaus_imp), 0L))
     osteo_ids <- sort(setdiff(unique(osteo_imp),  0L))
@@ -403,6 +439,9 @@ merge_visit_pairs <- function(colaus, osteolaus) {
     col_ids
 }
 
+# -----------------------------------------------------------------------------
+# .combine_mice_results()
+# -----------------------------------------------------------------------------
 .combine_mice_results <- function(by_imp, m, obs_slice = NULL) {
     data    <- data.table::rbindlist(lapply(by_imp, `[[`, "data"), fill = TRUE)
     qc_list <- data.table::rbindlist(lapply(by_imp, `[[`, "qc"),  fill = TRUE)

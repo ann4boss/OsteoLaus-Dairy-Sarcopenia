@@ -97,6 +97,16 @@ label_var <- function(var) {
   ifelse(var %in% names(VAR_LABELS), VAR_LABELS[var], gsub("_", " ", var))
 }
 
+# Push sorted points apart so consecutive gaps are >= min_gap, shifting as
+# little as possible (forward pass then backward pass), instead of a physics
+# based repel that can throw labels far from their true position.
+.enforce_min_gap <- function(x, min_gap) {
+  x <- sort(x)
+  for (i in seq_along(x)[-1]) x[i] <- max(x[i], x[i - 1] + min_gap)
+  for (i in rev(seq_along(x)[-length(x)])) x[i] <- min(x[i], x[i + 1] - min_gap)
+  x
+}
+
 # Sequential palette: evenly spaced across full gradient (for ordered visits).
 .pal_seq <- function(n) {
   idx <- round(seq(1, length(PALETTE), length.out = max(n, 2)))
@@ -111,6 +121,13 @@ label_var <- function(var) {
   interleaved <- c(rbind(warm, cool))   # red, navy, orange, steel, ...
   if (n <= 10) interleaved[seq_len(n)]
   else grDevices::colorRampPalette(interleaved)(n)
+}
+
+# Alluvial category palette: fixed, mutually distinguishable colors.
+.pal_alluvial <- function(n) {
+  base <- c("#EF8A47", "#FFE6B7", "#72BCD5", "#1E466E")
+  if (n <= length(base)) base[seq_len(n)]
+  else grDevices::colorRampPalette(base)(n)
 }
 
 # Compute Q25/Q50/Q75 cut-points per exposure variable.
@@ -240,7 +257,19 @@ plot_alluvial <- function(data,
     dplyr::filter(!is.na(.data[[time_col]])) |>
     dplyr::group_by(.data[[id_var]], .data[[time_col]]) |>
     dplyr::slice(1) |>
+    dplyr::ungroup() |>
+    dplyr::group_by(.data[[time_col]]) |>
+    dplyr::filter(!all(is.na(.data[[variable]]))) |>
     dplyr::ungroup()
+
+  # Missingness at any visit is shown as its own "Missing" stratum rather
+  # than dropped, so participants are still visible in the flow.
+  df <- df |>
+    dplyr::mutate(
+      !!variable := dplyr::if_else(
+        is.na(.data[[variable]]), "Missing", as.character(.data[[variable]])
+      )
+    )
 
   keep <- df |>
     dplyr::filter(!is.na(.data[[variable]])) |>
@@ -252,10 +281,16 @@ plot_alluvial <- function(data,
     dplyr::filter(.data[[id_var]] %in% keep) |>
     dplyr::mutate(
       dplyr::across(dplyr::all_of(time_col), ~ factor(.x, levels = sort(unique(.x)))),
-      dplyr::across(dplyr::all_of(variable), as.factor)
+      dplyr::across(
+        dplyr::all_of(variable),
+        ~ factor(.x, levels = c(setdiff(sort(unique(.x)), "Missing"), "Missing"))
+      )
     )
 
-  n_cats <- dplyr::n_distinct(df[[variable]])
+  cat_levels  <- levels(df[[variable]])
+  real_levels <- setdiff(cat_levels, "Missing")
+  pal <- stats::setNames(.pal_alluvial(length(real_levels)), real_levels)
+  if ("Missing" %in% cat_levels) pal <- c(pal, Missing = "grey75")
 
   ggplot2::ggplot(df, ggplot2::aes(
     x        = .data[[time_col]],
@@ -267,12 +302,9 @@ plot_alluvial <- function(data,
     ggalluvial::geom_flow(alpha = 0.45) +
     ggalluvial::geom_stratum(alpha = 0.9) +
     ggplot2::geom_text(stat = "stratum", size = 3, family = FONT) +
-    ggplot2::scale_fill_manual(values = .pal_cat(n_cats), name = label_var(variable)) +
+    ggplot2::scale_fill_manual(values = pal, name = label_var(variable)) +
     theme_proj() +
-    ggplot2::labs(
-      title = paste(label_var(variable), "over time"),
-      x = "Visit", y = "Participants"
-    )
+    ggplot2::labs(x = "Visit", y = "Participants")
 }
 
 # ── 6. Exposure vs outcome scatter with LOESS per time point ──────────────────
@@ -285,8 +317,10 @@ plot_exposure_outcome <- function(data,
                                   quartile_cuts = NULL) {
   df     <- extract_data(data)
   visits <- sort(unique(df[[time_col]]))
-  # Single dark blue for all time points (facet labels already distinguish visits)
-  col_pt <- PALETTE[10]
+  # Single light blue for all time points (facet labels already distinguish visits)
+  col_pt <- "#376795"
+  # Warm-to-cool gradient across quartiles (low -> high dairy)
+  band_colors <- c(Q1 = "#E76254", Q2 = "#F7AA58", Q3 = "#72BCD5", Q4 = "#1E466E")
   combos <- expand.grid(x = x, y = y, stringsAsFactors = FALSE)
 
   purrr::pmap(combos, function(x, y) {
@@ -295,41 +329,85 @@ plot_exposure_outcome <- function(data,
       dplyr::filter(!is.na(.data[[x]]), !is.na(.data[[y]])) |>
       dplyr::mutate(visit = factor(.data[[time_col]], levels = visits))
 
+    rect_layers <- NULL
+    line_layer  <- NULL
+    text_layer  <- NULL
+
+    if (!is.null(quartile_cuts) && x %in% names(quartile_cuts)) {
+      cuts <- sort(quartile_cuts[[x]])
+
+      # Facets use scales = "free_x", so band edges must be computed per
+      # panel; the y-axis is shared, so y_top is computed once globally.
+      ranges_df <- pd |>
+        dplyr::group_by(visit) |>
+        dplyr::summarise(
+          x_min = min(.data[[x]], na.rm = TRUE), x_max = max(.data[[x]], na.rm = TRUE),
+          .groups = "drop"
+        )
+
+      y_rng <- range(pd[[y]], na.rm = TRUE)
+      y_top <- y_rng[2] + diff(y_rng) * 0.08
+
+      bands_df <- purrr::pmap_dfr(ranges_df, function(visit, x_min, x_max) {
+        bounds <- c(x_min, cuts, x_max)
+        tibble::tibble(
+          visit  = visit,
+          xmin   = bounds[-length(bounds)],
+          xmax   = bounds[-1],
+          qlabel = paste0("Q", seq_len(length(bounds) - 1))
+        )
+      }) |>
+        dplyr::mutate(xmid = (xmin + xmax) / 2, y_top = y_top)
+
+      rect_layers <- purrr::map(names(band_colors), function(q) {
+        ggplot2::geom_rect(
+          data = dplyr::filter(bands_df, qlabel == q),
+          ggplot2::aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf),
+          fill = band_colors[[q]], alpha = 0.10, inherit.aes = FALSE
+        )
+      })
+
+      cuts_df <- tidyr::expand_grid(visit = ranges_df$visit, xintercept = cuts)
+
+      line_layer <- ggplot2::geom_vline(
+        data = cuts_df,
+        ggplot2::aes(xintercept = xintercept),
+        linetype = "dashed", color = "grey30", linewidth = 0.5, alpha = 0.8,
+        inherit.aes = FALSE
+      )
+
+      text_layer <- ggplot2::geom_text(
+        data = bands_df,
+        ggplot2::aes(x = xmid, y = y_top, label = qlabel),
+        vjust = 0, hjust = 0.5,
+        size = 2.5, family = FONT, color = "grey30",
+        inherit.aes = FALSE
+      )
+    }
+
     p <- ggplot2::ggplot(pd, ggplot2::aes(
       x = .data[[x]], y = .data[[y]], color = visit, fill = visit
     )) +
+      rect_layers +
+      line_layer +
       ggplot2::geom_point(alpha = 0.35, size = 1.2) +
-      ggplot2::geom_smooth(method = "loess", formula = y ~ x,
-                           span = span, se = TRUE, alpha = 0.15, linewidth = 0.8) +
+      ggplot2::geom_smooth(
+        ggplot2::aes(x = .data[[x]], y = .data[[y]]),
+        method = "loess", formula = y ~ x, span = span, se = TRUE,
+        colour = "black", fill = "grey40", alpha = 0.15, linewidth = 0.8,
+        inherit.aes = FALSE
+      ) +
+      text_layer +
       ggplot2::facet_wrap(~ visit, scales = "free_x") +
       ggplot2::scale_color_manual(values = rep(col_pt, length(visits)), guide = "none") +
       ggplot2::scale_fill_manual(values  = rep(col_pt, length(visits)), guide = "none") +
+      ggplot2::scale_y_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.14))) +
       theme_proj() +
       ggplot2::theme(
         axis.line = ggplot2::element_line(color = "black", linewidth = 0.4)
       ) +
       ggplot2::labs(x = label_var(x), y = label_var(y))
 
-    if (!is.null(quartile_cuts) && x %in% names(quartile_cuts)) {
-      cuts_df <- tibble::tibble(
-        xintercept = quartile_cuts[[x]],
-        qlabel     = c("Q1", "Q2", "Q3")
-      )
-      p <- p +
-        ggplot2::geom_vline(
-          data = cuts_df,
-          ggplot2::aes(xintercept = xintercept),
-          linetype = "solid", color = PALETTE[1], linewidth = 0.45, alpha = 0.8,
-          inherit.aes = FALSE
-        ) +
-        ggplot2::geom_text(
-          data = cuts_df,
-          ggplot2::aes(x = xintercept, label = qlabel),
-          y = Inf, vjust = 1.5, hjust = 1.15,
-          size = 2.5, family = FONT, color = PALETTE[1],
-          inherit.aes = FALSE
-        )
-    }
     p
   }) |> rlang::set_names(paste(combos$y, "vs", combos$x))
 }

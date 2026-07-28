@@ -1,7 +1,9 @@
 # =============================================================================
-# R/derive_colaus_cvd.R
+# R/02_02_04_derive_colaus_cvd.R
 # =============================================================================
-# Derives cdv_event (any CVD event) from the 13 component flags.
+# TODO: get rid of the carrying forward mechanism
+# Derives cdv_event (any CVD event) from the 13 component flags. Defines one
+# function: derive_cvd().
 #
 # Component flags (all Yes/No, sentinel 9 = Does not know → NA):
 #   miac  myocardial infarction
@@ -29,6 +31,9 @@
 # derived value at Baseline and a warning raised on mismatch.
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_cvd()
+# -----------------------------------------------------------------------------
 #' Derive cdv_event composite for a CoLaus long tibble.
 #'
 #' Derives cdv_event from the 13 CVD component flags (available at Baseline

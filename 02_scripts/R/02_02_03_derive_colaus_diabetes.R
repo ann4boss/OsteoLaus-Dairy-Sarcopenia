@@ -1,8 +1,9 @@
 # =============================================================================
-# R/derive_colaus_diabetes.R
+# R/02_02_03_derive_colaus_diabetes.R
 # =============================================================================
 # Derives a harmonised diabetes_status variable using multiple sources with a
-# predefined hierarchy and provides validation diagnostics.
+# predefined hierarchy and provides validation diagnostics. Defines one
+# function: derive_diabetes().
 #
 # SOURCE VARIABLES
 #   dbtld     — self-reported diabetes diagnosis (Yes/No)
@@ -38,7 +39,10 @@
 #   Note: Some disagreement between dbtld and clinical/lab measures is expected.
 # =============================================================================
 
-#' Derive diabetes_status
+# -----------------------------------------------------------------------------
+# derive_diabetes()
+# -----------------------------------------------------------------------------
+#' Derive diabetes_status.
 #'
 #' @param df CoLaus long tibble (lazy_dt or data.frame).
 #' @return df with diabetes_status (factor) and internal flags added.

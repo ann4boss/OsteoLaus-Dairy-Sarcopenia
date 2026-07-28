@@ -1,7 +1,8 @@
 # =============================================================================
-# R/derive_colaus_htn.R
+# R/02_02_14_derive_colaus_htn.R
 # =============================================================================
 # Derives htn_status (hypertension) from three sources using a hierarchy:
+# Defines one function: derive_htn().
 #
 #   1. HTA     — measured hypertension (BP >= 140/90 mmHg)  [most objective]
 #   2. antiHTA — documented antihypertensive treatment
@@ -15,6 +16,9 @@
 #   htn_status = NA    if all three sources are NA
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_htn()
+# -----------------------------------------------------------------------------
 #' Derive htn_status for a CoLaus long tibble.
 #'
 #' Uses a three-level hierarchy: HTA (measured) > antiHTA (documented

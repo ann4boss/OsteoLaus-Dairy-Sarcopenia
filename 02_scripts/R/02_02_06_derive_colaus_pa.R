@@ -1,7 +1,7 @@
 # =============================================================================
-# R/05_derive_colaus_pa.R
+# R/02_02_06_derive_colaus_pa.R
 # =============================================================================
-# Derives two parallel PA classifications:
+# Derives two parallel PA classifications. Defines one function: derive_pa().
 #
 #   pa_levels_tertile  Cohort-relative tertile (Low / Medium / High)
 #   pa_levels_who      PAFQ-corrected WHO categories, collapsed to 3 levels
@@ -12,7 +12,7 @@
 #
 # ── Rationale ────────────────────────────────────────────────────────────────
 # Verhoog et al. (2019, Maturitas 129:68–75) validated the PAFQ in this same
-# CoLaus cohort against 14-day accelerometry (n = 1,752). Key findings:
+# CoLaus cohort against 14-day accelerometry (n = 1752). Key findings:
 #   - PAFQ overestimates MVPA by a median ratio of ~1.28 (213 vs 166 min/day)
 #   - Lin's CCC for MVPA = 0.254; for LPA only 0.075 → LPA excluded
 #   - Overestimation increases with activity level (Bland-Altman, Fig. 2)
@@ -38,6 +38,9 @@
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# derive_pa()
+# -----------------------------------------------------------------------------
 #' Derive Physical Activity (PA) classification variables
 #'
 #' @param df CoLaus long tibble containing `PAFQ_MPA`, `PAFQ_VPA`, `.visit`.

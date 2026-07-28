@@ -1,27 +1,44 @@
 # =============================================================================
 # R/01_prepare_core.R
 # =============================================================================
-# Wrapper function that runs the full static preparation pipeline in one call.
+# Wrapper function that runs the full static preparation pipeline in one call,
+# chaining every other 01_*.R script in order. Defines one function:
+# prepare_core().
 #
 # Steps (internal):
-#   01  Import raw CSVs
+#   01a Import raw CSVs                     (R/01_01_01_import.R)
+#   01b Concatenate supplementary columns   (R/01_01_02_concatenate_extra_columns.R)
 #   02  Harmonise (type coercion, date parsing, factor coding)
-#   03  QC – data integrity (participant / visit level)
-#   04a Stack visits into long tables
-#   04b QC – variable level
-#
-# @param f_colaus_baseline,f_colaus_f1,f_colaus_f2,f_colaus_f3
-#   File paths to CoLaus visit CSVs.
-# @param f_osteo_baseline,f_osteo_v2,f_osteo_v3,f_osteo_v4,f_osteo_v5
-#   File paths to OsteoLaus visit CSVs.
-#
-# @return A named list with:
-#   $colaus_long         — stacked long tibble for CoLaus (all visits)
-#   $osteo_long          — stacked long tibble for OsteoLaus (all visits)
-#   $qc_tbl              — participant-level QC flags
-#   $qc_summary          — scalar QC summary
+#                                            (R/01_02_02_harmonise_colaus.R,
+#                                             R/01_02_03_harmonise_osteolaus.R)
+#   03  QC – data integrity (participant / visit level) (R/01_03_qc_data.R)
+#   04  Stack visits into long tables       (R/01_04_stack_visits.R)
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# prepare_core()
+# -----------------------------------------------------------------------------
+#' Run the full static data-preparation pipeline.
+#'
+#' Imports every raw CoLaus/OsteoLaus visit CSV, joins on supplementary
+#' columns (FFQ, cardiovascular events, birth/death dates), harmonises types
+#' and factor levels per visit, runs participant/visit-level QC, and stacks
+#' visits into one long tibble per cohort.
+#'
+#' @param f_colaus_baseline,f_colaus_f1,f_colaus_f2,f_colaus_f3
+#'   File paths to CoLaus visit CSVs.
+#' @param f_osteo_baseline,f_osteo_v2,f_osteo_v3,f_osteo_v4,f_osteo_v5
+#'   File paths to OsteoLaus visit CSVs.
+#' @param f_colaus_baseline_add_food,f_colaus_f1_add_food,f_colaus_f2_add_food,f_colaus_f3_add_food
+#'   File paths to CoLaus add-food CSVs (FFQ, cardiovascular events,
+#'   birth date at Baseline).
+#' @param f_colaus_death File path to the CoLaus deaths CSV.
+#'
+#' @return A named list with:
+#'   $colaus_long — stacked long tibble for CoLaus (all visits)
+#'   $osteo_long  — stacked long tibble for OsteoLaus (all visits)
+#'   $qc_tbl      — participant-level QC flags
+#'   $qc_summary  — scalar QC summary
 prepare_core <- function(
         f_colaus_baseline, f_colaus_f1, f_colaus_f2, f_colaus_f3,
         f_osteo_baseline,  f_osteo_v2,  f_osteo_v3,  f_osteo_v4,  f_osteo_v5,

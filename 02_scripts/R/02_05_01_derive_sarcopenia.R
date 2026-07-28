@@ -1,14 +1,16 @@
 # =============================================================================
-# R/build_sarcopenia.R
+# R/02_05_01_derive_sarcopenia.R
 # =============================================================================
 # Computes definitive sarcopenia staging using EWGSOP2 and FNIH criteria.
-#
+# Defines one function: derive_sarcopenia(), called from .derive_chain_combined()
+# in R/02_05_derive_combined_variables.R.
 # =============================================================================
+
 # -----------------------------------------------------------------------------
 # EWGSOP2 (2019) sarcopenia thresholds — women only
 # OsteoLaus is an all-female cohort; only female cut-offs are needed.
 #
-# Staging logic (applied in 06_derived_combined.R):
+# Staging logic (applied in derive_sarcopenia() below):
 #   Probable sarcopenia : HGS_peak < hgs_kg
 #   Confirmed sarcopenia: probable + ALM_HT2_harmonised < almi_kgm2
 #   Severe sarcopenia   : confirmed + gait_speed <= gait_ms
@@ -35,6 +37,9 @@ FNIH <- list(
 )
 
 
+# -----------------------------------------------------------------------------
+# derive_sarcopenia()
+# -----------------------------------------------------------------------------
 #' Compute definitive sarcopenia staging.
 #'
 #' @param df Output of merge_closest_exams_final(). 

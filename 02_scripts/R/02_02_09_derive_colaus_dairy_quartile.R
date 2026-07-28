@@ -1,7 +1,12 @@
 # =============================================================================
-# R/derive_colaus_dairy_quartile.R
+# R/02_02_09_derive_colaus_dairy_quartile.R
 # =============================================================================
-# Derives two quartile variables from dairy_total_gday_cumavg:
+# Derives two quartile variables from dairy_total_gday_cumavg.
+#
+# Functions:
+#   derive_dairy_quartile()      — adds dairy_quartile_baseline/_overall
+#   export_dairy_quartile_cuts() — recomputes and exports the same cut-points
+#                                   to CSV for inspection (CC or MICE data)
 #
 #   dairy_quartile_baseline
 #     Quartile boundaries are computed from the F1 distribution (first measurement time point) of
@@ -23,6 +28,9 @@
 # Requires dairy_total_gday_cumavg to be present (output of derive_dairy()).
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_dairy_quartile()
+# -----------------------------------------------------------------------------
 #' Derive dairy intake quartile variables for a CoLaus long tibble.
 #'
 #' @param df CoLaus long tibble after derive_dairy() has been applied.
@@ -203,13 +211,21 @@ derive_dairy_quartile <- function(df) {
 # Works on the MERGED datasets (time_point = "T1" maps to CoLaus F1).
 #
 # For mids objects the breaks are averaged over all m complete datasets.
-#
-# Usage:
-#   export_dairy_quartile_cuts(
-#     list("CC" = cc_merged_derived, "MICE" = mice_merged_derived),
-#     out_file = "03_outputs/descriptives/dairy_quartile_cuts.csv"
-#   )
+# =============================================================================
 
+# -----------------------------------------------------------------------------
+# export_dairy_quartile_cuts()
+# -----------------------------------------------------------------------------
+#' Recompute and export dairy quartile cut-points to CSV.
+#'
+#' @param data_list      Named list of datasets (data.frame or mids objects,
+#'   e.g. list("CC" = cc_merged_derived, "MICE" = mice_merged_derived)).
+#' @param out_file       Output CSV path. Parent directory is created if needed.
+#' @param visit_col      Name of the visit/time-point column. Default "time_point".
+#' @param baseline_visit Value of `visit_col` identifying the baseline visit
+#'   used for the baseline quartile cut-points. Default "T1".
+#' @return `out_file`, invisibly. Writes a CSV with one row per
+#'   dataset x quartile type x boundary.
 export_dairy_quartile_cuts <- function(data_list,
                                        out_file,
                                        visit_col      = "time_point",

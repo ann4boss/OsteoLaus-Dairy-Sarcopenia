@@ -1,8 +1,9 @@
 # =============================================================================
-# R/derive_colaus_dairy_serving.R
+# R/02_02_07_derive_colaus_dairy_serving.R
 # =============================================================================
 # Derives dairy serving and Swiss-guideline compliance from FFQ
-# frequency and portion-size columns.
+# frequency and portion-size columns. Defines one function:
+# derive_dairy_servings().
 #
 # SWISS GUIDELINE REFERENCE
 # ─────────────────────────
@@ -59,6 +60,9 @@
 # Compliance threshold: >= 2 servings/day (lower bound of Swiss recommendation).
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_dairy_servings()
+# -----------------------------------------------------------------------------
 #' Derive dairy serving count and Swiss-guideline compliance for CoLaus.
 #'
 #' Computes two serving-count estimates (frequency-based and portion-adjusted)

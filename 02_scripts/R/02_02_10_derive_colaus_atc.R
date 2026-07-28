@@ -1,7 +1,8 @@
 # =============================================================================
-# R/derive_colaus_atc.R
+# R/02_02_10_derive_colaus_atc.R
 # =============================================================================
-# Derives binary medication status flags from raw ATC code columns.
+# Derives binary medication status flags from raw ATC code columns. Defines
+# one function: derive_atc().
 #
 # Source columns: ATC1 ... ATC21 (character, one ATC code per column).
 # Each row may have up to 21 reported medications. A flag is set to "Yes"
@@ -19,6 +20,10 @@
 # =============================================================================
 
 
+# -----------------------------------------------------------------------------
+# ATC_PREFIXES
+# -----------------------------------------------------------------------------
+# ATC code prefix -> derived status-column name mapping used by derive_atc().
 ATC_PREFIXES <- list(
     hypolip_drug_status   = "C10",
     corticoids_status     = "H02",
@@ -29,6 +34,9 @@ ATC_PREFIXES <- list(
 )
 
 
+# -----------------------------------------------------------------------------
+# derive_atc()
+# -----------------------------------------------------------------------------
 #' Derive ATC-based medication status flags for a CoLaus long tibble.
 #'
 #' @param df CoLaus long tibble after harmonisation and stacking.

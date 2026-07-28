@@ -1,7 +1,8 @@
 # =============================================================================
-# R/derive_colaus_hrt.R
+# R/02_02_05_derive_colaus_hrt.R
 # =============================================================================
 # Derives Hormone Replacement Therapy (HRT) hrt_status from esthrp and esthrpage.
+# Defines one function: derive_hrt().
 #
 # Source variables:
 #   esthrp    — currently on HRT (0=No, 1=Yes, 9=Does not know → NA)
@@ -17,6 +18,9 @@
 #
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_hrt()
+# -----------------------------------------------------------------------------
 #' Derive Hormone Replacement Therapy (HRT) status for a CoLaus long tibble.
 #'
 #' @param df CoLaus long tibble after harmonisation and stacking.

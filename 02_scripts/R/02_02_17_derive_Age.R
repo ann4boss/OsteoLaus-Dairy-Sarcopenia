@@ -1,7 +1,8 @@
 # =============================================================================
-# R/derive_age.R
+# R/02_02_17_derive_Age.R
 # =============================================================================
-# Derives Age (decimal years) from datbirth and exam_date_iso.
+# Derives Age (decimal years) from datbirth and exam_date_iso. Defines one
+# function: derive_age().
 #
 #   Age = (exam_date_iso - datbirth) / 365.25
 #
@@ -15,6 +16,9 @@
 # ISO-8601 character strings, which are coerced automatically).
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_age()
+# -----------------------------------------------------------------------------
 #' Derive Age (decimal years) for a CoLaus long tibble.
 #'
 #' Fills datbirth from Baseline rows down to all visits per participant,

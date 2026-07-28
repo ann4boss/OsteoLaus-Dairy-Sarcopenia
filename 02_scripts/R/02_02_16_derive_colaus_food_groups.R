@@ -1,5 +1,30 @@
-#TODO check if Na values are not recoreded as 0
+# =============================================================================
+# R/02_02_16_derive_colaus_food_groups.R
+# =============================================================================
+# Sums FFQ item amounts (g/day) into food-group totals for a CoLaus long
+# tibble. Defines one function: derive_food_groups().
+#
+# Food groups and their constituent FFQ<n>amount columns are defined by the
+# .ANIMAL_PROTEIN / .PLANT_PROTEIN / .VEG / .FRU / .GRAINS / .FATS /
+# .PROCESSED / .ALCOHOL item-index vectors inside the function.
+#
+# TODO check if NA values are not recorded as 0
+# =============================================================================
 
+# -----------------------------------------------------------------------------
+# derive_food_groups()
+# -----------------------------------------------------------------------------
+#' Derive food-group intake totals (g/day) for a CoLaus long tibble.
+#'
+#' Sums the FFQ<n>amount columns belonging to each food group (animal
+#' protein, plant protein, vegetables, fruits, grains, fats/oils,
+#' processed/ultra-processed foods, alcohol). A row's group total is NA if
+#' any constituent item is NA, and NA if every constituent item is NA
+#' cohort-wide (see sum_block()).
+#'
+#' @param df CoLaus long tibble containing all FFQ<n>amount columns.
+#' @return df with animal_protein_gday, plant_protein_gday, veg_gday,
+#'   fru_gday, grains_gday, fats_gday, processed_gday, and alcohol_gday added.
 derive_food_groups <- function(df) {
     
     # ── ANIMAL PROTEIN ──────────────────────────────────────────────────────
@@ -74,6 +99,8 @@ derive_food_groups <- function(df) {
     }
     
     # ── SUM FUNCTION ─────────────────────────────────────────────────────────
+    # Row-sums `cols`; a row is NA if any of its `cols` values is NA, and the
+    # whole result is NA if every value in `cols` is NA across all rows.
     sum_block <- function(data, cols) {
         x <- data[, cols, drop = FALSE]
         

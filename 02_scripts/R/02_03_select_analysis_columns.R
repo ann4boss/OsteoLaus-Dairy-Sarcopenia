@@ -1,5 +1,5 @@
 # =============================================================================
-# R/select_analysis_columns.R
+# R/02_03_select_analysis_columns.R
 # =============================================================================
 # Selects the final set of columns required for analysis from the fully
 # derived CoLaus and OsteoLaus datasets.
@@ -8,6 +8,11 @@
 # ----------------
 #   select_analysis_columns(df)    -- plain data frame (complete-case route)
 #   select_analysis_columns(mids)  -- mids object (MICE route)
+#
+# Internal helper
+# ----------------
+#   .select_cols_from_df() — applies .ANALYSIS_COLS selection to one
+#     plain data frame or long tibble
 #
 # MICE route
 # ----------
@@ -23,6 +28,12 @@
 #   mids      -> mids with only the analysis columns
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# .ANALYSIS_COLS
+# -----------------------------------------------------------------------------
+# Full list of columns retained by select_analysis_columns(). Columns not
+# present in a given cohort's data (e.g. OsteoLaus-only or CoLaus-only
+# variables) are silently skipped by .select_cols_from_df().
 .ANALYSIS_COLS <- c(
     # Identifiers
     "pt", "exam_date_iso", ".visit", ".cohort",
@@ -51,6 +62,7 @@
     "dairy_total_gday_cumavg", "dairy_fermented_gday_cumavg",
     "dairy_non_fermented_gday_cumavg",
     "dairy_lowfat_gday_cumavg", "dairy_highfat_gday_cumavg",
+    "dairy_total_nofondue_gday", "dairy_total_nofondue_gday_cumavg",
     # Individual dairy FFQ items (cumavg) and protein content —
     # kept to test whether the muscle-outcome association depends on the
     # protein content of the dairy product (not just its weight).
@@ -69,6 +81,9 @@
 )
 
 
+# -----------------------------------------------------------------------------
+# select_analysis_columns()
+# -----------------------------------------------------------------------------
 #' Select analysis columns from a derived data frame or mids object.
 #'
 #' Keeps only the columns listed in `.ANALYSIS_COLS`. Columns absent from the
@@ -102,8 +117,9 @@ select_analysis_columns <- function(df) {
 }
 
 
-# ── Internal helper ───────────────────────────────────────────────────────────
-
+# -----------------------------------------------------------------------------
+# .select_cols_from_df()
+# -----------------------------------------------------------------------------
 # Apply .ANALYSIS_COLS selection to a plain data frame or long tibble.
 # .imp and .id are kept when present — they are required by mice::as.mids().
 .select_cols_from_df <- function(df) {
