@@ -1,5 +1,20 @@
 # =============================================================================
+# R/04_02_model_specification_sensitivity.R
+# =============================================================================
 # Alternative Model Specifications — HGS, ALMI, Gait Speed
+#
+# Functions:
+#   .prep_sens_imputation()               — extends the main data-prep with
+#                                            body-size and Mundlak columns
+#   .fit_nlme_varpower()                  — nlme::lme fit with varPower residuals
+#   .extract_ic_sens()                    — AIC/BIC/logLik extraction (any model type)
+#   .aic_bic_plot_sens()                  — AIC/BIC comparison plot
+#   .coef_comparison_plot_sens()          — dairy coefficient comparison plot
+#   .gamm_smooth_page()                   — GAMM smooth-term plot page
+#   .wb_detail_page()                     — within-/between-person detail page
+#   .assumption_checks_section()          — residual diagnostic plot pages
+#   run_model_specification_sensitivity()      — main entry point (HGS / ALMI)
+#   run_model_specification_sensitivity_gait() — main entry point (gait speed)
 #
 # Each model type is fitted with BOTH random-effects structures:
 #   "main" = reference RE (RS for HGS/ALMI, RI only for gait)
@@ -30,7 +45,7 @@
 
 
 # ---------------------------------------------------------------------------
-# 1.  EXTENDED DATA PREPARATION
+# 1.  EXTENDED DATA PREPARATION — .prep_sens_imputation()
 # ---------------------------------------------------------------------------
 
 #' Prepare one imputation for sensitivity-specification modelling.
@@ -116,7 +131,7 @@
 
 
 # ---------------------------------------------------------------------------
-# 2.  nlme + varPower FITTER
+# 2.  nlme + varPower FITTER — .fit_nlme_varpower()
 # ---------------------------------------------------------------------------
 
 #' Fit nlme::lme with varPower heteroscedastic residuals (ML).
@@ -163,7 +178,7 @@
 
 
 # ---------------------------------------------------------------------------
-# 3.  IC EXTRACTION HELPER
+# 3.  IC EXTRACTION HELPER — .extract_ic_sens()
 # ---------------------------------------------------------------------------
 
 #' Extract AIC, BIC, log-likelihood, and df from any supported model object.
@@ -206,9 +221,14 @@
 
 
 # ---------------------------------------------------------------------------
-# 4.  AIC / BIC COMPARISON PLOT
+# 4.  AIC / BIC COMPARISON PLOT — .aic_bic_plot_sens()
 # ---------------------------------------------------------------------------
-
+#' Plot AIC/BIC of each model relative to a reference model.
+#'
+#' @param ic_tbl          Tibble from `.extract_ic_sens()`, one row per model.
+#' @param title            Plot title.
+#' @param reference_model  Model label to use as the zero baseline. Default "M0  Reference".
+#' @return A ggplot object (bar chart of delta-AIC/BIC vs the reference model).
 .aic_bic_plot_sens <- function(ic_tbl, title,
                                 reference_model = "M0  Reference") {
     ref_row <- ic_tbl[ic_tbl$model == reference_model, ]
@@ -264,9 +284,16 @@
 
 
 # ---------------------------------------------------------------------------
-# 5.  DAIRY COEFFICIENT COMPARISON ACROSS SPECIFICATIONS
+# 5.  DAIRY COEFFICIENT COMPARISON ACROSS SPECIFICATIONS — .coef_comparison_plot_sens()
 # ---------------------------------------------------------------------------
-
+#' Plot the dairy exposure coefficient (with CI) across model specifications.
+#'
+#' @param model_list     Named list of fitted models (NULL entries skipped).
+#' @param model_names    Character vector of display labels.
+#' @param dairy_pattern  Regex matching the dairy term name(s) to extract from
+#'   each model's coefficient table (handles spline/polynomial term naming).
+#' @param title          Plot title.
+#' @return A ggplot object comparing the dairy coefficient across models.
 .coef_comparison_plot_sens <- function(model_list, model_names,
                                         dairy_pattern, title) {
     rows <- mapply(function(mod, nm) {
@@ -328,9 +355,14 @@
 
 
 # ---------------------------------------------------------------------------
-# 6.  GAMM SMOOTH PLOT
+# 6.  GAMM SMOOTH PLOT — .gamm_smooth_page()
 # ---------------------------------------------------------------------------
-
+#' Plot the estimated GAMM smooth term for the dairy exposure.
+#'
+#' @param gamm_mod      Fitted `mgcv::gamm()` result (list with `$gam`/`$lme`).
+#' @param dairy_col     Name of the dairy exposure column the smooth is over.
+#' @param outcome_label Display label for the outcome, used in the plot title.
+#' @return A ggplot/base-plot page (invisibly), or NULL if `gamm_mod` is missing.
 .gamm_smooth_page <- function(gamm_mod, dairy_col, outcome_label) {
     if (is.null(gamm_mod) || is.null(gamm_mod$gam)) {
         .text_page("GAMM smooth not available.", title = "GAMM smooth")
@@ -356,9 +388,15 @@
 
 
 # ---------------------------------------------------------------------------
-# 7.  WITHIN-/BETWEEN DETAIL PAGE
+# 7.  WITHIN-/BETWEEN DETAIL PAGE — .wb_detail_page()
 # ---------------------------------------------------------------------------
-
+#' Print a detail page comparing within- and between-person dairy coefficients
+#' from the Mundlak decomposition model (M6).
+#'
+#' @param m6_model     Fitted M6 model (or NULL, in which case a "not fit"
+#'   page is printed).
+#' @param outcome_label Display label for the outcome.
+#' @return Invisibly NULL; prints a page to the currently open PDF device.
 .wb_detail_page <- function(m6_model, outcome_label) {
     if (is.null(m6_model)) {
         .text_page("Within-/between model not available.", title = "W/B decomposition")
@@ -397,7 +435,7 @@
 
 
 # ---------------------------------------------------------------------------
-# 8.  ASSUMPTION CHECK PLOTS (all specifications)
+# 8.  ASSUMPTION CHECK PLOTS (all specifications) — .assumption_checks_section()
 # ---------------------------------------------------------------------------
 
 #' Print residual diagnostic plots for a list of fitted models.
@@ -566,7 +604,7 @@
 
 
 # ---------------------------------------------------------------------------
-# 9.  MAIN FUNCTION — HGS / ALMI
+# 9.  MAIN FUNCTION — HGS / ALMI — run_model_specification_sensitivity()
 # ---------------------------------------------------------------------------
 
 #' Alternative model specifications for HGS or ALMI, written to a PDF.
@@ -650,6 +688,8 @@ run_model_specification_sensitivity <- function(
     lbl_alt    <- if (random_slope) "(RI)" else "(RS)"
     ctrl <- lme4::lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 20000))
 
+    # Local closure: fit one lmer model on `df`, returning NULL (with a
+    # warning) instead of aborting if the fit errors.
     .lmer <- function(f) {
         tryCatch(lmerTest::lmer(f, data = df, REML = FALSE, control = ctrl),
                  error = function(e) { warning(conditionMessage(e)); NULL })
@@ -758,6 +798,8 @@ run_model_specification_sensitivity <- function(
         gam_formula <- stats::as.formula(paste(resp_col, "~",
             paste(c(paste0("s(", dairy_raw_col, ", k = 5, bs = 'cr')"),
                     time_var, covariates), collapse = " + ")))
+        # Local closure: fit one mgcv::gamm() with random-effect formula `rf`,
+        # returning NULL (with a warning) instead of aborting if the fit errors.
         .fit_gamm <- function(rf) {
             tryCatch(
                 mgcv::gamm(formula   = gam_formula,
@@ -959,7 +1001,7 @@ run_model_specification_sensitivity <- function(
 
 
 # ---------------------------------------------------------------------------
-# 9.  GAIT SPEED VERSION
+# 10. GAIT SPEED VERSION — run_model_specification_sensitivity_gait()
 # ---------------------------------------------------------------------------
 
 #' Alternative model specifications for gait speed, written to a PDF.
@@ -1044,6 +1086,8 @@ run_model_specification_sensitivity_gait <- function(
     lbl_alt    <- if (random_slope) "(RI)" else "(RS)"
     ctrl <- lme4::lmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 20000))
 
+    # Local closure: fit one lmer model on `df`, returning NULL (with a
+    # warning) instead of aborting if the fit errors.
     .lmer <- function(f) {
         tryCatch(lmerTest::lmer(f, data = df, REML = FALSE, control = ctrl),
                  error = function(e) { warning(conditionMessage(e)); NULL })
@@ -1151,6 +1195,8 @@ run_model_specification_sensitivity_gait <- function(
         gam_formula <- stats::as.formula(paste(resp_col, "~",
             paste(c(paste0("s(", dairy_raw_col, ", k = 5, bs = 'cr')"),
                     time_var, covariates), collapse = " + ")))
+        # Local closure: fit one mgcv::gamm() with random-effect formula `rf`,
+        # returning NULL (with a warning) instead of aborting if the fit errors.
         .fit_gamm <- function(rf) {
             tryCatch(
                 mgcv::gamm(formula   = gam_formula,

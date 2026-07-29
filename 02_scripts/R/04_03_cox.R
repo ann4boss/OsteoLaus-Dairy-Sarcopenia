@@ -1,7 +1,29 @@
 # =============================================================================
-# R/cox_sarcopenia.R
+# R/04_03_cox.R
 # =============================================================================
 # Cox Proportional Hazards Regression — Time to First Sarcopenia
+#
+# Functions (see SECTION dividers below for exact location):
+#   run_cox_sarcopenia()      — main entry point
+#   SECTION 1  — .build_surv_data_cc, .derive_event_indicator,
+#                .unorder_covariates, .build_fixed_dataset, .build_td_dataset
+#   SECTION 2  — .prepare_dairy
+#   SECTION 3  — .build_cox_formula
+#   SECTION 3B — .compute_epv
+#   SECTION 3C — .global_model_tests
+#   SECTION 3D — .compute_cindex
+#   SECTION 3E — .plot_spline_hr, .test_linearity
+#   SECTION 4  — .fit_cox_cc
+#   SECTION 4B — .build_finegray_data, .fit_finegray_cc, .fit_finegray_mice,
+#                .build_fg_rhs, .plot_cif
+#   SECTION 5  — .fit_cox_mice
+#   SECTION 6  — .tidy_cox, .tidy_pooled
+#   SECTION 7  — .check_cox_assumptions
+#   SECTION 7B — .incidence_by_quartile
+#   SECTION 8  — .km_plot_dairy
+#   SECTION 8B — .reference_covariates, .plot_scenario_survival
+#   SECTION 9  — cox_interaction_hr
+#   SECTION 10 — .check_cols, %||%, .write_log_pdf, .save_model_results
 #
 # OVERVIEW
 # --------
@@ -97,7 +119,7 @@
 
 
 # =============================================================================
-# Main entry point
+# Main entry point — run_cox_sarcopenia()
 # =============================================================================
 
 #' Run Cox regression for time to first sarcopenia.
@@ -246,6 +268,8 @@ run_cox_sarcopenia <- function(
 
 # =============================================================================
 # SECTION 1 — Survival dataset builders
+# .build_surv_data_cc() / .derive_event_indicator() / .unorder_covariates() /
+# .build_fixed_dataset() / .build_td_dataset()
 # =============================================================================
 
 # ── 1A: Complete-case dataset ------------------------------------------------
@@ -325,12 +349,10 @@ run_cox_sarcopenia <- function(
 
 # ── 1C: Fixed covariates dataset (one row per pt) ----------------------------
 
-#' One row per participant. Time = Age at first event or last follow-up.
-#' Covariates taken from OsteoLaus Baseline visit.
+#' Convert any ordered factor covariates to unordered, preserving level order
+#' (so the first level remains the reference). Ordered factors produce
+#' polynomial contrasts (.L, .Q) in coxph, which are rarely desired.
 #' @keywords internal
-# Convert any ordered factor covariates to unordered, preserving level order
-# (so the first level remains the reference). Ordered factors produce
-# polynomial contrasts (.L, .Q) in coxph, which are rarely desired.
 .unorder_covariates <- function(data, covariates) {
     for (cv in intersect(covariates, names(data))) {
         if (is.ordered(data[[cv]])) {
@@ -344,6 +366,9 @@ run_cox_sarcopenia <- function(
 }
 
 
+#' One row per participant. Time = Age at first event or last follow-up.
+#' Covariates taken from OsteoLaus Baseline visit.
+#' @keywords internal
 .build_fixed_dataset <- function(
         data, dairy_type, dairy_col, dairy_cat_col,
          covariates
@@ -521,7 +546,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 2 — Dairy exposure preparation
+# SECTION 2 — Dairy exposure preparation — .prepare_dairy()
 # =============================================================================
 
 #' Prepare the dairy_exposure column (continuous or categorical).
@@ -554,7 +579,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 3 — Formula builder
+# SECTION 3 — Formula builder — .build_cox_formula()
 # =============================================================================
 
 #' Build the Cox model formula.
@@ -599,7 +624,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 3B — Events Per Variable (EPV)
+# SECTION 3B — Events Per Variable (EPV) — .compute_epv()
 # =============================================================================
 
 #' Compute EPV and warn if below the recommended threshold.
@@ -640,7 +665,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 3C — Global model tests (LR, Wald, Score)
+# SECTION 3C — Global model tests (LR, Wald, Score) — .global_model_tests()
 # =============================================================================
 
 #' Extract and report the three global tests from a fitted coxph model.
@@ -705,7 +730,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 3D — Harrell's C-index
+# SECTION 3D — Harrell's C-index — .compute_cindex()
 # =============================================================================
 
 #' Compute Harrell's concordance index (C-index) for a fitted Cox model.
@@ -762,7 +787,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 3E — Spline HR plot & linearity test
+# SECTION 3E — Spline HR plot & linearity test — .plot_spline_hr() / .test_linearity()
 # =============================================================================
 
 #' Plot HR vs dairy intake from a restricted cubic spline Cox model.
@@ -952,7 +977,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 4 — Complete-case model fitting
+# SECTION 4 — Complete-case model fitting — .fit_cox_cc()
 # =============================================================================
 
 #' Fit unadjusted and adjusted Cox models for the CC route.
@@ -1149,7 +1174,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 5 — MICE (multiple imputation) route
+# SECTION 5 — MICE (multiple imputation) route — .fit_cox_mice()
 # =============================================================================
 
 #' Fit Cox models across all m imputed datasets and pool via Rubin's rules.
@@ -1379,6 +1404,8 @@ run_cox_sarcopenia <- function(
 
 # =============================================================================
 # SECTION 4B — Fine-Gray competing risk (sensitivity analysis)
+# .build_finegray_data() / .fit_finegray_cc() / .fit_finegray_mice() /
+# .build_fg_rhs() / .plot_cif()
 # =============================================================================
 #
 # Fine-Gray subdistribution hazard model (Gray 1988; Fine & Gray 1999).
@@ -1689,7 +1716,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 6 — Results tidying
+# SECTION 6 — Results tidying — .tidy_cox() / .tidy_pooled()
 # =============================================================================
 
 #' Tidy a coxph object into HR, 95% CI, p-value tibble.
@@ -1719,7 +1746,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 7 — Assumption checks
+# SECTION 7 — Assumption checks — .check_cox_assumptions()
 # =============================================================================
 
 #' Check all Cox regression assumptions and produce plots.
@@ -2299,21 +2326,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# Section 8 — Kaplan-Meier plot (pooled across imputations)
-# =============================================================================
-
-#' Kaplan-Meier survival curves stratified by dairy exposure category.
-#' Accepts either a single surv_data data.frame (CC) or a list of data.frames
-#' (MICE — one per imputation) and averages curves in the latter case.
-#'
-#' @param surv_data      data.frame (CC) or list of data.frames (MICE).
-#' @param covariate_type "fixed" or "time_dependent".
-#' @param out_dir        Output directory or NULL.
-#' @param label          String label for file names.
-#' @keywords internal
-# =============================================================================
-# =============================================================================
-# SECTION 7B — Incidence rates per dairy quartile
+# SECTION 7B — Incidence rates per dairy quartile — .incidence_by_quartile()
 # =============================================================================
 
 #' Compute crude incidence rates per dairy quartile.
@@ -2479,7 +2492,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 8 — Kaplan-Meier plot by dairy category
+# SECTION 8 — Kaplan-Meier plot by dairy category — .km_plot_dairy()
 # =============================================================================
 
 #' Kaplan-Meier survival curves stratified by dairy exposure.
@@ -2668,6 +2681,7 @@ run_cox_sarcopenia <- function(
 
 # =============================================================================
 # SECTION 8B — Adjusted scenario survival curves (time-dependent route)
+# .reference_covariates() / .plot_scenario_survival()
 # =============================================================================
 #
 # For a time-dependent Cox model, standard KM is not appropriate for showing
@@ -2837,7 +2851,7 @@ run_cox_sarcopenia <- function(
 
 
 # =============================================================================
-# SECTION 9 — Interaction results helper
+# SECTION 9 — Interaction results helper — cox_interaction_hr()
 # =============================================================================
 
 #' Estimate HR at each level of the interaction moderator.
@@ -2883,7 +2897,7 @@ cox_interaction_hr <- function(fit, interaction_var, moderator_levels = NULL) {
 
 
 # =============================================================================
-# SECTION 10 — Utility helpers
+# SECTION 10 — Utility helpers — .check_cols() / %||%
 # =============================================================================
 
 #' Check that required columns exist in a data frame.
@@ -2901,7 +2915,7 @@ cox_interaction_hr <- function(fit, interaction_var, moderator_levels = NULL) {
 
 
 # =============================================================================
-# Helper — write captured log lines to a PDF
+# Helper — write captured log lines to a PDF — .write_log_pdf()
 # =============================================================================
 
 #' Write a character vector of log lines to a multi-page PDF.
@@ -2944,7 +2958,7 @@ cox_interaction_hr <- function(fit, interaction_var, moderator_levels = NULL) {
 
 
 # =============================================================================
-# Helper — save model results to CSV
+# Helper — save model results to CSV — .save_model_results()
 # =============================================================================
 
 #' Write unadjusted and adjusted HR tables to out_dir.

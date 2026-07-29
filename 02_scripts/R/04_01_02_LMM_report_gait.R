@@ -1,10 +1,20 @@
 # =============================================================================
+# R/04_01_02_LMM_report_gait.R
+# =============================================================================
 # LMM Report — Gait Speed
 #
 # Gait speed uses lagged exposures and covariates (_lag suffix).
-# Reuses shared helpers from 04_01_LMM_report.R:
+# Reuses shared helpers from R/04_01_01_LMM_report_HGS_ALMI.R:
 #   .pal, .theme_report, .text_page, .section_page,
 #   .build_formula, .plot_diagnostics, pool_sandwich_lmm
+#
+# Functions:
+#   .prep_gait_imputation()          — scaling/factor coding for one gait-speed
+#                                       completed df (lagged columns)
+#   fit_pooled_lmm_gait()            — fits + pools a gait-speed LMM across imputations
+#   .results_page_gait()             — coefficient forest plot + table page
+#   .sandwich_comparison_page_gait() — standard vs sandwich estimator comparison page
+#   run_lmm_report_gait()            — main entry point: fits all models, writes PDF
 # =============================================================================
 
 
@@ -42,9 +52,27 @@
 
 
 # ---------------------------------------------------------------------------
-# 2.  PER-IMPUTATION DATA PREPARATION (gait speed)
+# 2.  PER-IMPUTATION DATA PREPARATION (gait speed) — .prep_gait_imputation()
 # ---------------------------------------------------------------------------
 
+#' Apply scaling and factor coding to one completed gait-speed data frame.
+#'
+#' Gait-speed-specific counterpart to `.prep_one_imputation()`
+#' (R/04_01_01_LMM_report_HGS_ALMI.R): operates on the lagged (`_lag`)
+#' covariate/exposure columns produced by `.create_lags()`
+#' (R/03_exclusion.R), since gait speed at visit v is modelled against
+#' covariates measured at visit v-1.
+#'
+#' @param df             A single completed (non-mids) data frame with lagged columns.
+#' @param outcome        Raw outcome column name. Default "gait_speed".
+#' @param resp_col       Column to store the (possibly transformed) response.
+#' @param outcome_fn     Transformation function; `identity` for no transform.
+#' @param id_var         Subject ID column.
+#' @param time_var       Time variable column.
+#' @param scale_centres  Named list of scaling centres; computed from `df`
+#'   when NULL, or passed in from a prior call to keep centres consistent
+#'   across imputations.
+#' @return List: `df` (prepared data frame), `scale_centres`, `resp_col`.
 .prep_gait_imputation <- function(
     df,
     outcome       = "gait_speed",
@@ -150,9 +178,25 @@
 
 
 # ---------------------------------------------------------------------------
-# 3.  POOLED MICE FIT (gait speed)
+# 3.  POOLED MICE FIT (gait speed) — fit_pooled_lmm_gait()
 # ---------------------------------------------------------------------------
 
+#' Fit one gait-speed LMM across all imputations and return pooled results.
+#'
+#' @param mids_object   A `mids` object for gait speed.
+#' @param formula       Model formula (built by `.build_formula()`).
+#' @param outcome       Raw outcome column name. Default "gait_speed".
+#' @param resp_col      Column holding the (possibly transformed) response.
+#' @param outcome_fn    Transformation function (e.g. `sqrt`, `identity`).
+#' @param ref_col       Optional covariate column to releveled via `ref_lev`.
+#' @param ref_lev       Reference level for `ref_col`, when supplied.
+#' @param id_var        Subject ID column.
+#' @param time_var      Time variable column.
+#' @param random_slope  Logical; default FALSE (gait speed typically has
+#'   only 2 visits, so a random slope is not identifiable).
+#' @return A list: `pooled_tidy` (tidy summary with beta/SE/p/CI), `models`
+#'   (list of fitted lmer objects, one per imputation), `first_model`
+#'   (fitted lmer on imputation 1, for diagnostics), `formula`, `n_imp`.
 fit_pooled_lmm_gait <- function(
     mids_object,
     formula,
@@ -228,6 +272,9 @@ fit_pooled_lmm_gait <- function(
 # 4.  PDF HELPERS (gait-specific: use .term_labels_gait)
 # ---------------------------------------------------------------------------
 
+# .results_page_gait(): gait-speed counterpart to .results_page()
+# (R/04_01_01_LMM_report_HGS_ALMI.R) — coefficient forest plot + numeric
+# table side-by-side, relabelled via .term_labels_gait.
 .results_page_gait <- function(tidy_df, title, out_dir = NULL) {
 
     disp <- tidy_df |>
@@ -333,6 +380,8 @@ fit_pooled_lmm_gait <- function(
 }
 
 
+# .sandwich_comparison_page_gait(): gait-speed counterpart to
+# .sandwich_comparison_page() (R/04_01_01_LMM_report_HGS_ALMI.R).
 .sandwich_comparison_page_gait <- function(std_tidy, sand_tidy, title,
                                             out_dir = NULL) {
 
@@ -438,7 +487,7 @@ fit_pooled_lmm_gait <- function(
 
 
 # ---------------------------------------------------------------------------
-# 5.  MAIN REPORT FUNCTION
+# 5.  MAIN REPORT FUNCTION — run_lmm_report_gait()
 # ---------------------------------------------------------------------------
 
 #' Fit pooled gait-speed LMMs and write results + sandwich robustness to PDF.

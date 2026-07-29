@@ -22,11 +22,24 @@
 #                           (mids or plain df per element, matching input type)
 #   $audit                — tibble with one row per exclusion step
 #                           columns: step, step_type, reason, n_excluded, n_remaining
+#
+# Functions:
+#   run_exclusions()       — public entry point (complete-case and MICE routes)
+#   .shared_exclusions()   — QC / exposure / sumtot1 exclusions applied once
+#   .outcome_exclusions()  — per-outcome prevalent-case / missing / covariate
+#                             / min-visit exclusions
+#   .empty_audit()         — zero-row audit tibble template
+#   .record_excl()         — appends one summary row to the audit tibble
+#   .qc_failed_pts()       — participant IDs failing any QC flag
+#   .create_lags()         — lags covariates one visit forward (gait_speed only)
+#   .filter_mids()         — subsets a mids object to specific pt x visit rows
+#   %||%                   — NULL-coalescing infix operator
 # =============================================================================
 
 
-# ── Public entry point ────────────────────────────────────────────────────────
-
+# -----------------------------------------------------------------------------
+# run_exclusions()
+# -----------------------------------------------------------------------------
 #' Run the full exclusion pipeline.
 #'
 #' @param data        data.frame/tibble or mids object.
@@ -249,8 +262,27 @@ outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
 }
 
 
-# ── Internal: shared exclusions ───────────────────────────────────────────────
-
+# -----------------------------------------------------------------------------
+# .shared_exclusions()
+# -----------------------------------------------------------------------------
+#' Apply the exclusion stages shared by every outcome.
+#'
+#' Runs on the observed-data slice (`.imp == 0` / the plain data frame) so
+#' that the resulting participant set is imputation-invariant: QC flag
+#' failures (Stage 1), rows with missing exposure except at T4 (Stage 2a),
+#' and rows with `sumtot1` out of the plausible range (Stage 2b).
+#'
+#' @param obs        Observed-data slice (tibble).
+#' @param qc_tbl     QC flag table; see `run_exclusions()`.
+#' @param exposure   Exposure column name.
+#' @param pt_col     Participant ID column.
+#' @param visit_col  Visit / time-point column.
+#' @param min_visit  Unused here (kept for signature symmetry with the caller);
+#'   the min-visit check itself is applied by the caller after this returns.
+#' @return List with `keep_ids` (participant IDs surviving all shared
+#'   stages), `bad_dairy_keys` / `bad_sumtot1_keys` (pt x visit key tibbles
+#'   the caller must also anti_join out of the full long data), and `audit`
+#'   (the running audit tibble, seeded by this function).
 .shared_exclusions <- function(obs, qc_tbl, exposure, pt_col, visit_col, min_visit) {
 
   audit <- .empty_audit()
@@ -296,12 +328,29 @@ outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
 }
 
 
-# ── Internal: per-outcome exclusions ─────────────────────────────────────────
-
-# @param prevalent_ids Optional character vector of participant IDs to exclude as
-#   prevalent cases. When supplied (mids route), this is the union across all
-#   imputations pre-computed by the caller so every .imp drops the same pts.
-#   When NULL (CC route), the IDs are derived from `df` directly.
+# -----------------------------------------------------------------------------
+# .outcome_exclusions()
+# -----------------------------------------------------------------------------
+#' Apply the exclusion stages specific to one outcome.
+#'
+#' Runs on a single data slice (one `.imp`, or the whole complete-case data):
+#' prevalent-case exclusion at T1 for sarcopenia outcomes (Stage 4), missing
+#' outcome (Stage 5), missing covariates (Stage 6), and a min-visit recheck
+#' after the row-level removals above (Stage 7).
+#'
+#' @param df             Data slice to filter (one `.imp`, or the CC data).
+#' @param oc              Outcome column name.
+#' @param covars          Character vector of covariate columns required
+#'   non-missing for `oc`; pass `character(0L)` to skip.
+#' @param pt_col          Participant ID column.
+#' @param visit_col       Visit / time-point column.
+#' @param min_visit       Minimum visits required to retain a participant.
+#' @param prevalent_ids Optional character vector of participant IDs to exclude as
+#'   prevalent cases. When supplied (mids route), this is the union across all
+#'   imputations pre-computed by the caller so every .imp drops the same pts.
+#'   When NULL (CC route), the IDs are derived from `df` directly.
+#' @return List with `data` (filtered slice) and `audit` (audit rows for
+#'   this outcome's stages).
 .outcome_exclusions <- function(df, oc, covars, pt_col, visit_col, min_visit,
                                 prevalent_ids = NULL) {
 
@@ -358,6 +407,10 @@ outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
 
 # ── Audit helpers ─────────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# .empty_audit()
+# -----------------------------------------------------------------------------
+# Zero-row audit tibble template (step_type, reason, n_excluded, n_remaining).
 .empty_audit <- function() {
   tibble::tibble(
     step_type   = character(0L),
@@ -367,6 +420,9 @@ outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
   )
 }
 
+# -----------------------------------------------------------------------------
+# .record_excl()
+# -----------------------------------------------------------------------------
 # Records one summary row per exclusion step.
 # `n_remaining` is the number of unique participants still in the dataset
 # *after* this exclusion (passed by the caller).
@@ -382,6 +438,11 @@ outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
 
 # ── QC helper ─────────────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# .qc_failed_pts()
+# -----------------------------------------------------------------------------
+# Returns the participant IDs (within OsteoLaus) failing any QC flag column
+# in qc_tbl (FALSE or NA counts as a failure).
 .qc_failed_pts <- function(qc_tbl, pt_col) {
   qc_flag_cols <- c(
     "qc_pt_present", "qc_exam_date", "qc_sex_stable",
@@ -404,6 +465,9 @@ outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
 
 # ── Lag helper (gait_speed only) ─────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# .create_lags()
+# -----------------------------------------------------------------------------
 #' Shift covariate/exposure columns one visit forward and drop T1.
 #'
 #' Creates `{col}_lag` columns for every column except `pt_col`, `visit_col`,
@@ -428,6 +492,9 @@ outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
 
 # ── mids row filter ───────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# .filter_mids()
+# -----------------------------------------------------------------------------
 #' Filter a mids object to a specific set of pt × visit rows.
 #'
 #' Avoids the as.mids() long-format roundtrip and the .imp == 0 reconstruction
@@ -469,4 +536,8 @@ outcome_mids[[oc]] <- mice::as.mids(oc_long_all)
 
 # ── Misc ──────────────────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# %||%
+# -----------------------------------------------------------------------------
+# NULL-coalescing infix: returns x if non-NULL, else y.
 `%||%` <- function(x, y) if (!is.null(x)) x else y

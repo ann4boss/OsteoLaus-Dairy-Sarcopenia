@@ -1,12 +1,44 @@
 # =============================================================================
-# GAMM (mgcv) — non-linear smooth for exposure and/or time
+# R/04_03_gamm.R
 # =============================================================================
-# Requires: mgcv, gratia (optional, for tidy output)
+# GAMM (mgcv) — non-linear smooth for exposure and/or time.
+# Requires: mgcv, gratia (optional, for tidy output).
+#
+# Functions:
+#   build_gamm_formula() — assembles the mgcv model formula from a config
+#   fit_gamm_complete()  — fits one GAMM on a single (complete-case) data frame
+#   fit_gamm_mice()      — fits one GAMM per MICE imputation and pools terms
+#
+# NOTE: normalise_config(), get_covariates(), get_config_value(),
+# complete_model_data(), standardize_covariates(), and prepare_exposure() are
+# called below but are not defined anywhere in 02_scripts/R/ at the time of
+# writing — they are expected to come from the model-config helpers used
+# elsewhere in the 04_* analysis scripts (e.g. R/04_02_model_specification_sensitivity.R
+# defines a similar config pattern). Confirm they are sourced/available before
+# running this script standalone.
+# =============================================================================
 #install.packages(c("mgcv", "gratia"))
 
+# -----------------------------------------------------------------------------
+# build_gamm_formula()
+# -----------------------------------------------------------------------------
+#' Build the mgcv model formula for a GAMM fit.
+#'
+#' @param outcome       Outcome variable name (character).
+#' @param exposure      Exposure variable name (character).
+#' @param exposure_type One of "linear", "categorical", "smooth" — determines
+#'   whether the exposure enters as-is, as a factor, or as a `s()` smooth term.
+#' @param covariates    Character vector of covariate terms to add as-is.
+#' @param id_var        Participant identifier column, used for the random
+#'   intercept smooth `s(id_var, bs = 're')`.
+#' @param time_var      Time variable column, entered as a `s()` smooth term.
+#' @param interaction   If TRUE, adds an exposure x time interaction term
+#'   (tensor product smooth `ti()` when `exposure_type == "smooth"`, else a
+#'   plain `:` interaction).
+#' @return A `formula` object.
 build_gamm_formula <- function(outcome, exposure, exposure_type, covariates,
                                id_var, time_var, interaction) {
-    
+
     # Smooth for time
     time_term <- paste0("s(", time_var, ", bs = 'tp')")
     
@@ -34,6 +66,25 @@ build_gamm_formula <- function(outcome, exposure, exposure_type, covariates,
 }
 
 
+# -----------------------------------------------------------------------------
+# fit_gamm_complete()
+# -----------------------------------------------------------------------------
+#' Fit a GAMM on a single (complete-case) data frame.
+#'
+#' Builds the model formula via `build_gamm_formula()`, prepares the data
+#' (complete-case filter, covariate standardization, exposure recoding), and
+#' fits with `mgcv::bam()` (faster than `mgcv::gam()` for large longitudinal
+#' datasets).
+#'
+#' @param data           Long-format data frame with one row per participant-visit.
+#' @param config         Model config (see `normalise_config()`); provides
+#'   outcome, exposure, exposure_type, interaction, and ref_level.
+#' @param covariate_sets Named covariate-set lookup passed to `get_covariates()`.
+#' @param id_var         Participant identifier column. Default "pt".
+#' @param time_var       Time variable column. Default "time_since_baseline".
+#' @return List with `model` (the fitted `bam` object), `tidy` (parametric
+#'   term estimates), `smooth_summary` (smooth-term summary table),
+#'   `formula`, and `config`.
 fit_gamm_complete <- function(data, config, covariate_sets,
                               id_var = "pt", time_var = "time_since_baseline") {
     
@@ -85,6 +136,26 @@ fit_gamm_complete <- function(data, config, covariate_sets,
 }
 
 
+# -----------------------------------------------------------------------------
+# fit_gamm_mice()
+# -----------------------------------------------------------------------------
+#' Fit a GAMM on each MICE imputation and pool the parametric terms.
+#'
+#' Accepts either a `mids` object or a long data frame with a `.imp` column
+#' (imputation 0, if present, is excluded). Fits one `mgcv::bam()` model per
+#' imputed dataset using a single shared formula, then pools parametric terms
+#' via `mice::pool()` (Rubin's rules) — `mgcv` models expose `coef`/`vcov`
+#' methods, so `mice::as.mira()` + `pool()` works for the parametric part of
+#' the model. Smooth terms are not pooled.
+#'
+#' @param mids_object    A `mids` object, or a long data frame with `.imp`.
+#' @param config         Model config; see `fit_gamm_complete()`.
+#' @param covariate_sets Named covariate-set lookup passed to `get_covariates()`.
+#' @param id_var         Participant identifier column. Default "pt".
+#' @param time_var       Time variable column. Default "time_since_baseline".
+#' @return List with `models` (list of fitted `bam` objects, one per
+#'   imputation), `pooled` (the `mice::pool()` result), `tidy` (pooled
+#'   parametric-term estimates only), `formula`, and `config`.
 fit_gamm_mice <- function(mids_object, config, covariate_sets,
                           id_var = "pt", time_var = "time_since_baseline") {
     

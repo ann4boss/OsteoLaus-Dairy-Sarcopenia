@@ -178,6 +178,19 @@
 # 2.  FORMULA BUILDER
 # ---------------------------------------------------------------------------
 
+#' Build the lmer model formula for one exposure x covariate-set combination.
+#'
+#' @param resp_col      Response column name (possibly transformed).
+#' @param exposure      Exposure column name.
+#' @param exposure_type One of "linear", "categorical", "rcs" (restricted
+#'   cubic spline via `rms::rcs()`), "ns" (natural spline via `splines::ns()`).
+#' @param covariates    Character vector of covariate terms.
+#' @param time_var      Time variable column.
+#' @param id_var        Subject ID column, used for the random-effects term.
+#' @param random_slope  Logical; `(1 + time_var | id_var)` when TRUE, else
+#'   `(1 | id_var)`.
+#' @param interaction   Logical; adds an `exposure:time_var` term when TRUE.
+#' @return A `formula` object.
 .build_formula <- function(resp_col, exposure, exposure_type,
                            covariates, time_var, id_var,
                            random_slope, interaction) {
