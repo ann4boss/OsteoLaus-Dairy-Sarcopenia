@@ -8,5 +8,10 @@
 *.xlsx
 *.sav
 _targets
+_targets/meta/meta
 .positai
-03_outputs/mice_diagnostics/colaus/colaus_stripplot.pdf
+03_outputs/*
+!03_outputs/manuscript/
+!03_outputs/manuscript/**
+02_scripts/R_parkiert
+04_data_dictionary/Variables_open_points.md
