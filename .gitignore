@@ -7,6 +7,6 @@
 *.csv
 *.xlsx
 *.sav
-04_thesis/*
 _targets
 .positai
+03_outputs/mice_diagnostics/colaus/colaus_stripplot.pdf
