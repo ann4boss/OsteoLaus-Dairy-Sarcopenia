@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<style>body{background-color:white;}</style>
+
+
+</head>
+<body>
+<div id="eelrmtbaos" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+  <style>@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+#eelrmtbaos table {
+  font-family: 'IBM Plex Sans', system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#eelrmtbaos thead, #eelrmtbaos tbody, #eelrmtbaos tfoot, #eelrmtbaos tr, #eelrmtbaos td, #eelrmtbaos th {
+  border-style: none;
+}
+
+#eelrmtbaos p {
+  margin: 0;
+  padding: 0;
+}
+
+#eelrmtbaos .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #000000;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #000000;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#eelrmtbaos .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#eelrmtbaos .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#eelrmtbaos .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#eelrmtbaos .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#eelrmtbaos .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #5F5F5F;
+}
+
+#eelrmtbaos .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #5F5F5F;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #5F5F5F;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#eelrmtbaos .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#eelrmtbaos .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#eelrmtbaos .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#eelrmtbaos .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#eelrmtbaos .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #5F5F5F;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#eelrmtbaos .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#eelrmtbaos .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #5F5F5F;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #5F5F5F;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#eelrmtbaos .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #5F5F5F;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #5F5F5F;
+  vertical-align: middle;
+}
+
+#eelrmtbaos .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#eelrmtbaos .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#eelrmtbaos .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: none;
+  border-top-width: 1px;
+  border-top-color: #D5D5D5;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D5D5D5;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D5D5D5;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#eelrmtbaos .gt_stub {
+  color: #FFFFFF;
+  background-color: #5F5F5F;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #5F5F5F;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eelrmtbaos .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#eelrmtbaos .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#eelrmtbaos .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#eelrmtbaos .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eelrmtbaos .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #5F5F5F;
+}
+
+#eelrmtbaos .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#eelrmtbaos .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #5F5F5F;
+}
+
+#eelrmtbaos .gt_grand_summary_row {
+  color: #333333;
+  background-color: #D5D5D5;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eelrmtbaos .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #5F5F5F;
+}
+
+#eelrmtbaos .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #5F5F5F;
+}
+
+#eelrmtbaos .gt_striped {
+  background-color: #F4F4F4;
+}
+
+#eelrmtbaos .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #5F5F5F;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #5F5F5F;
+}
+
+#eelrmtbaos .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#eelrmtbaos .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eelrmtbaos .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#eelrmtbaos .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#eelrmtbaos .gt_left {
+  text-align: left;
+}
+
+#eelrmtbaos .gt_center {
+  text-align: center;
+}
+
+#eelrmtbaos .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#eelrmtbaos .gt_font_normal {
+  font-weight: normal;
+}
+
+#eelrmtbaos .gt_font_bold {
+  font-weight: bold;
+}
+
+#eelrmtbaos .gt_font_italic {
+  font-style: italic;
+}
+
+#eelrmtbaos .gt_super {
+  font-size: 65%;
+}
+
+#eelrmtbaos .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#eelrmtbaos .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#eelrmtbaos .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#eelrmtbaos .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#eelrmtbaos .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#eelrmtbaos .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#eelrmtbaos .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#eelrmtbaos .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#eelrmtbaos div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+  <table class="gt_table" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
+  <thead>
+    <tr class="gt_heading">
+      <td colspan="7" class="gt_heading gt_title gt_font_normal gt_bottom_border" style><span class='gt_from_md'><strong>Table 1.</strong> Participant characteristics by exposure group</span></td>
+    </tr>
+    
+    <tr class="gt_col_headings">
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="label">Characteristic</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="level"></th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="stat_Q1">Q1
+N = 273</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="stat_Q2">Q2
+N = 290</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="stat_Q3">Q3
+N = 274</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="stat_Q4">Q4
+N = 282</th>
+      <th class="gt_col_heading gt_columns_bottom_border gt_left" rowspan="1" colspan="1" scope="col" id="stat_No.T1.exposure">No.T1.exposure
+N = 39</th>
+    </tr>
+  </thead>
+  <tbody class="gt_table_body">
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Age</span></td>
+<td headers="level" class="gt_row gt_left"></td>
+<td headers="stat_Q1" class="gt_row gt_left">63.9 (7.1); 63.3 [58.6, 69.3]</td>
+<td headers="stat_Q2" class="gt_row gt_left">63.7 (7.7); 63.5 [57.5, 69.4]</td>
+<td headers="stat_Q3" class="gt_row gt_left">64.0 (7.1); 64.2 [59.3, 69.4]</td>
+<td headers="stat_Q4" class="gt_row gt_left">64.4 (7.5); 64.5 [58.9, 69.2]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Caloric intake (kcal/day)</span></td>
+<td headers="level" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">1311.5 (455.4); 1264.5 [996.5, 1553.2]</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">1495.1 (491.5); 1407.8 [1145.2, 1776.4]</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">1693.4 (480.3); 1637.1 [1344.9, 1999.7]</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">1969.5 (548.9); 1913.9 [1575.8, 2322.3]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;"><span class='gt_from_md'><strong>Dairy consumption</strong></span></td>
+<td headers="level" class="gt_row gt_left"></td>
+<td headers="stat_Q1" class="gt_row gt_left">NA</td>
+<td headers="stat_Q2" class="gt_row gt_left">NA</td>
+<td headers="stat_Q3" class="gt_row gt_left">NA</td>
+<td headers="stat_Q4" class="gt_row gt_left">NA</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">NA</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Total dairy intake (g/day)</span></td>
+<td headers="level" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">67.6 (28.3); 69.9 [45.4, 91.1]</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">152.8 (25.2); 151.9 [129.9, 175.2]</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">244.2 (30.5); 241.5 [216.3, 270.0]</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">480.1 (174.2); 428.8 [354.4, 537.0]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Fermented dairy (g/day)</span></td>
+<td headers="level" class="gt_row gt_left"></td>
+<td headers="stat_Q1" class="gt_row gt_left">47.9 (26.8); 46.1 [26.6, 65.7]</td>
+<td headers="stat_Q2" class="gt_row gt_left">106.3 (38.5); 111.2 [82.5, 132.0]</td>
+<td headers="stat_Q3" class="gt_row gt_left">170.8 (64.1); 185.9 [123.2, 217.4]</td>
+<td headers="stat_Q4" class="gt_row gt_left">313.8 (180.5); 270.0 [203.3, 397.2]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Non-fermented dairy (g/day)</span></td>
+<td headers="level" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">19.7 (18.4); 14.4 [5.1, 30.9]</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">46.5 (37.4); 39.9 [14.4, 75.5]</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">73.4 (60.3); 59.7 [20.0, 111.8]</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">166.2 (147.8); 145.8 [53.7, 226.2]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Low-fat dairy (g/day)</span></td>
+<td headers="level" class="gt_row gt_left"></td>
+<td headers="stat_Q1" class="gt_row gt_left">7.0 (15.9); 0.0 [0.0, 4.5]</td>
+<td headers="stat_Q2" class="gt_row gt_left">18.3 (32.4); 0.0 [0.0, 26.7]</td>
+<td headers="stat_Q3" class="gt_row gt_left">41.9 (63.2); 7.4 [0.0, 60.0]</td>
+<td headers="stat_Q4" class="gt_row gt_left">95.4 (137.1); 30.4 [0.0, 159.6]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>High-fat dairy (g/day)</span></td>
+<td headers="level" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">60.6 (28.9); 62.0 [38.5, 84.5]</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">134.5 (40.0); 137.8 [112.6, 165.8]</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">202.3 (67.2); 213.0 [181.4, 246.1]</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">384.7 (178.6); 345.9 [273.5, 462.7]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Grip strength (kg)</span></td>
+<td headers="level" class="gt_row gt_left"></td>
+<td headers="stat_Q1" class="gt_row gt_left">23.8 (5.6); 23.6 [20.2, 27.2]</td>
+<td headers="stat_Q2" class="gt_row gt_left">23.8 (6.1); 23.7 [19.9, 27.5]</td>
+<td headers="stat_Q3" class="gt_row gt_left">24.4 (5.7); 24.7 [20.8, 28.1]</td>
+<td headers="stat_Q4" class="gt_row gt_left">24.5 (5.8); 24.6 [20.4, 28.8]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>ALMI (kg/m²)</span></td>
+<td headers="level" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">6.5 (0.8); 6.4 [5.8, 7.0]</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">6.5 (0.8); 6.4 [6.0, 7.0]</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">6.5 (0.8); 6.4 [5.9, 7.0]</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">6.5 (0.8); 6.4 [5.9, 6.9]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">—</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Gait speed at T3 (m/s)</span></td>
+<td headers="level" class="gt_row gt_left"></td>
+<td headers="stat_Q1" class="gt_row gt_left">1.1 (0.2); 1.1 [0.9, 1.2]</td>
+<td headers="stat_Q2" class="gt_row gt_left">1.1 (0.2); 1.1 [1.0, 1.2]</td>
+<td headers="stat_Q3" class="gt_row gt_left">1.1 (0.2); 1.1 [1.0, 1.2]</td>
+<td headers="stat_Q4" class="gt_row gt_left">1.1 (0.2); 1.1 [0.9, 1.2]</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">1.1 (0.2); 1.1 [1.0, 1.2]</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Education level (ISCED)</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">High (ISCED 5-8)</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">38 (13.9%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">48 (16.6%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">40 (14.6%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">38 (13.5%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Education level (ISCED)</span></td>
+<td headers="level" class="gt_row gt_left">Low (ISCED 0-2)</td>
+<td headers="stat_Q1" class="gt_row gt_left">56 (20.5%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">40 (13.8%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">51 (18.6%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">51 (18.1%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Education level (ISCED)</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Medium (ISCED 3-4)</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">179 (65.6%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">202 (69.7%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">183 (66.8%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">193 (68.4%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Education level (ISCED)</span></td>
+<td headers="level" class="gt_row gt_left">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left"></td>
+<td headers="stat_Q2" class="gt_row gt_left"></td>
+<td headers="stat_Q3" class="gt_row gt_left"></td>
+<td headers="stat_Q4" class="gt_row gt_left"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Marital status</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Living alone</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">144 (52.7%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">134 (46.2%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">141 (51.5%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">163 (57.8%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Marital status</span></td>
+<td headers="level" class="gt_row gt_left">Living in couple</td>
+<td headers="stat_Q1" class="gt_row gt_left">129 (47.3%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">156 (53.8%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">133 (48.5%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">119 (42.2%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Marital status</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>BMI category</span></td>
+<td headers="level" class="gt_row gt_left">Normal</td>
+<td headers="stat_Q1" class="gt_row gt_left">129 (47.3%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">132 (45.5%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">140 (51.1%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">151 (53.5%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>BMI category</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Obese</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">44 (16.1%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">43 (14.8%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">41 (15.0%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">35 (12.4%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>BMI category</span></td>
+<td headers="level" class="gt_row gt_left">Overweight</td>
+<td headers="stat_Q1" class="gt_row gt_left">93 (34.1%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">108 (37.2%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">89 (32.5%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">91 (32.3%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>BMI category</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Underweight</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">7 (2.6%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">7 (2.4%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">4 (1.5%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">5 (1.8%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>BMI category</span></td>
+<td headers="level" class="gt_row gt_left">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left"></td>
+<td headers="stat_Q2" class="gt_row gt_left"></td>
+<td headers="stat_Q3" class="gt_row gt_left"></td>
+<td headers="stat_Q4" class="gt_row gt_left"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Smoking status</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Current</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">59 (21.6%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">35 (12.1%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">34 (12.4%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">45 (16.0%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Smoking status</span></td>
+<td headers="level" class="gt_row gt_left">Former</td>
+<td headers="stat_Q1" class="gt_row gt_left">104 (38.1%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">128 (44.2%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">114 (41.6%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">108 (38.3%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Smoking status</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Never</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">110 (40.3%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">127 (43.8%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">126 (46.0%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">129 (45.7%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Smoking status</span></td>
+<td headers="level" class="gt_row gt_left">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left"></td>
+<td headers="stat_Q2" class="gt_row gt_left"></td>
+<td headers="stat_Q3" class="gt_row gt_left"></td>
+<td headers="stat_Q4" class="gt_row gt_left"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Alcohol intake</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Heavy</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">67 (24.5%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">47 (16.2%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">47 (17.2%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">33 (11.7%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Alcohol intake</span></td>
+<td headers="level" class="gt_row gt_left">Light</td>
+<td headers="stat_Q1" class="gt_row gt_left">72 (26.4%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">89 (30.7%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">102 (37.2%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">102 (36.2%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Alcohol intake</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Moderate</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">65 (23.8%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">83 (28.6%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">64 (23.4%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">57 (20.2%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Alcohol intake</span></td>
+<td headers="level" class="gt_row gt_left">Non-drinker</td>
+<td headers="stat_Q1" class="gt_row gt_left">69 (25.3%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">71 (24.5%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">61 (22.3%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">90 (31.9%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Alcohol intake</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Physical activity level</span></td>
+<td headers="level" class="gt_row gt_left">High</td>
+<td headers="stat_Q1" class="gt_row gt_left">75 (27.5%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">82 (28.2%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">83 (30.2%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">92 (32.7%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Physical activity level</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Low</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">87 (31.9%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">95 (32.9%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">90 (32.8%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">78 (27.6%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Physical activity level</span></td>
+<td headers="level" class="gt_row gt_left">Medium</td>
+<td headers="stat_Q1" class="gt_row gt_left">111 (40.6%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">113 (38.9%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">101 (37.0%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">112 (39.6%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Physical activity level</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Diabetes status</span></td>
+<td headers="level" class="gt_row gt_left">Diabetes</td>
+<td headers="stat_Q1" class="gt_row gt_left">15 (5.5%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">17 (5.9%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">20 (7.3%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">15 (5.3%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Diabetes status</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">No diabetes</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">258 (94.5%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">273 (94.1%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">254 (92.7%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">267 (94.7%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Diabetes status</span></td>
+<td headers="level" class="gt_row gt_left">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left"></td>
+<td headers="stat_Q2" class="gt_row gt_left"></td>
+<td headers="stat_Q3" class="gt_row gt_left"></td>
+<td headers="stat_Q4" class="gt_row gt_left"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Hypertension</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">No</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">154 (56.4%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">160 (55.2%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">167 (60.9%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">181 (64.2%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Hypertension</span></td>
+<td headers="level" class="gt_row gt_left">Yes</td>
+<td headers="stat_Q1" class="gt_row gt_left">119 (43.6%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">130 (44.8%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">107 (39.1%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">101 (35.8%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Hypertension</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>HRT status</span></td>
+<td headers="level" class="gt_row gt_left">Current HRT</td>
+<td headers="stat_Q1" class="gt_row gt_left">134 (48.9%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">141 (48.6%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">150 (54.6%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">140 (49.8%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>HRT status</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Never / Not current</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">128 (46.9%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">131 (45.2%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">108 (39.4%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">129 (45.7%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>HRT status</span></td>
+<td headers="level" class="gt_row gt_left">Past HRT</td>
+<td headers="stat_Q1" class="gt_row gt_left">11 (4.2%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">18 (6.2%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">16 (6.0%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">13 (4.5%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>HRT status</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left" style="font-weight: bold;"><span class='gt_from_md'><strong>Medication</strong></span></td>
+<td headers="level" class="gt_row gt_left"></td>
+<td headers="stat_Q1" class="gt_row gt_left">NA</td>
+<td headers="stat_Q2" class="gt_row gt_left">NA</td>
+<td headers="stat_Q3" class="gt_row gt_left">NA</td>
+<td headers="stat_Q4" class="gt_row gt_left">NA</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">NA</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Lipid-lowering medication</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">No</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">149 (54.6%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">150 (51.7%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">153 (55.8%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">152 (53.9%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Lipid-lowering medication</span></td>
+<td headers="level" class="gt_row gt_left">Yes</td>
+<td headers="stat_Q1" class="gt_row gt_left">51 (18.7%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">59 (20.3%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">45 (16.4%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">55 (19.5%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Lipid-lowering medication</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">73 (26.7%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">81 (27.9%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">76 (27.7%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">75 (26.6%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Systemic corticosteroids</span></td>
+<td headers="level" class="gt_row gt_left">No</td>
+<td headers="stat_Q1" class="gt_row gt_left">198 (72.5%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">205 (70.7%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">197 (71.9%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">204 (72.3%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Systemic corticosteroids</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Yes</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">2 (0.7%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">4 (1.4%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">1 (0.4%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">3 (1.1%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Systemic corticosteroids</span></td>
+<td headers="level" class="gt_row gt_left">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left">73 (26.7%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">81 (27.9%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">76 (27.7%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">75 (26.6%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Calcium supplement</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">No</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">180 (65.9%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">180 (62.1%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">165 (60.2%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">165 (58.5%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Calcium supplement</span></td>
+<td headers="level" class="gt_row gt_left">Yes</td>
+<td headers="stat_Q1" class="gt_row gt_left">20 (7.3%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">29 (10.0%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">33 (12.0%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">42 (14.9%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Calcium supplement</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">73 (26.7%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">81 (27.9%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">76 (27.7%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">75 (26.6%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Vitamin D supplement</span></td>
+<td headers="level" class="gt_row gt_left">No</td>
+<td headers="stat_Q1" class="gt_row gt_left">195 (71.4%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">206 (71.0%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">197 (71.9%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">201 (71.3%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Vitamin D supplement</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Yes</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">5 (1.8%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">3 (1.0%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">1 (0.4%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">6 (2.1%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Vitamin D supplement</span></td>
+<td headers="level" class="gt_row gt_left">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left">73 (26.7%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">81 (27.9%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">76 (27.7%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">75 (26.6%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Bisphosphonate use</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">No</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">195 (71.4%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">203 (70.0%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">188 (68.6%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">195 (69.1%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>Bisphosphonate use</span></td>
+<td headers="level" class="gt_row gt_left">Yes</td>
+<td headers="stat_Q1" class="gt_row gt_left">5 (1.8%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">6 (2.1%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">10 (3.6%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">12 (4.3%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>Bisphosphonate use</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">73 (26.7%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">81 (27.9%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">76 (27.7%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">75 (26.6%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>EWGSOP2 sarcopenia stage</span></td>
+<td headers="level" class="gt_row gt_left">Confirmed</td>
+<td headers="stat_Q1" class="gt_row gt_left">3 (1.1%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">2 (0.8%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">2 (0.8%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">2 (0.7%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>EWGSOP2 sarcopenia stage</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">No sarcopenia</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped">247 (90.4%)</td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped">260 (89.5%)</td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped">254 (92.6%)</td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped">259 (92.0%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left"><span class='gt_from_md'>EWGSOP2 sarcopenia stage</span></td>
+<td headers="level" class="gt_row gt_left">Probable</td>
+<td headers="stat_Q1" class="gt_row gt_left">23 (8.5%)</td>
+<td headers="stat_Q2" class="gt_row gt_left">28 (9.7%)</td>
+<td headers="stat_Q3" class="gt_row gt_left">18 (6.6%)</td>
+<td headers="stat_Q4" class="gt_row gt_left">21 (7.3%)</td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left"></td></tr>
+    <tr><td headers="label" class="gt_row gt_left gt_striped"><span class='gt_from_md'>EWGSOP2 sarcopenia stage</span></td>
+<td headers="level" class="gt_row gt_left gt_striped">Missing</td>
+<td headers="stat_Q1" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q2" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q3" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_Q4" class="gt_row gt_left gt_striped"></td>
+<td headers="stat_No.T1.exposure" class="gt_row gt_left gt_striped">39 (100.0%)</td></tr>
+  </tbody>
+  <tfoot>
+    <tr class="gt_sourcenotes">
+      <td class="gt_sourcenote" colspan="7"><span class='gt_from_md'>Continuous: pooled mean (mean of within-imputation SDs); pooled median [pooled Q1, Q3]. Proportions averaged across imputations (van Buuren 2018, §9.5). Missing included in categorical denominators. Gait speed from T3. Severe sarcopenia could not be defined at baseline (gait speed not measured then). No significance tests shown. Estimates pooled across imputations.</span></td>
+    </tr>
+  </tfoot>
+</table>
+</div>
+</body>
+</html>

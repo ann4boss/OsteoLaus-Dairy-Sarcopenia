@@ -1,0 +1,44 @@
+"id","title","status","source","dest_file"
+"Figure01","Overview_of_study_timeline_and_measurements","manual","NA",NA
+"Figure02","Flow_diagram_of_participant_selection","exported","03_outputs/descriptives/consort_flow.png","Figure02_Flow_diagram_of_participant_selection.png"
+"Figure03","Days_between_matched_CoLaus_OsteoLaus_exam_dates_by_visit","exported","03_outputs/descriptives/visits/mice_timing_violin.png","Figure03_Days_between_matched_CoLaus_OsteoLaus_exam_dates_by_visit.png"
+"Figure04","Missing_data_before_and_after_imputation","exported","03_outputs/descriptives/missingness/missing_comparison.png","Figure04_Missing_data_before_and_after_imputation.png"
+"Figure05","Stability_of_dairy_intake_quartile_membership","exported","03_outputs/descriptives/variables/mice/alluvial_dairy_quartile_baseline.png","Figure05_Stability_of_dairy_intake_quartile_membership.png"
+"Figure06","Mean_total_dairy_intake_by_age","exported","03_outputs/descriptives/age_trajectories/mice/trajectory_dairy_total_gday_cumavg.png","Figure06_Mean_total_dairy_intake_by_age.png"
+"Figure07","Mean_handgrip_strength_by_age","exported","03_outputs/descriptives/age_trajectories/mice/trajectory_HGS_MAX.png","Figure07_Mean_handgrip_strength_by_age.png"
+"Figure08","Mean_gait_speed_by_age","exported","03_outputs/descriptives/age_trajectories/mice/trajectory_gait_speed.png","Figure08_Mean_gait_speed_by_age.png"
+"Figure09","Mean_appendicular_lean_mass_index_by_age","exported","03_outputs/descriptives/age_trajectories/mice/trajectory_ALM_HT2_harmonised.png","Figure09_Mean_appendicular_lean_mass_index_by_age.png"
+"Figure10","Cumulative_dairy_intake_and_handgrip_strength_by_visit","exported","03_outputs/descriptives/variables/mice/scatter_hgs_HGS_MAX vs dairy_total_gday_cumavg.png","Figure10_Cumulative_dairy_intake_and_handgrip_strength_by_visit.png"
+"Figure11","Cumulative_dairy_intake_and_ALMI_by_visit","exported","03_outputs/descriptives/variables/mice/scatter_alm_ALM_HT2_harmonised vs dairy_total_gday_cumavg.png","Figure11_Cumulative_dairy_intake_and_ALMI_by_visit.png"
+"Figure12","Cumulative_dairy_intake_and_gait_speed_by_visit","exported","03_outputs/descriptives/variables/mice/scatter_gait_gait_speed vs dairy_total_gday_cumavg_lag.png","Figure12_Cumulative_dairy_intake_and_gait_speed_by_visit.png"
+"FigureS01","DAG_handgrip_strength_analysis","manual","NA",NA
+"FigureS02","DAG_ALMI_analysis","manual","NA",NA
+"FigureS03","DAG_gait_speed_analysis","manual","NA",NA
+"FigureS04","DAG_sarcopenia_incidence_analysis","manual","NA",NA
+"FigureS05","Convergence_imputed_left_arm_lean_mass_baseline_OsteoLaus","manual","NA",NA
+"FigureS06","Density_observed_vs_imputed_left_arm_lean_mass_baseline_OsteoLaus","manual","NA",NA
+"FigureS07","Distribution_observed_vs_imputed_left_arm_lean_mass_baseline_OsteoLaus","manual","NA",NA
+"FigureS08","Convergence_imputed_vigorous_PA_followup1_CoLaus","manual","NA",NA
+"FigureS09","Density_observed_vs_imputed_vigorous_PA_followup1_CoLaus","manual","NA",NA
+"FigureS10","Distribution_observed_vs_imputed_vigorous_PA_followup1_CoLaus","manual","NA",NA
+"FigureS11","Change_in_BMI_category_across_visits","exported","03_outputs/descriptives/variables/mice/alluvial_BMI_category.png","FigureS11_Change_in_BMI_category_across_visits.png"
+"FigureS12","Change_in_smoking_status_across_visits","exported","03_outputs/descriptives/variables/mice/alluvial_smoking_status.png","FigureS12_Change_in_smoking_status_across_visits.png"
+"FigureS13","Change_in_diabetes_status_across_visits","exported","03_outputs/descriptives/variables/mice/alluvial_diabetes_status.png","FigureS13_Change_in_diabetes_status_across_visits.png"
+"FigureS14","Diagnostics_handgrip_strength_LMM","exported","03_outputs/LMM_exploratory/HGS/HGS_MAX___dairy_100g__linear______main_main_diagnostics.png","FigureS14_Diagnostics_handgrip_strength_LMM.png"
+"FigureS15","Diagnostics_ALMI_LMM","exported","03_outputs/LMM_exploratory/ALMI/ALM_HT2_harmonised___dairy_100g__linear______main_main_diagnostics.png","FigureS15_Diagnostics_ALMI_LMM.png"
+"FigureS16","Diagnostics_gait_speed_LMM","exported","03_outputs/LMM_exploratory/gait_speed/gait_speed___dairy_100g_lag__linear______main_main_diagnostics.png","FigureS16_Diagnostics_gait_speed_LMM.png"
+"FigureS17","Dose_response_dairy_intake_incident_sarcopenia","exported","03_outputs/Cox/mice_ewgsop2_fixed_continuous_spline3_*/mice_spline_hr.png","FigureS17_Dose_response_dairy_intake_incident_sarcopenia.png"
+"Table01","Dairy_food_items_and_portion_sizes_FFQ","manual","NA",NA
+"Table02","Baseline_characteristics_by_dairy_intake_quartile","exported","03_outputs/TableOne/mice/quartile.html","Table02_Baseline_characteristics_by_dairy_intake_quartile.html"
+"Table03","Adjusted_association_dairy_intake_handgrip_strength","exported","03_outputs/LMM_exploratory/HGS/HGS_MAX___dairy_100g__linear______main_coefs.csv","Table03_Adjusted_association_dairy_intake_handgrip_strength.csv"
+"Table04","Adjusted_associations_alternative_dairy_exposures_handgrip_strength","exported","03_outputs/LMM_exploratory/HGS/HGS_MAX___dairy_guidelines_port__categorical______main_coefs.csv | 03_outputs/LMM_exploratory/HGS/HGS_MAX___dairy_quartile_baseline__categorical______main_coefs.csv | 03_outputs/LMM_exploratory/HGS/HGS_MAX___fermented_100g__linear______main_coefs.csv | 03_outputs/LMM_exploratory/HGS/HGS_MAX___highfat_100g__linear______main_coefs.csv | 03_outputs/LMM_exploratory/HGS/HGS_MAX___lowfat_100g__linear______main_coefs.csv | 03_outputs/LMM_exploratory/HGS/HGS_MAX___nonfermented_100g__linear______main_coefs.csv","Table04_Adjusted_associations_alternative_dairy_exposures_handgrip_strength.csv"
+"Table05","Adjusted_association_dairy_intake_ALMI","exported","03_outputs/LMM_exploratory/ALMI/ALM_HT2_harmonised___dairy_100g__linear______main_coefs.csv","Table05_Adjusted_association_dairy_intake_ALMI.csv"
+"Table06","Adjusted_associations_alternative_dairy_exposures_ALMI","exported","03_outputs/LMM_exploratory/ALMI/ALM_HT2_harmonised___dairy_guidelines_port__categorical______main_coefs.csv | 03_outputs/LMM_exploratory/ALMI/ALM_HT2_harmonised___dairy_quartile_baseline__categorical______main_coefs.csv | 03_outputs/LMM_exploratory/ALMI/ALM_HT2_harmonised___fermented_100g__linear______main_coefs.csv | 03_outputs/LMM_exploratory/ALMI/ALM_HT2_harmonised___highfat_100g__linear______main_coefs.csv | 03_outputs/LMM_exploratory/ALMI/ALM_HT2_harmonised___lowfat_100g__linear______main_coefs.csv | 03_outputs/LMM_exploratory/ALMI/ALM_HT2_harmonised___nonfermented_100g__linear______main_coefs.csv","Table06_Adjusted_associations_alternative_dairy_exposures_ALMI.csv"
+"Table07","Adjusted_association_dairy_intake_gait_speed","exported","03_outputs/LMM_exploratory/gait_speed/gait_speed___dairy_100g_lag__linear______main_coefs.csv","Table07_Adjusted_association_dairy_intake_gait_speed.csv"
+"Table08","Adjusted_associations_alternative_dairy_exposures_gait_speed","exported","03_outputs/LMM_exploratory/gait_speed/gait_speed___dairy_guidelines_port_lag__categorical______main_coefs.csv | 03_outputs/LMM_exploratory/gait_speed/gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs.csv | 03_outputs/LMM_exploratory/gait_speed/gait_speed___fermented_100g_lag__linear______main_coefs.csv | 03_outputs/LMM_exploratory/gait_speed/gait_speed___highfat_100g_lag__linear______main_coefs.csv | 03_outputs/LMM_exploratory/gait_speed/gait_speed___lowfat_100g_lag__linear______main_coefs.csv | 03_outputs/LMM_exploratory/gait_speed/gait_speed___nonfermented_100g_lag__linear______main_coefs.csv","Table08_Adjusted_associations_alternative_dairy_exposures_gait_speed.csv"
+"Table09","Incident_EWGSOP2_sarcopenia_by_dairy_quartile","exported","03_outputs/Cox/mice_ewgsop2_time_dependent_categorical_*/mice_incidence_by_quartile.csv","Table09_Incident_EWGSOP2_sarcopenia_by_dairy_quartile.csv"
+"Table10","Cox_regression_dairy_quartiles_incident_EWGSOP2_sarcopenia","exported","03_outputs/Cox/mice_ewgsop2_time_dependent_categorical_*/mice_model_results.csv","Table10_Cox_regression_dairy_quartiles_incident_EWGSOP2_sarcopenia.csv"
+"Table11","Cox_regression_dairy_quartiles_incident_FNIH_sarcopenia","exported","03_outputs/Cox/mice_fnih_fixed_categorical_*/mice_incidence_by_quartile.csv","Table11_Cox_regression_dairy_quartiles_incident_FNIH_sarcopenia.csv"
+"TableS01","FFQ_dairy_item_to_category_mapping","manual","NA",NA
+"TableS02","Baseline_characteristics_included_vs_excluded","exported","03_outputs/TableOne/mice/included_vs_excluded.html","TableS02_Baseline_characteristics_included_vs_excluded.html"
+"TableS03","Spline_Cox_model_dairy_intake_incident_sarcopenia","exported","03_outputs/Cox/mice_ewgsop2_time_dependent_continuous_spline3_*/mice_model_results.csv","TableS03_Spline_Cox_model_dairy_intake_incident_sarcopenia.csv"

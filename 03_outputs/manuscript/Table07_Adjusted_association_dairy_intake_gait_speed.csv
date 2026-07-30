@@ -1,0 +1,15 @@
+term,estimate,std_error,statistic,df,p_value,conf_low,conf_high
+(Intercept),1.141,0.029,39.033,1359.6,<0.001,1.084,1.198
+dairy_100g_lag,0.001,0.003,0.268,1509.9,0.789,-0.006,0.007
+time_since_baseline,-0.003,0.002,-1.247,1446.9,0.213,-0.007,0.002
+age_at_baseline_scaled_lag,-0.122,0.008,-14.445,1569.1,<0.001,-0.138,-0.105
+BMI_category_lagUnderweight,-0.018,0.033,-0.561,1124.5,0.575,-0.083,0.046
+BMI_category_lagOverweight,-0.062,0.011,-5.674,1573.4,<0.001,-0.083,-0.041
+BMI_category_lagObese,-0.119,0.016,-7.648,1550.7,<0.001,-0.149,-0.088
+education_level_lagMedium (ISCED 3-4),0.028,0.017,1.689,1476.3,0.091,-0.005,0.061
+education_level_lagHigh (ISCED 5-8),0.058,0.021,2.753,1533.9,0.006,0.017,0.099
+smoking_status_lagFormer,0.004,0.012,0.343,1447.5,0.732,-0.019,0.027
+smoking_status_lagCurrent,-0.031,0.017,-1.836,1520.5,0.067,-0.064,0.002
+pa_levels_tertile_f1_lagMedium,0.006,0.014,0.39,626,0.697,-0.022,0.033
+pa_levels_tertile_f1_lagHigh,0.018,0.015,1.177,580.6,0.24,-0.012,0.048
+diabetes_status_lagDiabetes,-0.075,0.022,-3.46,1518.6,<0.001,-0.118,-0.033

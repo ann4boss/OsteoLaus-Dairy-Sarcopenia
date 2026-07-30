@@ -1,0 +1,87 @@
+"exposure_model","term","estimate","std_error","statistic","df","p_value","conf_low","conf_high"
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","(Intercept)",1.14,0.029,38.937,1390.1,"<0.001",1.083,1.198
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","dairy_guidelines_port_lag>= 2 servings/day",0.005,0.015,0.348,397.1,"0.728",-0.024,0.034
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","time_since_baseline",-0.003,0.002,-1.225,1461.2,"0.221",-0.007,0.002
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","age_at_baseline_scaled_lag",-0.122,0.008,-14.439,1564.9,"<0.001",-0.139,-0.105
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","BMI_category_lagUnderweight",-0.018,0.033,-0.555,1099.7,"0.579",-0.082,0.046
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","BMI_category_lagOverweight",-0.062,0.011,-5.676,1573.6,"<0.001",-0.083,-0.041
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","BMI_category_lagObese",-0.119,0.016,-7.651,1550.6,"<0.001",-0.15,-0.088
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","education_level_lagMedium (ISCED 3-4)",0.028,0.017,1.694,1479.9,"0.09",-0.004,0.061
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","education_level_lagHigh (ISCED 5-8)",0.057,0.021,2.746,1535.2,"0.006",0.016,0.098
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","smoking_status_lagFormer",0.004,0.012,0.356,1453.5,"0.722",-0.019,0.027
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","smoking_status_lagCurrent",-0.031,0.017,-1.832,1517.4,"0.067",-0.064,0.002
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","pa_levels_tertile_f1_lagMedium",0.006,0.014,0.399,621.1,"0.69",-0.022,0.034
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","pa_levels_tertile_f1_lagHigh",0.018,0.015,1.195,589.2,"0.233",-0.012,0.048
+"gait_speed___dairy_guidelines_port_lag__categorical______main_coefs","diabetes_status_lagDiabetes",-0.075,0.022,-3.466,1516.5,"<0.001",-0.118,-0.033
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","(Intercept)",1.134,0.03,37.26,1398.3,"<0.001",1.074,1.194
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","dairy_quartile_baseline_lagQ2",0.012,0.014,0.904,1519.7,"0.366",-0.015,0.04
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","dairy_quartile_baseline_lagQ3",0.012,0.015,0.81,1527.8,"0.418",-0.017,0.041
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","dairy_quartile_baseline_lagQ4",0.006,0.016,0.408,1500.3,"0.683",-0.024,0.037
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","time_since_baseline",-0.003,0.002,-1.281,1443.3,"0.2",-0.008,0.002
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","age_at_baseline_scaled_lag",-0.122,0.008,-14.421,1568.4,"<0.001",-0.138,-0.105
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","BMI_category_lagUnderweight",-0.018,0.033,-0.541,1128.7,"0.589",-0.082,0.046
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","BMI_category_lagOverweight",-0.062,0.011,-5.631,1571.7,"<0.001",-0.083,-0.04
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","BMI_category_lagObese",-0.119,0.016,-7.626,1548,"<0.001",-0.149,-0.088
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","education_level_lagMedium (ISCED 3-4)",0.027,0.017,1.636,1467.1,"0.102",-0.005,0.06
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","education_level_lagHigh (ISCED 5-8)",0.057,0.021,2.733,1528.8,"0.006",0.016,0.098
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","smoking_status_lagFormer",0.004,0.012,0.366,1451.9,"0.714",-0.019,0.027
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","smoking_status_lagCurrent",-0.03,0.017,-1.77,1514.3,"0.077",-0.063,0.003
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","pa_levels_tertile_f1_lagMedium",0.005,0.014,0.358,630.7,"0.72",-0.023,0.033
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","pa_levels_tertile_f1_lagHigh",0.018,0.015,1.155,580.8,"0.249",-0.012,0.048
+"gait_speed___dairy_quartile_baseline_lag__categorical______main_coefs","diabetes_status_lagDiabetes",-0.075,0.022,-3.428,1516.2,"<0.001",-0.117,-0.032
+"gait_speed___fermented_100g_lag__linear______main_coefs","(Intercept)",1.141,0.029,39.051,1359.8,"<0.001",1.083,1.198
+"gait_speed___fermented_100g_lag__linear______main_coefs","fermented_100g_lag",0.004,0.004,1.066,1534.3,"0.287",-0.004,0.013
+"gait_speed___fermented_100g_lag__linear______main_coefs","time_since_baseline",-0.003,0.002,-1.238,1446.2,"0.216",-0.007,0.002
+"gait_speed___fermented_100g_lag__linear______main_coefs","age_at_baseline_scaled_lag",-0.122,0.008,-14.473,1569.1,"<0.001",-0.139,-0.105
+"gait_speed___fermented_100g_lag__linear______main_coefs","BMI_category_lagUnderweight",-0.018,0.033,-0.544,1123.5,"0.586",-0.082,0.046
+"gait_speed___fermented_100g_lag__linear______main_coefs","BMI_category_lagOverweight",-0.062,0.011,-5.637,1573.3,"<0.001",-0.083,-0.04
+"gait_speed___fermented_100g_lag__linear______main_coefs","BMI_category_lagObese",-0.118,0.016,-7.611,1548.7,"<0.001",-0.149,-0.088
+"gait_speed___fermented_100g_lag__linear______main_coefs","education_level_lagMedium (ISCED 3-4)",0.027,0.017,1.645,1478.6,"0.1",-0.005,0.06
+"gait_speed___fermented_100g_lag__linear______main_coefs","education_level_lagHigh (ISCED 5-8)",0.057,0.021,2.746,1534.3,"0.006",0.016,0.098
+"gait_speed___fermented_100g_lag__linear______main_coefs","smoking_status_lagFormer",0.003,0.012,0.271,1436.6,"0.786",-0.02,0.026
+"gait_speed___fermented_100g_lag__linear______main_coefs","smoking_status_lagCurrent",-0.031,0.017,-1.831,1521.5,"0.067",-0.064,0.002
+"gait_speed___fermented_100g_lag__linear______main_coefs","pa_levels_tertile_f1_lagMedium",0.005,0.014,0.387,633.8,"0.699",-0.022,0.033
+"gait_speed___fermented_100g_lag__linear______main_coefs","pa_levels_tertile_f1_lagHigh",0.018,0.015,1.147,587.9,"0.252",-0.013,0.048
+"gait_speed___fermented_100g_lag__linear______main_coefs","diabetes_status_lagDiabetes",-0.075,0.022,-3.449,1519.1,"<0.001",-0.118,-0.032
+"gait_speed___highfat_100g_lag__linear______main_coefs","(Intercept)",1.141,0.029,39.032,1364.3,"<0.001",1.083,1.198
+"gait_speed___highfat_100g_lag__linear______main_coefs","highfat_100g_lag",0.003,0.004,0.732,1481.8,"0.464",-0.005,0.011
+"gait_speed___highfat_100g_lag__linear______main_coefs","time_since_baseline",-0.003,0.002,-1.252,1445.2,"0.211",-0.007,0.002
+"gait_speed___highfat_100g_lag__linear______main_coefs","age_at_baseline_scaled_lag",-0.122,0.008,-14.461,1569.4,"<0.001",-0.138,-0.105
+"gait_speed___highfat_100g_lag__linear______main_coefs","BMI_category_lagUnderweight",-0.019,0.033,-0.571,1124.7,"0.568",-0.083,0.045
+"gait_speed___highfat_100g_lag__linear______main_coefs","BMI_category_lagOverweight",-0.062,0.011,-5.646,1573.3,"<0.001",-0.083,-0.04
+"gait_speed___highfat_100g_lag__linear______main_coefs","BMI_category_lagObese",-0.119,0.016,-7.625,1548.3,"<0.001",-0.149,-0.088
+"gait_speed___highfat_100g_lag__linear______main_coefs","education_level_lagMedium (ISCED 3-4)",0.028,0.017,1.671,1474.6,"0.095",-0.005,0.061
+"gait_speed___highfat_100g_lag__linear______main_coefs","education_level_lagHigh (ISCED 5-8)",0.058,0.021,2.754,1534.3,"0.006",0.017,0.099
+"gait_speed___highfat_100g_lag__linear______main_coefs","smoking_status_lagFormer",0.004,0.012,0.365,1456.2,"0.715",-0.019,0.027
+"gait_speed___highfat_100g_lag__linear______main_coefs","smoking_status_lagCurrent",-0.031,0.017,-1.807,1519.4,"0.071",-0.064,0.003
+"gait_speed___highfat_100g_lag__linear______main_coefs","pa_levels_tertile_f1_lagMedium",0.005,0.014,0.371,633.7,"0.711",-0.023,0.033
+"gait_speed___highfat_100g_lag__linear______main_coefs","pa_levels_tertile_f1_lagHigh",0.018,0.015,1.158,584.9,"0.247",-0.012,0.048
+"gait_speed___highfat_100g_lag__linear______main_coefs","diabetes_status_lagDiabetes",-0.075,0.022,-3.453,1519,"<0.001",-0.118,-0.032
+"gait_speed___lowfat_100g_lag__linear______main_coefs","(Intercept)",1.143,0.029,38.986,1352.2,"<0.001",1.085,1.2
+"gait_speed___lowfat_100g_lag__linear______main_coefs","lowfat_100g_lag",-0.005,0.007,-0.737,1568.8,"0.462",-0.019,0.009
+"gait_speed___lowfat_100g_lag__linear______main_coefs","time_since_baseline",-0.003,0.002,-1.288,1444,"0.198",-0.008,0.002
+"gait_speed___lowfat_100g_lag__linear______main_coefs","age_at_baseline_scaled_lag",-0.122,0.008,-14.432,1569.2,"<0.001",-0.138,-0.105
+"gait_speed___lowfat_100g_lag__linear______main_coefs","BMI_category_lagUnderweight",-0.019,0.033,-0.579,1124.8,"0.563",-0.083,0.045
+"gait_speed___lowfat_100g_lag__linear______main_coefs","BMI_category_lagOverweight",-0.061,0.011,-5.596,1573.2,"<0.001",-0.083,-0.04
+"gait_speed___lowfat_100g_lag__linear______main_coefs","BMI_category_lagObese",-0.118,0.016,-7.605,1551,"<0.001",-0.149,-0.088
+"gait_speed___lowfat_100g_lag__linear______main_coefs","education_level_lagMedium (ISCED 3-4)",0.029,0.017,1.718,1478.8,"0.086",-0.004,0.061
+"gait_speed___lowfat_100g_lag__linear______main_coefs","education_level_lagHigh (ISCED 5-8)",0.058,0.021,2.767,1534.9,"0.006",0.017,0.099
+"gait_speed___lowfat_100g_lag__linear______main_coefs","smoking_status_lagFormer",0.005,0.012,0.401,1445.6,"0.689",-0.018,0.028
+"gait_speed___lowfat_100g_lag__linear______main_coefs","smoking_status_lagCurrent",-0.031,0.017,-1.81,1525.2,"0.07",-0.064,0.003
+"gait_speed___lowfat_100g_lag__linear______main_coefs","pa_levels_tertile_f1_lagMedium",0.005,0.014,0.383,621.1,"0.702",-0.022,0.033
+"gait_speed___lowfat_100g_lag__linear______main_coefs","pa_levels_tertile_f1_lagHigh",0.018,0.015,1.204,585,"0.229",-0.012,0.049
+"gait_speed___lowfat_100g_lag__linear______main_coefs","diabetes_status_lagDiabetes",-0.075,0.022,-3.444,1517.3,"<0.001",-0.117,-0.032
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","(Intercept)",1.143,0.029,39.04,1367.9,"<0.001",1.086,1.2
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","nonfermented_100g_lag",-0.005,0.006,-0.884,1548.6,"0.377",-0.017,0.007
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","time_since_baseline",-0.003,0.002,-1.273,1446.7,"0.203",-0.008,0.002
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","age_at_baseline_scaled_lag",-0.122,0.008,-14.429,1569.2,"<0.001",-0.138,-0.105
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","BMI_category_lagUnderweight",-0.018,0.033,-0.55,1125.6,"0.582",-0.082,0.046
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","BMI_category_lagOverweight",-0.061,0.011,-5.612,1573.3,"<0.001",-0.083,-0.04
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","BMI_category_lagObese",-0.118,0.016,-7.608,1552.6,"<0.001",-0.149,-0.088
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","education_level_lagMedium (ISCED 3-4)",0.028,0.017,1.704,1477.3,"0.089",-0.004,0.061
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","education_level_lagHigh (ISCED 5-8)",0.058,0.021,2.755,1534.1,"0.006",0.017,0.099
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","smoking_status_lagFormer",0.003,0.012,0.286,1462.5,"0.775",-0.02,0.026
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","smoking_status_lagCurrent",-0.031,0.017,-1.86,1521.6,"0.063",-0.064,0.002
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","pa_levels_tertile_f1_lagMedium",0.006,0.014,0.414,618,"0.679",-0.022,0.034
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","pa_levels_tertile_f1_lagHigh",0.018,0.015,1.206,575.3,"0.228",-0.012,0.049
+"gait_speed___nonfermented_100g_lag__linear______main_coefs","diabetes_status_lagDiabetes",-0.075,0.022,-3.443,1518.1,"<0.001",-0.117,-0.032

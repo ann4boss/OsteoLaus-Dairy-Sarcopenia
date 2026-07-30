@@ -1,0 +1,93 @@
+"exposure_model","term","estimate","std_error","statistic","df","p_value","conf_low","conf_high"
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","(Intercept)",23.068,0.467,49.356,1580,"<0.001",22.151,23.985
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","dairy_guidelines_port>= 2 servings/day",0.047,0.273,0.171,1710.5,"0.864",-0.488,0.582
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","time_since_baseline",-0.143,0.022,-6.377,2456.4,"<0.001",-0.187,-0.099
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","age_at_baseline_scaled",-2.92,0.189,-15.426,2976.6,"<0.001",-3.291,-2.549
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","BMI_categoryUnderweight",-1.671,0.767,-2.18,2834.1,"0.029",-3.174,-0.168
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","BMI_categoryOverweight",0.648,0.247,2.622,2005.2,"0.009",0.163,1.133
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","BMI_categoryObese",0.105,0.351,0.3,2469.9,"0.764",-0.583,0.794
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","education_levelMedium (ISCED 3-4)",0.968,0.364,2.66,2744.1,"0.008",0.254,1.682
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","education_levelHigh (ISCED 5-8)",1.781,0.493,3.614,2814.4,"<0.001",0.814,2.747
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","smoking_statusFormer",0.506,0.285,1.774,2807.4,"0.076",-0.053,1.065
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","smoking_statusCurrent",0.641,0.382,1.678,2735,"0.093",-0.108,1.389
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","pa_levels_tertile_f1Medium",-0.292,0.338,-0.865,1090.6,"0.387",-0.955,0.371
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","pa_levels_tertile_f1High",0.025,0.375,0.068,589.1,"0.946",-0.711,0.761
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","diabetes_statusDiabetes",-0.251,0.449,-0.559,2101.5,"0.576",-1.132,0.63
+"HGS_MAX___dairy_guidelines_port__categorical______main_coefs","sumtot1_scaled",0.352,0.194,1.817,361,"0.07",-0.029,0.733
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","(Intercept)",22.594,0.502,44.989,1815.2,"<0.001",21.609,23.579
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","dairy_quartile_baselineQ2",0.441,0.29,1.523,2956.8,"0.128",-0.127,1.009
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","dairy_quartile_baselineQ3",0.974,0.32,3.047,2884.5,"0.002",0.347,1.6
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","dairy_quartile_baselineQ4",0.529,0.353,1.499,2684.1,"0.134",-0.163,1.222
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","time_since_baseline",-0.148,0.022,-6.598,2414.7,"<0.001",-0.192,-0.104
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","age_at_baseline_scaled",-2.921,0.189,-15.474,2977.6,"<0.001",-3.292,-2.551
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","BMI_categoryUnderweight",-1.664,0.765,-2.174,2830.8,"0.03",-3.164,-0.163
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","BMI_categoryOverweight",0.673,0.247,2.725,2028.9,"0.006",0.189,1.157
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","BMI_categoryObese",0.139,0.351,0.398,2471.3,"0.691",-0.548,0.827
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","education_levelMedium (ISCED 3-4)",0.935,0.364,2.571,2748.6,"0.01",0.222,1.647
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","education_levelHigh (ISCED 5-8)",1.772,0.492,3.603,2813.9,"<0.001",0.808,2.737
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","smoking_statusFormer",0.534,0.284,1.879,2813,"0.06",-0.023,1.092
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","smoking_statusCurrent",0.716,0.382,1.877,2728.9,"0.061",-0.032,1.465
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","pa_levels_tertile_f1Medium",-0.301,0.337,-0.894,1106.5,"0.371",-0.962,0.36
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","pa_levels_tertile_f1High",-0.004,0.373,-0.01,618.5,"0.992",-0.737,0.73
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","diabetes_statusDiabetes",-0.258,0.448,-0.575,2104.6,"0.565",-1.137,0.621
+"HGS_MAX___dairy_quartile_baseline__categorical______main_coefs","sumtot1_scaled",0.289,0.196,1.475,376.2,"0.141",-0.096,0.675
+"HGS_MAX___fermented_100g__linear______main_coefs","(Intercept)",23.049,0.463,49.743,1662.5,"<0.001",22.14,23.958
+"HGS_MAX___fermented_100g__linear______main_coefs","fermented_100g",0.216,0.096,2.244,2067.9,"0.025",0.027,0.405
+"HGS_MAX___fermented_100g__linear______main_coefs","time_since_baseline",-0.144,0.022,-6.427,2416.1,"<0.001",-0.187,-0.1
+"HGS_MAX___fermented_100g__linear______main_coefs","age_at_baseline_scaled",-2.922,0.189,-15.491,2986.5,"<0.001",-3.292,-2.552
+"HGS_MAX___fermented_100g__linear______main_coefs","BMI_categoryUnderweight",-1.68,0.766,-2.195,2831.6,"0.028",-3.181,-0.179
+"HGS_MAX___fermented_100g__linear______main_coefs","BMI_categoryOverweight",0.667,0.247,2.701,2027.9,"0.007",0.183,1.151
+"HGS_MAX___fermented_100g__linear______main_coefs","BMI_categoryObese",0.137,0.351,0.39,2441.5,"0.696",-0.551,0.825
+"HGS_MAX___fermented_100g__linear______main_coefs","education_levelMedium (ISCED 3-4)",0.943,0.363,2.595,2741.2,"0.01",0.23,1.655
+"HGS_MAX___fermented_100g__linear______main_coefs","education_levelHigh (ISCED 5-8)",1.793,0.492,3.647,2814,"<0.001",0.829,2.757
+"HGS_MAX___fermented_100g__linear______main_coefs","smoking_statusFormer",0.47,0.285,1.652,2836.9,"0.099",-0.088,1.028
+"HGS_MAX___fermented_100g__linear______main_coefs","smoking_statusCurrent",0.627,0.381,1.646,2735.6,"0.1",-0.12,1.374
+"HGS_MAX___fermented_100g__linear______main_coefs","pa_levels_tertile_f1Medium",-0.292,0.337,-0.865,1080.6,"0.387",-0.953,0.37
+"HGS_MAX___fermented_100g__linear______main_coefs","pa_levels_tertile_f1High",-0.009,0.373,-0.024,610.3,"0.981",-0.742,0.724
+"HGS_MAX___fermented_100g__linear______main_coefs","diabetes_statusDiabetes",-0.249,0.448,-0.556,2119.1,"0.578",-1.128,0.63
+"HGS_MAX___fermented_100g__linear______main_coefs","sumtot1_scaled",0.251,0.197,1.278,357.4,"0.202",-0.135,0.638
+"HGS_MAX___highfat_100g__linear______main_coefs","(Intercept)",23.03,0.464,49.631,1623.8,"<0.001",22.12,23.94
+"HGS_MAX___highfat_100g__linear______main_coefs","highfat_100g",0.213,0.089,2.388,2451.2,"0.017",0.038,0.388
+"HGS_MAX___highfat_100g__linear______main_coefs","time_since_baseline",-0.145,0.022,-6.479,2409.4,"<0.001",-0.189,-0.101
+"HGS_MAX___highfat_100g__linear______main_coefs","age_at_baseline_scaled",-2.932,0.189,-15.541,2985.1,"<0.001",-3.302,-2.562
+"HGS_MAX___highfat_100g__linear______main_coefs","BMI_categoryUnderweight",-1.697,0.766,-2.217,2830.2,"0.027",-3.198,-0.196
+"HGS_MAX___highfat_100g__linear______main_coefs","BMI_categoryOverweight",0.667,0.247,2.7,2027.4,"0.007",0.183,1.151
+"HGS_MAX___highfat_100g__linear______main_coefs","BMI_categoryObese",0.138,0.351,0.392,2452.4,"0.695",-0.55,0.826
+"HGS_MAX___highfat_100g__linear______main_coefs","education_levelMedium (ISCED 3-4)",0.951,0.363,2.618,2733.5,"0.009",0.239,1.663
+"HGS_MAX___highfat_100g__linear______main_coefs","education_levelHigh (ISCED 5-8)",1.801,0.492,3.663,2807.4,"<0.001",0.837,2.765
+"HGS_MAX___highfat_100g__linear______main_coefs","smoking_statusFormer",0.523,0.285,1.84,2800.1,"0.066",-0.034,1.081
+"HGS_MAX___highfat_100g__linear______main_coefs","smoking_statusCurrent",0.658,0.381,1.727,2736.1,"0.084",-0.089,1.405
+"HGS_MAX___highfat_100g__linear______main_coefs","pa_levels_tertile_f1Medium",-0.312,0.337,-0.927,1089.6,"0.354",-0.974,0.349
+"HGS_MAX___highfat_100g__linear______main_coefs","pa_levels_tertile_f1High",-0.016,0.374,-0.043,590.4,"0.966",-0.751,0.719
+"HGS_MAX___highfat_100g__linear______main_coefs","diabetes_statusDiabetes",-0.245,0.448,-0.547,2123.4,"0.584",-1.124,0.634
+"HGS_MAX___highfat_100g__linear______main_coefs","sumtot1_scaled",0.219,0.201,1.09,351.2,"0.277",-0.176,0.613
+"HGS_MAX___lowfat_100g__linear______main_coefs","(Intercept)",23.023,0.466,49.396,1673.2,"<0.001",22.109,23.937
+"HGS_MAX___lowfat_100g__linear______main_coefs","lowfat_100g",0.188,0.157,1.2,2662.3,"0.23",-0.119,0.496
+"HGS_MAX___lowfat_100g__linear______main_coefs","time_since_baseline",-0.142,0.022,-6.338,2443.3,"<0.001",-0.185,-0.098
+"HGS_MAX___lowfat_100g__linear______main_coefs","age_at_baseline_scaled",-2.92,0.189,-15.45,2985,"<0.001",-3.291,-2.549
+"HGS_MAX___lowfat_100g__linear______main_coefs","BMI_categoryUnderweight",-1.666,0.766,-2.174,2833.1,"0.03",-3.168,-0.164
+"HGS_MAX___lowfat_100g__linear______main_coefs","BMI_categoryOverweight",0.64,0.247,2.589,2002.8,"0.01",0.155,1.125
+"HGS_MAX___lowfat_100g__linear______main_coefs","BMI_categoryObese",0.096,0.351,0.274,2457.2,"0.784",-0.592,0.785
+"HGS_MAX___lowfat_100g__linear______main_coefs","education_levelMedium (ISCED 3-4)",0.966,0.364,2.654,2744.2,"0.008",0.252,1.679
+"HGS_MAX___lowfat_100g__linear______main_coefs","education_levelHigh (ISCED 5-8)",1.779,0.492,3.613,2816.5,"<0.001",0.814,2.745
+"HGS_MAX___lowfat_100g__linear______main_coefs","smoking_statusFormer",0.486,0.285,1.702,2816.9,"0.089",-0.074,1.045
+"HGS_MAX___lowfat_100g__linear______main_coefs","smoking_statusCurrent",0.627,0.381,1.644,2747.3,"0.1",-0.121,1.375
+"HGS_MAX___lowfat_100g__linear______main_coefs","pa_levels_tertile_f1Medium",-0.283,0.338,-0.838,1087.8,"0.402",-0.946,0.38
+"HGS_MAX___lowfat_100g__linear______main_coefs","pa_levels_tertile_f1High",0.013,0.374,0.036,597.4,"0.972",-0.722,0.749
+"HGS_MAX___lowfat_100g__linear______main_coefs","diabetes_statusDiabetes",-0.261,0.449,-0.582,2109.7,"0.561",-1.142,0.619
+"HGS_MAX___lowfat_100g__linear______main_coefs","sumtot1_scaled",0.347,0.19,1.828,371.3,"0.068",-0.026,0.719
+"HGS_MAX___nonfermented_100g__linear______main_coefs","(Intercept)",23.012,0.467,49.281,1602.7,"<0.001",22.096,23.928
+"HGS_MAX___nonfermented_100g__linear______main_coefs","nonfermented_100g",0.195,0.138,1.418,2510.2,"0.156",-0.075,0.465
+"HGS_MAX___nonfermented_100g__linear______main_coefs","time_since_baseline",-0.143,0.022,-6.393,2427.4,"<0.001",-0.186,-0.099
+"HGS_MAX___nonfermented_100g__linear______main_coefs","age_at_baseline_scaled",-2.93,0.189,-15.489,2979.2,"<0.001",-3.301,-2.559
+"HGS_MAX___nonfermented_100g__linear______main_coefs","BMI_categoryUnderweight",-1.676,0.766,-2.187,2830.1,"0.029",-3.178,-0.173
+"HGS_MAX___nonfermented_100g__linear______main_coefs","BMI_categoryOverweight",0.641,0.247,2.594,2015.1,"0.01",0.156,1.126
+"HGS_MAX___nonfermented_100g__linear______main_coefs","BMI_categoryObese",0.098,0.351,0.28,2463.9,"0.779",-0.59,0.787
+"HGS_MAX___nonfermented_100g__linear______main_coefs","education_levelMedium (ISCED 3-4)",0.973,0.364,2.675,2735.5,"0.008",0.26,1.687
+"HGS_MAX___nonfermented_100g__linear______main_coefs","education_levelHigh (ISCED 5-8)",1.787,0.492,3.629,2808.5,"<0.001",0.821,2.753
+"HGS_MAX___nonfermented_100g__linear______main_coefs","smoking_statusFormer",0.531,0.286,1.861,2796.3,"0.063",-0.029,1.091
+"HGS_MAX___nonfermented_100g__linear______main_coefs","smoking_statusCurrent",0.657,0.382,1.722,2734.2,"0.085",-0.091,1.406
+"HGS_MAX___nonfermented_100g__linear______main_coefs","pa_levels_tertile_f1Medium",-0.301,0.338,-0.891,1094.1,"0.373",-0.964,0.362
+"HGS_MAX___nonfermented_100g__linear______main_coefs","pa_levels_tertile_f1High",0.008,0.375,0.021,580,"0.983",-0.729,0.745
+"HGS_MAX___nonfermented_100g__linear______main_coefs","diabetes_statusDiabetes",-0.259,0.449,-0.578,2108.8,"0.563",-1.14,0.621
+"HGS_MAX___nonfermented_100g__linear______main_coefs","sumtot1_scaled",0.314,0.193,1.627,363.3,"0.105",-0.065,0.692

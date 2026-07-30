@@ -12,5 +12,6 @@ _targets/meta/meta
 .positai
 03_outputs/*
 !03_outputs/manuscript/
+!03_outputs/manuscript/**
 02_scripts/R_parkiert
 04_data_dictionary/Variables_open_points.md
