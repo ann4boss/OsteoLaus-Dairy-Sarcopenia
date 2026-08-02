@@ -1,6 +1,6 @@
 # Dairy intake and muscle aging in older women: A prospective analysis of data obtained from the OsteoLaus cohort
 
-This repository contains the code and documentation for my Master's thesis (see [`05_thesis/`](05_thesis/)), **"Dairy intake and muscle aging in older women: A prospective analysis of data from the OsteoLaus cohort."** The study investigated whether habitual dairy intake is associated with changes in muscle health and the development of sarcopenia in older women using longitudinal data from the OsteoLaus population-based cohort in Lausanne, Switzerland.
+This repository contains the code, documentation, and analysis pipeline for the project **"Dairy intake and muscle aging in older women: A prospective analysis of data obtained from the OsteoLaus cohort."** The study investigated whether habitual dairy intake is associated with changes in muscle health and the development of sarcopenia in older women using longitudinal data from the OsteoLaus population-based cohort in Lausanne, Switzerland.
 
 ## Background
 
