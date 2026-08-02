@@ -1,5 +1,34 @@
+# =============================================================================
+# R/05_02_consort_flow_graph.R
+# =============================================================================
+# Renders the CONSORT-style participant flow diagram (enrollment → shared
+# exclusions → per-outcome exclusions → final analytic cohorts) as a PNG.
+# Defines one function: create_consort_flowchart().
+#
+# NOTE: every participant count in the diagram (e.g. "n = 1475", exclusion
+# counts) is a hardcoded literal in the DOT graph string below, not computed
+# from data. If the exclusion pipeline (R/03_exclusion.R) or its inputs
+# change, these numbers must be updated here by hand to stay accurate —
+# compare against $audit from run_exclusions() before regenerating this plot.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# create_consort_flowchart()
+# -----------------------------------------------------------------------------
+#' Render the CONSORT participant flow diagram to a PNG file.
+#'
+#' Builds a DiagrammeR/Graphviz DOT diagram showing enrollment, shared
+#' exclusions, and the four parallel per-outcome exclusion paths (handgrip
+#' strength, ALMI, gait speed, sarcopenia), then exports it to PNG via SVG.
+#'
+#' @param output_path PNG output file path.
+#' @param width       Output image width in pixels.
+#' @param height      Output image height in pixels.
+#' @param print_plot  Logical; if TRUE, also prints the graph to the active
+#'   graphics device (e.g. the RStudio Viewer).
+#' @return The DiagrammeR graph object, invisibly.
 create_consort_flowchart <- function(output_path = "03_outputs/descriptives/consort_flow.png",
-                                     width = 3600, 
+                                     width = 3600,
                                      height = 2400,
                                      print_plot = TRUE) {
   

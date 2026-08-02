@@ -1,5 +1,6 @@
 # =============================================================================
 # R/05_05_age_trajectories.R
+# =============================================================================
 # Mean ± SD trajectories of outcome and exposure variables by whole age year.
 # Accepts both plain data frames (CC route) and mids objects (MICE route).
 # For mids: per-imputation summaries are pooled (Rubin's rules for the mean;
@@ -8,6 +9,23 @@
 # Produces two plot families:
 #   1. Overall trajectory (mean ± SD per age year, all participants)
 #   2. Outcome trajectories stratified by dairy_quartile_baseline
+#
+# Functions:
+#   .traj_label() / .traj_axis_label() — raw column name -> display label
+#   .theme_traj()                      — shared ggplot theme
+#   .scale_y_dense()                   — doubles the density of y-axis breaks
+#   .col_names()                       — column names for mids or plain df
+#   .detect_age_col()                  — finds "Age" or "Age_lag" in the data
+#   .summarise_df_by_age_year() / .summarise_mids_by_age_year() /
+#     .summarise_by_age_year()         — mean±SD per age year (df / mids / dispatch)
+#   .summarise_df_by_age_quartile() / .summarise_mids_by_age_quartile() /
+#     .summarise_by_age_quartile()     — mean±SD per age year x dairy quartile
+#   .plot_one_trajectory()             — overall trajectory plot for one variable
+#   .plot_trajectory_by_quartile()     — quartile-stratified trajectory plot
+#   plot_age_trajectories()            — main entry point: both plot families
+#
+# .TRAJ_PALETTE, .traj_label(), .theme_traj(), .col_names(), .detect_age_col()
+# are reused by R/05_07_baseline_age_group_trajectories.R via tar_source().
 # =============================================================================
 
 .TRAJ_PALETTE <- c(
@@ -48,6 +66,9 @@
     "Q4" = "#1E466EFF"
 )
 
+# -----------------------------------------------------------------------------
+# .traj_label() / .traj_axis_label()
+# -----------------------------------------------------------------------------
 .traj_label <- function(var) {
     if (var %in% names(.TRAJ_LABELS)) .TRAJ_LABELS[[var]] else gsub("_", " ", var)
 }
@@ -58,6 +79,9 @@
     else .traj_label(var)
 }
 
+# -----------------------------------------------------------------------------
+# .theme_traj()
+# -----------------------------------------------------------------------------
 .theme_traj <- function() {
     ggplot2::theme_minimal(base_family = .TRAJ_FONT) +
         ggplot2::theme(
@@ -74,6 +98,9 @@
         )
 }
 
+# -----------------------------------------------------------------------------
+# .scale_y_dense()
+# -----------------------------------------------------------------------------
 # Doubles the density of y breaks (adds the midpoint of each major interval as
 # its own labeled break) so the extra horizontal grid line also gets a label.
 .scale_y_dense <- function() {
@@ -87,6 +114,9 @@
     )
 }
 
+# -----------------------------------------------------------------------------
+# .col_names() / .detect_age_col()
+# -----------------------------------------------------------------------------
 # Return column names regardless of mids vs plain data frame
 .col_names <- function(data) {
     if (inherits(data, "mids")) names(data$data) else names(data)
@@ -103,6 +133,9 @@
 
 # ── Summarisation: overall trajectories ───────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# .summarise_df_by_age_year() / .summarise_mids_by_age_year() / .summarise_by_age_year()
+# -----------------------------------------------------------------------------
 .summarise_df_by_age_year <- function(data, var, age_col) {
     data |>
         dplyr::filter(!is.na(.data[[var]]), !is.na(.data[[age_col]])) |>
@@ -160,6 +193,9 @@
 
 # ── Summarisation: quartile-stratified trajectories ───────────────────────────
 
+# -----------------------------------------------------------------------------
+# .summarise_df_by_age_quartile() / .summarise_mids_by_age_quartile() / .summarise_by_age_quartile()
+# -----------------------------------------------------------------------------
 .summarise_df_by_age_quartile <- function(data, var, age_col,
                                           quartile_col = "dairy_quartile_baseline") {
     data |>
@@ -223,6 +259,9 @@
 
 # ── Plots ──────────────────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# .plot_one_trajectory()
+# -----------------------------------------------------------------------------
 .plot_one_trajectory <- function(summ, var, color) {
     y_upper <- max(summ$mean + summ$sd, na.rm = TRUE)
     y_lower <- min(summ$mean - summ$sd, na.rm = TRUE)
@@ -258,6 +297,9 @@
         .theme_traj()
 }
 
+# -----------------------------------------------------------------------------
+# .plot_trajectory_by_quartile()
+# -----------------------------------------------------------------------------
 .plot_trajectory_by_quartile <- function(summ, var) {
     # Keep only quartile levels that exist in data and appear in .QUARTILE_COLORS
     present_q <- intersect(names(.QUARTILE_COLORS), unique(summ$quartile))
@@ -308,6 +350,9 @@
 
 # ── Main entry point ───────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# plot_age_trajectories()
+# -----------------------------------------------------------------------------
 #' Plot mean ± SD trajectories by age year for outcomes and dairy exposures,
 #' plus outcome trajectories stratified by dairy_quartile_baseline.
 #'

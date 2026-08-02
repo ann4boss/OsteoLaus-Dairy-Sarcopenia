@@ -1,22 +1,41 @@
 # =============================================================================
 # R/05_07_baseline_age_group_trajectories.R
+# =============================================================================
 # For each outcome variable: scatter of outcome vs. observed Age, coloured by
 # 5-year baseline-age group (age at T1, floored), with a linear trajectory
 # (lm) fit per group. Accepts plain data frames (CC) and mids objects (MICE,
 # uses the underlying incomplete data$data — consistent with extract_data()
 # in R/05_04_variables_descriptives.R).
+#
+# Functions:
+#   .bage_extract()          — unwraps a mids object to its incomplete $data
+#   .bage_group_levels()     — builds "50-54", ..., "100+" labels from breaks
+#   .bage_assign_group()     — assigns each age to a baseline age-group label
+#   .bage_palette()          — evenly spaced palette colours for N groups
+#   .bage_prepare()          — builds one outcome's plot data (baseline age
+#                               group joined onto every visit row)
+#   .plot_baseline_age_group() — builds the ggplot for one outcome
+#   plot_baseline_age_group_trajectories() — main entry point, one plot per outcome
+#
+# Reuses .TRAJ_PALETTE / .traj_label / .theme_traj / .col_names / .detect_age_col,
+# defined in R/05_05_age_trajectories.R and loaded into the same environment
+# via tar_source().
 # =============================================================================
 
-# Reuses .TRAJ_PALETTE / .traj_label / .theme_traj / .col_names, defined in
-# R/05_05_age_trajectories.R and loaded into the same environment via
-# tar_source().
-
+# -----------------------------------------------------------------------------
+# .BAGE_BREAKS / .bage_extract()
+# -----------------------------------------------------------------------------
 .BAGE_BREAKS <- seq(50, 100, by = 5)
 
+# Unwrap a mids object to its incomplete $data (observed values with NAs
+# intact); returns plain data frames unchanged.
 .bage_extract <- function(data) {
     if (inherits(data, "mids")) data$data else data
 }
 
+# -----------------------------------------------------------------------------
+# .bage_group_levels()
+# -----------------------------------------------------------------------------
 # Build "50-54", "55-59", ..., "95-99", "100+" labels from .BAGE_BREAKS
 .bage_group_levels <- function(breaks = .BAGE_BREAKS) {
     lo <- breaks[-length(breaks)]
@@ -24,6 +43,10 @@
     c(paste0(lo, "-", hi), paste0(breaks[length(breaks)], "+"))
 }
 
+# -----------------------------------------------------------------------------
+# .bage_assign_group()
+# -----------------------------------------------------------------------------
+# Assigns each age to a baseline-age-group factor label (see .bage_group_levels()).
 .bage_assign_group <- function(age, breaks = .BAGE_BREAKS) {
     levels_ <- .bage_group_levels(breaks)
     idx <- findInterval(age, breaks, rightmost.closed = FALSE)
@@ -32,6 +55,9 @@
     factor(levels_[idx], levels = levels_)
 }
 
+# -----------------------------------------------------------------------------
+# .bage_palette()
+# -----------------------------------------------------------------------------
 # Evenly spaced colours across .TRAJ_PALETTE for however many age groups are
 # actually present (interpolates if more groups than palette colours).
 .bage_palette <- function(n, palette = .TRAJ_PALETTE) {
@@ -45,6 +71,13 @@
 
 # ── Data prep ──────────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# .bage_prepare()
+# -----------------------------------------------------------------------------
+# Builds plot data for one outcome: computes each participant's floored
+# baseline (T1) age, assigns it to a 5-year group, and joins that group back
+# onto every visit row (so every row of a participant's trajectory is
+# coloured by their baseline age group, not their current age).
 .bage_prepare <- function(data, var, age_col = "Age",
                           pt_col = "pt", visit_col = "time_point",
                           baseline_visit = "T1", breaks = .BAGE_BREAKS) {
@@ -69,6 +102,11 @@
 
 # ── Plot ───────────────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# .plot_baseline_age_group()
+# -----------------------------------------------------------------------------
+# Builds the outcome-vs-age scatter + per-group lm trajectory ggplot for one
+# outcome variable's already-prepared plot data (see .bage_prepare()).
 .plot_baseline_age_group <- function(plot_data, var, age_col = "Age") {
     label <- .traj_label(var)
 
@@ -96,6 +134,9 @@
 
 # ── Main entry point ───────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# plot_baseline_age_group_trajectories()
+# -----------------------------------------------------------------------------
 #' Plot outcome vs. age, coloured by 5-year baseline-age group, with a linear
 #' trajectory fit per group, for each outcome variable.
 #'

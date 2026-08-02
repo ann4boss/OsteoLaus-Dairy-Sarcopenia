@@ -1,8 +1,22 @@
 # =============================================================================
-# 05_03_visit_descriptives.R
+# R/05_03_visit_descriptives.R
+# =============================================================================
 # Visit structure and timing descriptive plots
+#
+# Functions:
+#   .visit_colors()          — n evenly-spaced colours from VISIT_PALETTE
+#   .theme_visit()           — shared Helvetica minimal ggplot theme
+#   .extract_df()            — unwraps a mids object to its plain $data
+#   .visits_to_long()        — normalises data to long format with an .imp column
+#   analyze_visits_structure() — counts visits (1-4) per participant
+#   plot_timing_violin()     — violin + boxplot of time_since_baseline by visit
+#   plot_patient_coverage()  — bar chart of % patients seen per time point
+#   save_visit_descriptives() — generates and saves all visit descriptive plots
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# VISIT_PALETTE / .visit_colors()
+# -----------------------------------------------------------------------------
 VISIT_PALETTE <- c(
     "#E76254FF", "#EF8A47FF", "#F7AA58FF", "#FFD06FFF", "#FFE6B7FF",
     "#AADCE0FF", "#72BCD5FF", "#528FADFF", "#376795FF", "#1E466EFF"
@@ -15,6 +29,9 @@ VISIT_PALETTE <- c(
     stats::setNames(VISIT_PALETTE[idx], visit_levels)
 }
 
+# -----------------------------------------------------------------------------
+# .theme_visit()
+# -----------------------------------------------------------------------------
 # Shared Helvetica minimal theme
 .theme_visit <- function() {
     ggplot2::theme_minimal(base_family = "Helvetica") +
@@ -28,11 +45,17 @@ VISIT_PALETTE <- c(
         )
 }
 
+# -----------------------------------------------------------------------------
+# .extract_df()
+# -----------------------------------------------------------------------------
 # Extract a plain data.frame from a mids object or return as-is
 .extract_df <- function(data) {
     if (inherits(data, "mids")) data$data else data
 }
 
+# -----------------------------------------------------------------------------
+# .visits_to_long()
+# -----------------------------------------------------------------------------
 # Convert mids or plain data.frame to long format with .imp column
 .visits_to_long <- function(data) {
     if (inherits(data, "mids")) {

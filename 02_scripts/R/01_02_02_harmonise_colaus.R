@@ -9,7 +9,7 @@
 # harmonise_colaus().
 # =============================================================================
 # TODO add etsem, income2, datquest?
-# TODO: something goes wrong and all values are NA
+# TODO: Handgrip - something goes wrong and all values are NA
 # -----------------------------------------------------------------------------
 # Column lists
 # -----------------------------------------------------------------------------

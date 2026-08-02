@@ -1,10 +1,24 @@
 # =============================================================================
-# R/05_03_missingness_analysis.R
+# R/05_04_01_missingness_analysis.R
+# =============================================================================
 # Missingness analysis on the pre-exclusion merged dataset.
 # Run before exclusions so the full missing data structure is visible.
 # Accepts data.frame or mids objects.
+#
+# Functions:
+#   plot_missing_heatmap()    — % missing per variable x time point (tile plot)
+#   plot_missing_patterns()   — which variable combinations are missing together
+#   plot_missing_by_var()     — per-variable missingness bar chart, by visit
+#   plot_missing_comparison() — missingness across named datasets (e.g. pre/post MICE)
+#   describe_missingness()    — main entry point: runs all plots + summary CSVs
+#
+# Reuses extract_data(), label_var(), theme_proj(), FONT, PALETTE, .pal_seq(),
+# .pal_cat() defined in R/05_04_variables_descriptives.R.
 # =============================================================================
 
+# -----------------------------------------------------------------------------
+# plot_missing_heatmap()
+# -----------------------------------------------------------------------------
 # ── 1. Missingness heatmap (% missing per variable × time point) ──────────────
 
 plot_missing_heatmap <- function(data,
@@ -47,6 +61,9 @@ plot_missing_heatmap <- function(data,
     )
 }
 
+# -----------------------------------------------------------------------------
+# plot_missing_patterns()
+# -----------------------------------------------------------------------------
 # ── 2. Missingness pattern plot (which variable combinations are missing) ──────
 
 plot_missing_patterns <- function(data,
@@ -108,6 +125,9 @@ plot_missing_patterns <- function(data,
     )
 }
 
+# -----------------------------------------------------------------------------
+# plot_missing_by_var()
+# -----------------------------------------------------------------------------
 # ── 3. Per-variable missingness bar chart (sorted, coloured by visit) ──────────
 
 plot_missing_by_var <- function(data,
@@ -148,6 +168,9 @@ plot_missing_by_var <- function(data,
     )
 }
 
+# -----------------------------------------------------------------------------
+# plot_missing_comparison()
+# -----------------------------------------------------------------------------
 # ── 4. Comparison: missingness across named datasets ──────────────────────────
 #
 # by_time = FALSE : one panel pooled across time (original behaviour).
@@ -274,6 +297,9 @@ plot_missing_comparison <- function(data_list,
     ggplot2::labs(x = "% missing", y = NULL)
 }
 
+# -----------------------------------------------------------------------------
+# describe_missingness()
+# -----------------------------------------------------------------------------
 # ── Main entry point ───────────────────────────────────────────────────────────
 
 #' Full missingness report on the pre-exclusion dataset.

@@ -1,8 +1,32 @@
 # =============================================================================
-# R/tableOne.R
+# R/05_01_tableOne.R
 # =============================================================================
 # Table 1 builder supporting complete-case (cc) and multiply-imputed (mice)
 # datasets.
+#
+# Functions (see section dividers below for exact location):
+#   Variable metadata       — .TABLE_LABELS, .TABLE_VARS, .MEDICATION_VARS, .DAIRY_VARS
+#   Small utilities         — .table_vars_for_data(), .normalize_table_types(),
+#                              .label_for_var(), labels_for_data()
+#   Input normalisation     — is_mids(), mids_to_long(), is_imputed_long(),
+#                              is_imputed(), .to_long()
+#   Rubin's rules pooling   — .imp_values(), .pool_continuous_rubin(),
+#                              .pool_categorical_rubin()
+#   Group-subset wrappers   — .pool_continuous_for_group(), .pool_categorical_for_group()
+#   Baseline display frames — make_display_baseline(), make_display_baseline_imputed(),
+#                              make_display_baseline_earliest(),
+#                              make_display_baseline_earliest_imputed()
+#   Manual table (imputed)  — .categorical_levels(), .manual_group_levels(),
+#                              .insert_manual_heading(), .make_manual_table_object(),
+#                              .manual_table_one()
+#   gtsummary path (CC)     — .add_group_heading(), .build_tbl_summary()
+#   Public API              — make_table_one(), .add_no_t1_level(),
+#                              make_table_one_by_exposure(), make_table_one_by_dataset()
+#   Comparison tables       — .build_tbl_summary_with_p(), make_table_one_cc_vs_mice(),
+#                              make_table_one_included_vs_excluded()
+#   Rendering helpers       — as_gt_table()
+#   File saving             — save_gtsummary_table(), save_table_one_outputs(),
+#                              save_table_one_outputs_targets()
 #
 # Accepts either:
 #   - A plain data.frame (complete-case or already-filtered baseline)
@@ -23,7 +47,7 @@
 # =============================================================================
 
 # ---------------------------------------------------------------------------
-# Variable metadata
+# Variable metadata — .TABLE_LABELS / .TABLE_VARS / .MEDICATION_VARS / .DAIRY_VARS
 # ---------------------------------------------------------------------------
 .TABLE_LABELS <- list(
     Age                      ~ "Age",
@@ -83,6 +107,7 @@
 
 # ---------------------------------------------------------------------------
 # Small utilities
+# .table_vars_for_data() / .normalize_table_types() / .label_for_var() / labels_for_data()
 # ---------------------------------------------------------------------------
 
 #' Filter TABLE_VARS to columns that actually exist in `data`.
@@ -124,6 +149,7 @@ labels_for_data <- function(data, vars = names(data)) {
 
 # ---------------------------------------------------------------------------
 # Input normalisation: accept mids objects or long-format data frames
+# is_mids() / mids_to_long() / is_imputed_long() / is_imputed() / .to_long()
 # ---------------------------------------------------------------------------
 
 #' TRUE when `data` is a mids object (mice package).
@@ -164,6 +190,7 @@ is_imputed <- function(data) is_mids(data) || is_imputed_long(data)
 
 # ---------------------------------------------------------------------------
 # Rubin's rules pooling helpers (van Buuren 2018, §9.5)
+# .imp_values() / .pool_continuous_rubin() / .pool_categorical_rubin()
 # ---------------------------------------------------------------------------
 
 #' Sorted unique imputation indices from a long data frame.
@@ -234,6 +261,7 @@ is_imputed <- function(data) is_mids(data) || is_imputed_long(data)
 
 # ---------------------------------------------------------------------------
 # Convenience wrappers that work on a subset of the long data frame
+# .pool_continuous_for_group() / .pool_categorical_for_group()
 # ---------------------------------------------------------------------------
 
 .pool_continuous_for_group <- function(data, var, imp_col,
@@ -277,6 +305,8 @@ is_imputed <- function(data) is_mids(data) || is_imputed_long(data)
 
 # ---------------------------------------------------------------------------
 # Baseline display frame builders
+# make_display_baseline() / make_display_baseline_imputed() /
+# make_display_baseline_earliest() / make_display_baseline_earliest_imputed()
 # ---------------------------------------------------------------------------
 
 #' One row per participant for the baseline table (complete-case path).
@@ -418,6 +448,8 @@ make_display_baseline_earliest_imputed <- function(analysis_long,
 
 # ---------------------------------------------------------------------------
 # Manual table builder (imputed path)
+# .categorical_levels() / .manual_group_levels() / .insert_manual_heading() /
+# .make_manual_table_object() / .manual_table_one()
 # ---------------------------------------------------------------------------
 
 .categorical_levels <- function(x) {
@@ -583,7 +615,7 @@ make_display_baseline_earliest_imputed <- function(analysis_long,
 }
 
 # ---------------------------------------------------------------------------
-# gtsummary path (complete-case)
+# gtsummary path (complete-case) — .add_group_heading() / .build_tbl_summary()
 # ---------------------------------------------------------------------------
 
 .CONTINUOUS_STAT <- "{mean} ({sd}); {median} [{p25}, {p75}]"
@@ -653,6 +685,8 @@ make_display_baseline_earliest_imputed <- function(analysis_long,
 
 # ---------------------------------------------------------------------------
 # Public API
+# make_table_one() / .add_no_t1_level() / make_table_one_by_exposure() /
+# make_table_one_by_dataset()
 # ---------------------------------------------------------------------------
 
 #' Build overall Table 1.
@@ -915,6 +949,8 @@ make_table_one_by_dataset <- function(
 
 # ---------------------------------------------------------------------------
 # Comparison tables with p-values (CC vs MICE; included vs excluded)
+# .build_tbl_summary_with_p() / make_table_one_cc_vs_mice() /
+# make_table_one_included_vs_excluded()
 # ---------------------------------------------------------------------------
 
 #' Internal: gtsummary table with Wilcoxon / chi-square p-values.
@@ -1049,7 +1085,7 @@ make_table_one_included_vs_excluded <- function(
 }
 
 # ---------------------------------------------------------------------------
-# Rendering helpers
+# Rendering helpers — as_gt_table()
 # ---------------------------------------------------------------------------
 
 #' Convert a table object to a gt table (for inline Quarto rendering).
@@ -1061,6 +1097,7 @@ as_gt_table <- function(tbl) {
 
 # ---------------------------------------------------------------------------
 # File saving (optional; not needed for Quarto inline rendering)
+# save_gtsummary_table() / save_table_one_outputs() / save_table_one_outputs_targets()
 # ---------------------------------------------------------------------------
 
 save_gtsummary_table <- function(tbl, path_without_extension) {

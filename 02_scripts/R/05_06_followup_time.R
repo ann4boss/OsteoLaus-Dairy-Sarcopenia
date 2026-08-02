@@ -1,5 +1,6 @@
 # =============================================================================
-# R/followup_time.R
+# R/05_06_followup_time.R
+# =============================================================================
 # Median follow-up time and range by time point (T1–T4) and total follow-up.
 #
 # Entry points
@@ -19,11 +20,25 @@
 # MICE: per-imputation summaries are pooled by averaging medians/quantiles
 # across imputations. time_since_baseline is derived from exam_date (observed,
 # not imputed), so values are identical across imputations in practice.
+#
+# Functions:
+#   .fu_to_long()            — normalises data (mids / plain / already-long) to
+#                               a long tibble with an .imp column
+#   .fu_per_visit_slice()    — follow-up summary stats per visit, one .imp slice
+#   .fu_total_slice()        — total follow-up (per-pt max) summary, one .imp slice
+#   .pool_fu_slices()        — averages per-imputation summary rows
+#   .fmt_fu()                — formats a summary row as "median [min–max]"
+#   summarise_followup()     — public: summary for a single dataset
+#   summarise_followup_all() — public: summary across $data_shared + every outcome
+#   print_followup_table()   — prints a compact console table
 # =============================================================================
 
 
 # ── Internal helpers ───────────────────────────────────────────────────────────
 
+# .fu_to_long(): normalises `data` to a long tibble with an .imp column —
+# mids objects are completed (excl. .imp==0); plain data frames get .imp = 0L
+# if not already present.
 .fu_to_long <- function(data) {
     if (inherits(data, "mids")) {
         mice::complete(data, action = "long", include = FALSE) |>
@@ -35,6 +50,9 @@
     }
 }
 
+# -----------------------------------------------------------------------------
+# .fu_per_visit_slice()
+# -----------------------------------------------------------------------------
 # Summarise follow-up per time_point for one .imp slice
 .fu_per_visit_slice <- function(df, time_col, visit_col) {
     df |>
@@ -51,6 +69,9 @@
         )
 }
 
+# -----------------------------------------------------------------------------
+# .fu_total_slice()
+# -----------------------------------------------------------------------------
 # Total follow-up per participant = their maximum time_since_baseline,
 # then summarise across participants
 .fu_total_slice <- function(df, time_col, pt_col) {
@@ -72,6 +93,9 @@
         dplyr::mutate(visit = "Total")
 }
 
+# -----------------------------------------------------------------------------
+# .pool_fu_slices()
+# -----------------------------------------------------------------------------
 # Pool per-imputation rows: average numeric summaries, round n
 .pool_fu_slices <- function(slices) {
     dplyr::bind_rows(slices) |>
@@ -87,6 +111,9 @@
         )
 }
 
+# -----------------------------------------------------------------------------
+# .fmt_fu()
+# -----------------------------------------------------------------------------
 # Format a single row as "median [min–max] (IQR: q25–q75)"
 .fmt_fu <- function(median, min, max, q25, q75, digits = 2) {
     fmt <- function(x) formatC(round(x, digits), format = "f", digits = digits)
@@ -96,6 +123,9 @@
 
 # ── Public: single dataset ─────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# summarise_followup()
+# -----------------------------------------------------------------------------
 #' Summarise median follow-up time and range by time point and overall.
 #'
 #' @param data        mids object or plain data frame.
@@ -154,6 +184,9 @@ summarise_followup <- function(data,
 
 # ── Public: full analysis object ──────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# summarise_followup_all()
+# -----------------------------------------------------------------------------
 #' Run summarise_followup() for the shared dataset and each outcome-specific
 #' dataset from a run_exclusions() result.
 #'
@@ -221,6 +254,9 @@ summarise_followup_all <- function(analysis,
 
 # ── Printing helper ────────────────────────────────────────────────────────────
 
+# -----------------------------------------------------------------------------
+# print_followup_table()
+# -----------------------------------------------------------------------------
 #' Print a compact follow-up summary table to the console.
 #'
 #' @param fu_tbl  Tibble returned by summarise_followup() or

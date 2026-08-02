@@ -1,8 +1,27 @@
 # =============================================================================
-# R/variables_descriptives.R
+# R/05_04_variables_descriptives.R
+# =============================================================================
 # Describe variables of the shared dataset: missingness, distributions,
 # categorical summaries, and longitudinal change.
 # Accepts data.frame or mids objects.
+#
+# Functions:
+#   extract_data()            — unwraps a mids object to its plain $data
+#   label_var()                — raw column name -> display label (VAR_LABELS)
+#   .pal_seq() / .pal_cat() / .pal_alluvial() — palette helpers (sequential /
+#                                categorical / alluvial-specific)
+#   compute_quartile_cuts()    — Q25/Q50/Q75 per variable (mids-averaged)
+#   theme_proj()                — shared ggplot theme
+#   plot_continuous()           — density overlay per visit, continuous vars
+#   plot_boxplots()             — box plots per visit, continuous vars
+#   plot_categorical()          — stacked bar charts per visit, categorical vars
+#   plot_alluvial()              — alluvial plot of categorical change over time
+#   plot_exposure_outcome()      — exposure-vs-outcome scatter + LOESS, by visit
+#   describe_variables()         — main entry point: all plots + CSV summaries
+#
+# Shared by R/05_04_01_missingness_analysis.R and R/05_05_age_trajectories.R
+# via tar_source(): PALETTE, FONT, extract_data(), label_var(), theme_proj(),
+# .pal_seq(), .pal_cat().
 # =============================================================================
 
 # ── Constants ──────────────────────────────────────────────────────────────────
@@ -89,22 +108,16 @@ CATEGORICAL_VARS <- c(
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
+# extract_data(): unwraps a mids object to its incomplete $data (observed
+# values with NAs intact); returns plain data frames unchanged.
 extract_data <- function(data) {
   if (inherits(data, "mids")) data$data else data
 }
 
+# label_var(): raw column name -> display label via VAR_LABELS, falling back
+# to the column name with underscores replaced by spaces.
 label_var <- function(var) {
   ifelse(var %in% names(VAR_LABELS), VAR_LABELS[var], gsub("_", " ", var))
-}
-
-# Push sorted points apart so consecutive gaps are >= min_gap, shifting as
-# little as possible (forward pass then backward pass), instead of a physics
-# based repel that can throw labels far from their true position.
-.enforce_min_gap <- function(x, min_gap) {
-  x <- sort(x)
-  for (i in seq_along(x)[-1]) x[i] <- max(x[i], x[i - 1] + min_gap)
-  for (i in rev(seq_along(x)[-length(x)])) x[i] <- min(x[i], x[i + 1] - min_gap)
-  x
 }
 
 # Sequential palette: evenly spaced across full gradient (for ordered visits).
@@ -152,6 +165,7 @@ compute_quartile_cuts <- function(data, vars, probs = c(0.25, 0.5, 0.75)) {
   }
 }
 
+# theme_proj(): shared minimal ggplot theme for all descriptive plots.
 theme_proj <- function() {
   ggplot2::theme_minimal(base_family = FONT) +
     ggplot2::theme(
@@ -161,6 +175,9 @@ theme_proj <- function() {
     )
 }
 
+# -----------------------------------------------------------------------------
+# plot_continuous()
+# -----------------------------------------------------------------------------
 # ── 1. Continuous distributions (density overlay per visit) ───────────────────
 
 plot_continuous <- function(data,
@@ -190,6 +207,9 @@ plot_continuous <- function(data,
   }) |> rlang::set_names(vars)
 }
 
+# -----------------------------------------------------------------------------
+# plot_boxplots()
+# -----------------------------------------------------------------------------
 # ── 3. Continuous box plots per visit ──────────────────────────────────────────
 
 plot_boxplots <- function(data,
@@ -214,6 +234,9 @@ plot_boxplots <- function(data,
   }) |> rlang::set_names(vars)
 }
 
+# -----------------------------------------------------------------------------
+# plot_categorical()
+# -----------------------------------------------------------------------------
 # ── 4. Categorical stacked bar charts per visit ───────────────────────────────
 
 plot_categorical <- function(data,
@@ -242,6 +265,9 @@ plot_categorical <- function(data,
   }) |> rlang::set_names(vars)
 }
 
+# -----------------------------------------------------------------------------
+# plot_alluvial()
+# -----------------------------------------------------------------------------
 # ── 5. Alluvial: categorical change over time ──────────────────────────────────
 
 plot_alluvial <- function(data,
@@ -307,6 +333,9 @@ plot_alluvial <- function(data,
     ggplot2::labs(x = "Visit", y = "Participants")
 }
 
+# -----------------------------------------------------------------------------
+# plot_exposure_outcome()
+# -----------------------------------------------------------------------------
 # ── 6. Exposure vs outcome scatter with LOESS per time point ──────────────────
 
 plot_exposure_outcome <- function(data,
@@ -412,6 +441,9 @@ plot_exposure_outcome <- function(data,
   }) |> rlang::set_names(paste(combos$y, "vs", combos$x))
 }
 
+# -----------------------------------------------------------------------------
+# describe_variables()
+# -----------------------------------------------------------------------------
 # ── Main entry point ───────────────────────────────────────────────────────────
 
 #' Produce all variable description plots, alluvials, and CSV summaries.
