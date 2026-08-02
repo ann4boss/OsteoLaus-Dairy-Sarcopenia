@@ -1,10 +1,3 @@
----
-
-editor_options: 
-  markdown: 
-    wrap: 72
----
-
 # Data
 
 This project uses individual participant data from the **CoLaus** and **OsteoLaus** cohort study (Lausanne, Switzerland).
