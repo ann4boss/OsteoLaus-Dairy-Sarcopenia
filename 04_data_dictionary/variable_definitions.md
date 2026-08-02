@@ -58,12 +58,12 @@ See [02_04_visit_match.R](../02_scripts/R/02_04_visit_match.R) for the implement
 <table>
 <colgroup>
 <col style="width: 15%" />
+<col style="width: 17%" />
 <col style="width: 15%" />
 <col style="width: 15%" />
 <col style="width: 15%" />
 <col style="width: 15%" />
-<col style="width: 16%" />
-<col style="width: 18%" />
+<col style="width: 15%" />
 <col style="width: 15%" />
 <col style="width: 15%" />
 <col style="width: 15%" />
@@ -1312,7 +1312,7 @@ K=does not know</p></td>
 </tr>
 <tr>
 <td><p><strong>PAFQ_MPA</strong></p></td>
-<td><p><code>met_min_week</code></p></td>
+<td><p><code>met_min_week</code>, <strong><code>m</code></strong><code>vpa_min_day</code></p></td>
 <td><p>Numeric</p></td>
 <td><p>Source</p></td>
 <td><p>0..*</p></td>
@@ -1340,7 +1340,7 @@ K=does not know</p></td>
 </tr>
 <tr>
 <td><p><strong>PAFQ_VPA</strong></p></td>
-<td><p><code>met_min_week</code></p></td>
+<td><p><code>met_min_week</code>, <strong><code>m</code></strong><code>vpa_min_day</code></p></td>
 <td><p>Numeric</p></td>
 <td><p>Source</p></td>
 <td><p>0..*</p></td>
@@ -2314,18 +2314,18 @@ OsteoLaus has 5 measurement time points labelled Baseline, V2, V3, V4, and V5. F
 
 <table>
 <colgroup>
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
-<col style="width: 13%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 12%" />
 </colgroup>
 <tbody>
 <tr>
