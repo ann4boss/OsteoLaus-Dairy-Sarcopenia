@@ -57,18 +57,18 @@ See [02_04_visit_match.R](../02_scripts/R/02_04_visit_match.R) for the implement
 
 <table>
 <colgroup>
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
 <col style="width: 16%" />
-<col style="width: 10%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 13%" />
-<col style="width: 26%" />
-<col style="width: 28%" />
-<col style="width: 17%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
-<col style="width: 11%" />
 <col style="width: 18%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
 </colgroup>
 <tbody>
 <tr>
@@ -1368,17 +1368,31 @@ K=does not know</p></td>
 </tr>
 <tr>
 <td><p><strong>met_min_week</strong></p></td>
-<td><p><code>pa_levels</code></p></td>
+<td><p><code>pa_levels_who_f1</code></p></td>
 <td><p>Numeric</p></td>
 <td><p>Source</p></td>
 <td><p>0..*</p></td>
 <td><p>NA</p></td>
 <td><p>Calculation: PAFQ_MPA * 4 + PAFQ_VPA * 8 * 7</p></td>
 <td><p>F1, F2</p></td>
-<td><p>see <code>pa_levels</code></p></td>
+<td><p>see <code>pa_levels_who_f1</code></p></td>
 <td><p>Not used since derived variables</p></td>
 <td><p>NA</p></td>
 <td><p>0 - 1468</p></td>
+</tr>
+<tr>
+<td><p><strong>mvpa_min_day</strong></p></td>
+<td><p><code>pa_levels_tertiles_f1</code>, <code>pa_levels_tertiles_f2</code></p></td>
+<td><p>Numeric</p></td>
+<td><p>Source</p></td>
+<td><p>0..*</p></td>
+<td><p>NA</p></td>
+<td><p>Calculation: PAFQ_MPA + PAFQ_VPA</p></td>
+<td><p>F1, F2</p></td>
+<td><p>see</p></td>
+<td><p>Not used since derived variables</p></td>
+<td><p>NA</p></td>
+<td><p>0 - 1004</p></td>
 </tr>
 <tr>
 <td><p><strong>pa_levels_tertiles_f1</strong></p></td>
@@ -1386,7 +1400,7 @@ K=does not know</p></td>
 <td><p>Factorial</p></td>
 <td><p>Fixed Varying Covariate</p></td>
 <td><p>0..*</p></td>
-<td><p><code>met_min_week</code> range divided into three categorise rom F1 time point: low, moderate, and high</p></td>
+<td><p><code>mvpa_min_day</code> range divided into three categorise from F1 time point: low, moderate, and high</p></td>
 <td><p>Categories of physical activity defined by tertiles based on cohort distributions of <code>met_min_week</code></p></td>
 <td><p>NA</p></td>
 <td><p>Visits with missing/ invalid values are excluded</p></td>
@@ -2300,16 +2314,16 @@ OsteoLaus has 5 measurement time points labelled Baseline, V2, V3, V4, and V5. F
 
 <table>
 <colgroup>
-<col style="width: 15%" />
-<col style="width: 14%" />
-<col style="width: 15%" />
 <col style="width: 13%" />
-<col style="width: 15%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
 <col style="width: 13%" />
-<col style="width: 14%" />
-<col style="width: 14%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
+<col style="width: 13%" />
 <col style="width: 13%" />
 <col style="width: 13%" />
 </colgroup>
@@ -2627,7 +2641,7 @@ OsteoLaus has 5 measurement time points labelled Baseline, V2, V3, V4, and V5. F
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td><p>5 Mar 2026</p></td>
-<td><p>5661 -  13025</p></td>
+<td><p>5661 - 13025</p></td>
 </tr>
 <tr>
 <td><p><strong>SUBTOT_LEAN_MASS</strong> H_SUBTOT_LEAN_MASS for V5</p></td>
@@ -2683,7 +2697,7 @@ OsteoLaus has 5 measurement time points labelled Baseline, V2, V3, V4, and V5. F
 <td><p>NA</p></td>
 <td><p>not used</p></td>
 <td><p>5 Mar 2026</p></td>
-<td><p>12155 -  26603</p></td>
+<td><p>12155 - 26603</p></td>
 </tr>
 <tr>
 <td><p><strong>ANDROID_LEAN_MASS</strong></p></td>
