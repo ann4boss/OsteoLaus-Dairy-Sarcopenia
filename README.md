@@ -90,9 +90,13 @@ Inspect the pipeline graph before running with:
 targets::tar_visnetwork()
 ```
 
-## Data availability
+## Data availability {#data-availability}
 
 The underlying CoLaus and OsteoLaus data are not publicly available due to participant privacy. See [01_data/README.md](01_data/README.md) for how to request access.
+
+## License
+
+The code in this repository is released under the [MIT License](LICENSE). This covers the analysis pipeline (`02_scripts/`) only — it does not extend to the raw CoLaus/OsteoLaus data (not included in this repository; see [Data availability](#data-availability)) or to the thesis documents in [`05_thesis/`](05_thesis/), which remain subject to their own applicable terms.
 
 ## Contact
 
