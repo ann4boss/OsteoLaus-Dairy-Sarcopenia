@@ -883,7 +883,9 @@ cox_targets_fnih <- list(
             covariate_type = "fixed",
             dairy_type     = "continuous",
             dairy_col  = "dairy_total_gday_cumavg",
-            analysis_route = "mice"
+            analysis_route = "mice",
+            covariates = c("education_level", "smoking_status",
+                           "mvpa_min_day_f1", "diabetes_status")
         )
     ),
  
@@ -895,7 +897,9 @@ cox_targets_fnih <- list(
             covariate_type = "fixed",
             dairy_type     = "categorical",
             dairy_cat_col  = "dairy_quartile_baseline",
-            analysis_route = "mice"
+            analysis_route = "mice",
+            covariates = c("education_level", "smoking_status",
+                           "mvpa_min_day_f1", "diabetes_status")
         )
     ),
     tar_target(
@@ -906,7 +910,9 @@ cox_targets_fnih <- list(
             covariate_type = "time_dependent",
             dairy_type     = "categorical",
             dairy_cat_col  = "dairy_quartile_baseline",
-            analysis_route = "mice"
+            analysis_route = "mice",
+            covariates = c("education_level", "smoking_status",
+                           "mvpa_min_day_f1", "diabetes_status")
         )
     ),
     tar_target(
@@ -917,7 +923,9 @@ cox_targets_fnih <- list(
             covariate_type = "time_dependent",
             dairy_type     = "continuous",
             dairy_col  = "dairy_total_gday_cumavg",
-            analysis_route = "mice"
+            analysis_route = "mice",
+            covariates = c("education_level", "smoking_status",
+                           "mvpa_min_day_f1", "diabetes_status")
         )
     )
 )
@@ -1411,7 +1419,7 @@ c(
     # LMM_targets_ALM_BMI,
     # LMM_targets_gait,
     # cox_targets,
-    # cox_targets_fnih
+    cox_targets_fnih
 
     # ── Dairy protein content sensitivity analyses ───────────────────────────
     #LMM_targets_HGS_ffq_items,
@@ -1434,7 +1442,7 @@ c(
     # tableOne_targets_compare,
     # tableOne_incl_vs_excl,
     # tableOne_save,
-    visit_descriptives_targets
+    #visit_descriptives_targets
     # missingness_target,
     # dairy_quartile_cuts_target,
     # variable_descriptives_target,
