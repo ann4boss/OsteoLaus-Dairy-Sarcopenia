@@ -1,0 +1,22 @@
+# =============================================================================
+# .Renviron.example
+# =============================================================================
+# Template for local, machine-specific environment variables used by this
+# project. Copy this file to ".Renviron" (same folder, no ".example" suffix)
+# and fill in your own values. ".Renviron" is gitignored — it never gets
+# committed, so each user/machine keeps its own copy.
+#
+#   cp .Renviron.example .Renviron
+#
+# R reads .Renviron automatically at startup when you open this project
+# (restart your R session / RStudio after editing it for changes to apply).
+# =============================================================================
+
+# Absolute path to the folder containing the raw CoLaus/OsteoLaus CSV files
+# (see 01_data/README.md for the exact list of expected files).
+#
+# Optional: if this is not set, 02_scripts/_targets.R falls back to the
+# "01_data" folder inside this project. Set DAIRY_DATA_DIR only if you keep
+# the raw data somewhere else (e.g. a synced cloud-storage folder, as in the
+# example below).
+DAIRY_DATA_DIR=/path/to/your/Dairy_sarcopenia_data

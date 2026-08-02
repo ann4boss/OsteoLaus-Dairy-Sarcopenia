@@ -1,10 +1,48 @@
 # =============================================================================
 # _targets.R
-# CoLaus / OsteoLaus sarcopenia & dairy intake pipeline
 # =============================================================================
+# CoLaus / OsteoLaus sarcopenia & dairy intake pipeline
 #
-# Pipeline stages
-# TODO add description
+# `targets` pipeline definition: this file only DECLARES the DAG (which
+# target depends on which, and which function builds each one). The actual
+# logic lives in 02_scripts/R/ (one file per pipeline step, loaded below via
+# tar_source()) — read this file to see the shape of the analysis, read R/
+# to see how each step works.
+#
+# Pipeline stages (see the matching section banners below)
+# ----------------------------------------------------------------------------
+#   00  Configuration & raw file paths      Locate the input CSVs
+#   01  Prepare core                        Import + harmonise + QC + stack
+#   02  Complete-case (CC) route             derive -> select -> merge -> derive_combined -> exclude
+#   03  MICE route                           impute -> derive -> select -> merge -> derive_combined -> exclude
+#   04  Linear mixed models (LMM)             Main analysis + sensitivity variants
+#   05  Model specification sensitivity      Alternative model forms (splines, GAMM, etc.)
+#   06  Cox proportional hazards models      Time-to-first-sarcopenia
+#   07  Descriptive & diagnostic outputs     CONSORT, Table 1, missingness, trajectories, ...
+#   08  Assemble                             The single target list tar_make() actually runs
+#
+# The CC and MICE routes are two parallel, independent passes over the same
+# raw data (see the stage lists printed in each route's section below);
+# downstream targets (LMM/Cox/descriptives) are usually built once per route
+# and named with a cc_ / mice_ prefix accordingly.
+#
+# ----------------------------------------------------------------------------
+# SETUP FOR A NEW USER / MACHINE
+# ----------------------------------------------------------------------------
+#   1. Install R packages: renv::restore() (this project pins versions via
+#      renv.lock; see the top-level README.md).
+#   2. Raw data: this pipeline reads participant-level CSVs that are NOT
+#      stored in git (see 01_data/README.md for access/licensing). Point the
+#      pipeline at your local copy either by:
+#        a) placing the CSVs in 01_data/ (the default, zero-config location), or
+#        b) setting the DAIRY_DATA_DIR environment variable to wherever you
+#           keep them instead (copy .Renviron.example to .Renviron at the
+#           project root and edit it — .Renviron is gitignored, so this is
+#           per-machine and never committed).
+#   3. Run `targets::tar_make()` from the project root. Only the target
+#      groups listed (uncommented) in the ASSEMBLE section at the bottom of
+#      this file are actually built — see that section for how to enable more.
+#   4. Inspect the DAG before running with `targets::tar_visnetwork()`.
 # =============================================================================
 
 library(targets)
@@ -36,55 +74,74 @@ tar_source("02_scripts/R")
 
 
 # =============================================================================
-# 00. FILE PATHS
+# 00. CONFIGURATION — raw data location
 # =============================================================================
-#TODO make paths relative for last GitHub update
+# Portable across machines/users: DAIRY_DATA_DIR (set via .Renviron, see
+# .Renviron.example at the project root) overrides the default location,
+# which is the 01_data/ folder inside this project (as documented in
+# 01_data/README.md). Nothing here is machine-specific — every user gets a
+# working default by just dropping their CSVs into 01_data/.
+data_dir <- Sys.getenv("DAIRY_DATA_DIR", unset = here::here("01_data"))
+
+if (!dir.exists(data_dir)) {
+    stop(
+        "Raw data folder not found: ", data_dir, "\n",
+        "Either place the CSVs listed in 01_data/README.md into 01_data/, ",
+        "or set DAIRY_DATA_DIR in a .Renviron file to point at wherever you ",
+        "keep them (copy .Renviron.example at the project root to get started)."
+    )
+}
+
+
+# =============================================================================
+# 00b. FILE PATHS — raw CSVs (relative to data_dir, see 01_data/README.md)
+# =============================================================================
 path_targets <- list(
-    
+
     tar_target(f_colaus_baseline,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_base.csv",
+               file.path(data_dir, "Dairy_sarcopenia_base.csv"),
                format = "file"),
     tar_target(f_colaus_f1,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_FU1.csv",
+               file.path(data_dir, "Dairy_sarcopenia_FU1.csv"),
                format = "file"),
     tar_target(f_colaus_f2,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_FU2.csv",
+               file.path(data_dir, "Dairy_sarcopenia_FU2.csv"),
                format = "file"),
     tar_target(f_colaus_f3,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_FU3.csv",
+               file.path(data_dir, "Dairy_sarcopenia_FU3.csv"),
                format = "file"),
-    
+
     tar_target(f_osteo_baseline,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_OstBas.csv",
+               file.path(data_dir, "Dairy_sarcopenia_OstBas.csv"),
                format = "file"),
     tar_target(f_osteo_v2,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_OstV2.csv",
+               file.path(data_dir, "Dairy_sarcopenia_OstV2.csv"),
                format = "file"),
     tar_target(f_osteo_v3,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_OstV3.csv",
+               file.path(data_dir, "Dairy_sarcopenia_OstV3.csv"),
                format = "file"),
     tar_target(f_osteo_v4,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_OstV4.csv",
+               file.path(data_dir, "Dairy_sarcopenia_OstV4.csv"),
                format = "file"),
     tar_target(f_osteo_v5,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Dairy_sarcopenia_OstV5.csv",
+               file.path(data_dir, "Dairy_sarcopenia_OstV5.csv"),
                format = "file"),
-    
+
     tar_target(f_colaus_baseline_add_food,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Baseline_additionalFood.csv",
+               file.path(data_dir, "Baseline_additionalFood.csv"),
                format = "file"),
     tar_target(f_colaus_f1_add_food,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/FU1_additionalFood.csv",
+               file.path(data_dir, "FU1_additionalFood.csv"),
                format = "file"),
     tar_target(f_colaus_f2_add_food,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/FU2_additionalFood.csv",
+               file.path(data_dir, "FU2_additionalFood.csv"),
                format = "file"),
     tar_target(f_colaus_f3_add_food,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/FU3_additionalFood.csv",
+               file.path(data_dir, "FU3_additionalFood.csv"),
                format = "file"),
-    
+
     tar_target(f_colaus_death,
-               "/Users/annaboss/Library/CloudStorage/OneDrive-UniversitaetBern/Dairy_sarcopenia_data/Deaths.csv",
+               file.path(data_dir, "Deaths.csv"),
                format = "file")
 )
 
@@ -92,6 +149,11 @@ path_targets <- list(
 # =============================================================================
 # 01. Prepare Core
 # =============================================================================
+# One call (prepare_core(), R/01_prepare_core.R) that imports every raw CSV,
+# harmonises types/factor levels per visit, runs participant-level QC, and
+# stacks visits into one long tibble per cohort. Produces `core`, a list with
+# $colaus_long, $osteo_long, $qc_tbl, $qc_summary — the shared starting point
+# for both the CC and MICE routes below.
 
 prep_core <- tar_target(
     core,
@@ -109,6 +171,10 @@ prep_core <- tar_target(
 # Covariate sets and exclusion arguments
 # (defined once, used by both CC and MICE exclusion targets)
 # =============================================================================
+# .OUTCOMES / .COVARIATES feed run_exclusions() (R/03_exclusion.R): every
+# outcome in .OUTCOMES gets its own exclusion pass and its own entry in
+# $data / $mids downstream, using the outcome-specific covariate list from
+# .COVARIATES for the "missing covariate" exclusion stage.
 
 .OUTCOMES <- c(
     "ewgsop2_sarcopenia_stage",
@@ -142,7 +208,7 @@ prep_core <- tar_target(
 
 
 # =============================================================================
-# ── COMPLETE-CASE (CC) ROUTE ──────────────────────────────────────────────────
+# ── 02. COMPLETE-CASE (CC) ROUTE ──────────────────────────────────────────────
 # =============================================================================
 #
 # Stage 1 → core (shared)
@@ -215,7 +281,7 @@ cc_exclusion <- tar_target(
 
 
 # =============================================================================
-# ── MICE ROUTE ────────────────────────────────────────────────────────────────
+# ── 03. MICE ROUTE ────────────────────────────────────────────────────────────
 # =============================================================================
 #
 # Stage 1 → core (shared)
@@ -316,10 +382,19 @@ mice_exclusion <- tar_target(
 
 
 # =============================================================================
-# Main LMM TARGETS
+# 04. LINEAR MIXED MODELS (LMM) — main analysis
 # =============================================================================
+# Fits pooled (Rubin's rules across MICE imputations) linear mixed models of
+# each outcome on dairy exposure + covariates, via run_lmm_report() /
+# run_lmm_report_gait() (R/04_01_01_LMM_report_HGS_ALMI.R,
+# R/04_01_02_LMM_report_gait.R). Each target below writes one PDF report
+# covering every row of its exposure_definitions x every covariate set.
 
 # ── Covariate sets ────────────────────────────────────
+# One named list per outcome; each element is one covariate set (a character
+# vector of column names) that gets its own model. "main" is the primary
+# adjustment set; other entries (e.g. "other_PA") are sensitivity variants
+# that swap in an alternative version of one covariate.
 covariate_sets_hgs <- list(
     main = c(
         "age_at_baseline_scaled", "BMI_category", "education_level", "smoking_status",
@@ -361,6 +436,11 @@ covariate_sets_gait <- list(
 )
 
 # ── Exposure definitions ────────────────────────────────────
+# One row per exposure model term: `exposure` is the column name,
+# `exposure_type` is "linear" (used as-is) or "categorical" (factor, with
+# `ref_level` as the reference level; NA for linear terms). Passed straight
+# through to run_lmm_report()'s `exposures` argument, which fits one model
+# per row x per covariate set.
 exposure_definitions <- tibble::tribble(
     ~exposure,                  ~exposure_type, ~ref_level,
     
@@ -450,10 +530,10 @@ LMM_targets_gait <- tar_target(
     format = "file")
 
 # =============================================================================
-# Further LMM TARGETS
+# 04b. LMM sensitivity analyses — dairy protein content
 # =============================================================================
 # DAIRY PROTEIN CONTENT — exposures & covariate sets
-# 
+#
 # Does the muscle-outcome association depend on the protein content of the
 # dairy product, not just its weight (100g/day)?
 #
@@ -630,8 +710,14 @@ LMM_targets_HGS_dairy_nofondue <- tar_target(
 
 
 # =============================================================================
-# MODEL SPECIFICATION SENSITIVITY TARGETS
+# 05. MODEL SPECIFICATION SENSITIVITY TARGETS
 # =============================================================================
+# For each outcome, refits the main-covariate-set model under a battery of
+# alternative specifications (splines, polynomial terms, transformed
+# outcomes, alternative random-effects structure, GAMM smooth, etc. — see
+# run_model_specification_sensitivity() in
+# R/04_02_model_specification_sensitivity.R for the full model list) and
+# writes a comparison PDF (AIC/BIC, coefficient stability) per outcome.
 
 LMM_modspec_HGS <- tar_target(
     modspec_hgs,
@@ -675,8 +761,16 @@ LMM_modspec_gait <- tar_target(
 
 
 # =============================================================================
-# COX MODEL
+# 06. COX MODEL — time to first sarcopenia
 # =============================================================================
+# Each tar_target() below is one Cox model specification (fixed vs
+# time-dependent covariates x continuous vs categorical dairy exposure x
+# spline vs not), fit via run_cox_sarcopenia() (R/04_03_cox.R). cox_targets
+# covers the EWGSOP2 sarcopenia definition; cox_targets_fnih repeats the same
+# specifications for the FNIH definition. The small tar_target() calls right
+# after each model (e.g. cox_outliers_cc, cox_results_cc_cont) just pull out
+# one named element of that model's result list into its own target, so
+# individual diagnostics can be inspected/rendered without re-running the fit.
 
 cox_targets <- list(
     
@@ -702,7 +796,7 @@ cox_targets <- list(
             sarcopenia_def = "ewgsop2",
             covariate_type = "fixed",
             dairy_type     = "continuous",
-            dairy_cat_col  = "dairy_total_gday_cumavg",
+            dairy_col  = "dairy_total_gday_cumavg",
             analysis_route = "mice"
         )
     ),
@@ -740,7 +834,7 @@ cox_targets <- list(
             sarcopenia_def = "ewgsop2",
             covariate_type = "time_dependent",
             dairy_type     = "continuous",
-            dairy_cat_col  = "dairy_total_gday_cumavg",
+            dairy_col  = "dairy_total_gday_cumavg",
             analysis_route = "mice"
         )
     ),
@@ -788,7 +882,7 @@ cox_targets_fnih <- list(
             sarcopenia_def = "fnih",
             covariate_type = "fixed",
             dairy_type     = "continuous",
-            dairy_cat_col  = "dairy_total_gday_cumavg",
+            dairy_col  = "dairy_total_gday_cumavg",
             analysis_route = "mice"
         )
     ),
@@ -822,7 +916,7 @@ cox_targets_fnih <- list(
             sarcopenia_def = "fnih",
             covariate_type = "time_dependent",
             dairy_type     = "continuous",
-            dairy_cat_col  = "dairy_total_gday_cumavg",
+            dairy_col  = "dairy_total_gday_cumavg",
             analysis_route = "mice"
         )
     )
@@ -830,14 +924,17 @@ cox_targets_fnih <- list(
 
 
 # =============================================================================
-# Descriptive
+# 07. DESCRIPTIVE & DIAGNOSTIC OUTPUTS
 # =============================================================================
+# Everything below renders a plot, table, or report from the already-built
+# cc_analysis / mice_analysis objects — none of it feeds back into the
+# modelling targets above. Organised as one sub-section per output type.
 
+# ── CONSORT participant flow diagram ─────────────────────────────────────────
 consort <- tar_target(consort_flowchart, create_consort_flowchart())
 
 
-#------------------------------------------------------------------------------
-
+# ── Table 1 (baseline characteristics) ───────────────────────────────────────
 
 tableOne_targets_1 <-
     tar_target(tableOne_quartile,
@@ -910,9 +1007,7 @@ tableOne_save <- list(
     )
 )
 
-#------------------------------------------------------------------------------
-# VISIT DESCRIPTIVES
-
+# ── Visit descriptives ────────────────────────────────────────────────────────
 
 visit_descriptives_targets <- list(
     
@@ -999,8 +1094,9 @@ visit_descriptives_targets <- list(
     )
 )
 
-#------------------------------------------------------------------------------
-# MISSINGNESS ANALYSIS (pre-exclusion)
+# ── Missingness analysis (pre-exclusion) ─────────────────────────────────────
+# Run on mice_merged_derived (before run_exclusions()) so the full missing
+# data structure is visible, and compared against the first MICE imputation.
 
 missingness_target <- tar_target(
     missingness_report,
@@ -1036,8 +1132,7 @@ missingness_target <- tar_target(
 
 
 
-#------------------------------------------------------------------------------
-# VARIABLE DESCRIPTIVES
+# ── Variable descriptives (distributions, categorical summaries, scatter) ────
 
 variable_descriptives_target <- tar_target(
     variable_descriptives,
@@ -1084,8 +1179,7 @@ variable_descriptives_target <- tar_target(
     format = "file"
 )
 
-#------
-# Age trajectory
+# ── Age trajectories (mean ± SD per age year) ────────────────────────────────
 
 age_trajectories_target <- tar_target(
     age_trajectories,
@@ -1107,8 +1201,7 @@ age_trajectories_target_cc <- tar_target(
     format = "file"
 )
 
-#------
-# Baseline age group trajectories (outcome vs. Age, coloured by 5-year
+# ── Baseline age group trajectories (outcome vs. Age, coloured by 5-year ────
 # baseline-age group, with per-group lm fit)
 
 baseline_age_group_trajectories_target <- tar_target(
@@ -1133,8 +1226,7 @@ baseline_age_group_trajectories_target_cc <- tar_target(
 
 
 
-# FOLLOW-UP TIME
-# ----------
+# ── Follow-up time (median + range, by time point and overall) ──────────────
 
 followup_targets <- list(
 
@@ -1218,6 +1310,7 @@ followup_targets <- list(
 )
 
 
+# ── Variable descriptives, CC route (counterpart to variable_descriptives_target above) ──
 variable_descriptives_target_cc <- tar_target(
     variable_descriptives_cc,
     {
@@ -1263,6 +1356,7 @@ variable_descriptives_target_cc <- tar_target(
     format = "file"
 )
 
+# ── Dairy quartile cut-points export (CSV; consumed by variable_descriptives* above) ──
 dairy_quartile_cuts_target <- tar_target(
     dairy_quartile_cuts,
     {
@@ -1281,8 +1375,22 @@ dairy_quartile_cuts_target <- tar_target(
 )
 
 # =============================================================================
-# ASSEMBLE
+# 08. ASSEMBLE
 # =============================================================================
+# `targets` runs whatever this file's LAST top-level expression evaluates to
+# — that is the `c(...)` call below, a flat list of every target object that
+# should be part of the pipeline. Every target group above this point (LMM,
+# Cox, descriptives, ...) is already fully DEFINED, but only the groups
+# listed here — and only the ones NOT commented out — actually get BUILT by
+# `tar_make()`.
+#
+# To turn a stage on: uncomment its line(s) below (remove the leading "# ").
+# To turn a stage off: comment it out. Commenting a group out here does not
+# delete or invalidate its target definitions or cached results above — it
+# just excludes it from this run. `tar_make()` only rebuilds targets whose
+# code or upstream data actually changed, so re-enabling a previously-run
+# stage will reuse its cache rather than recomputing from scratch.
+
 
 c(
     # ── Shared ────────────────────────────────────────────────────────────────

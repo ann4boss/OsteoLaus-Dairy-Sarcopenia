@@ -4,6 +4,7 @@
 .Ruserdata
 .DS_Store
 .Rprofile
+.Renviron
 *.csv
 *.xlsx
 *.sav
