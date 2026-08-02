@@ -233,7 +233,7 @@ impute_mice_colaus <- function(df,
   # =============================================================================
   
   # Numeric variables: imputed with pmm
-  # NOTE: Age REMOVED from PMM — used as predictor only, never imputed
+  # NOTE: Age used as predictor only, never imputed
   .CL_PMM_VARS <- c(
     "Height", "Weight", "conso_hebdo", "sumalco",
     "PAFQ_MPA", "PAFQ_VPA", "sumtot1", "sumprot1", "sumgluc1",
@@ -249,8 +249,6 @@ impute_mice_colaus <- function(df,
   .CL_LOGREG_VARS <- c(
     "dbtld", "DIAB", "DIAB_Hb", "esthrp", "antiHTA",
     "crbpmed",      
-    "vitD_status",  
-    "calcium_status",
     "HTA", "miac", "strk", "chf", "cad", "angn", "cmp", "hdc",
     "hdv", "artm", "vslg", "ccth", "cabg", "pcin"
   )
@@ -518,33 +516,9 @@ impute_mice_colaus <- function(df,
                      "cad", "strk"
                    )))
   
-  # =============================================================================
-  # 12. vitD_status  —  (added, binary logreg)
-  # =============================================================================
-  pred <- set_pred(pred,
-                   targets    = wv("vitD_status"),
-                   predictors = wv(c(
-                     "vitD_status",
-                     "Age", "Weight",
-                     "sbsmk", "edtyp4",
-                     "calcium_status"
-                   )))
   
   # =============================================================================
-  # 13. calcium_status  —  (added, binary logreg)
-  # =============================================================================
-  pred <- set_pred(pred,
-                   targets    = wv("calcium_status"),
-                   predictors = wv(c(
-                     "calcium_status",
-                     "Age",
-                     "sbsmk", "edtyp4",
-                     "vitD_status",           
-                     "sumtot1"             
-                   )))
-  
-  # =============================================================================
-  # 14. HARD CVD EVENTS  —  miac, strk, chf, cad, angn
+  # 12. HARD CVD EVENTS  —  miac, strk, chf, cad, angn
   # =============================================================================
   pred <- set_pred(pred,
                    targets    = wv(c("miac","strk","chf","cad","angn")),
@@ -555,7 +529,7 @@ impute_mice_colaus <- function(df,
                    )))
   
   # =============================================================================
-  # 15. PROCEDURES  —  cmp, hdc, hdv, artm, vslg, ccth, cabg, pcin
+  # 13. PROCEDURES  —  cmp, hdc, hdv, artm, vslg, ccth, cabg, pcin
   # =============================================================================
   pred <- set_pred(pred,
                    targets    = wv(c("cmp","hdc","hdv","artm","vslg","ccth","cabg","pcin")),
@@ -566,7 +540,7 @@ impute_mice_colaus <- function(df,
                    )))
   
   # =============================================================================
-  # 16. SMOKING  —  sbsmk (polr)
+  # 14. SMOKING  —  sbsmk (polr)
   # =============================================================================
   pred <- set_pred(pred,
                    targets    = wv("sbsmk"),
@@ -579,7 +553,7 @@ impute_mice_colaus <- function(df,
                    )))
   
   # =============================================================================
-  # 17. EDUCATION  —  edtyp4 (polr, quasi time-invariant)
+  # 15. EDUCATION  —  edtyp4 (polr, quasi time-invariant)
   # =============================================================================
   pred <- set_pred(pred,
                    targets    = wv("edtyp4"),
@@ -592,7 +566,7 @@ impute_mice_colaus <- function(df,
                    )))
   
   # =============================================================================
-  # 18. MARITAL STATUS  —  mrtsts2 (polr)
+  # 16. MARITAL STATUS  —  mrtsts2 (polr)
   # =============================================================================
   pred <- set_pred(pred,
                    targets    = wv("mrtsts2"),
