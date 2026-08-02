@@ -1,23 +1,26 @@
+---
+
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
 # Data
 
-This project uses individual participant data from the **CoLaus** and **OsteoLaus** cohort study
-(Lausanne, Switzerland).
+This project uses individual participant data from the **CoLaus** and **OsteoLaus** cohort study (Lausanne, Switzerland).
 
 ## Availability
 
-The data used in this analysis are **not openly available**. Access requires approval from
-the CoLaus study team and is subject to a data transfer/collaboration agreement.
-Data can be requested via the official CoLaus study website:
+The data used in this analysis are **not openly available**. Access requires approval from the CoLaus study team and is subject to a data transfer/collaboration agreement. Data can be requested via the official CoLaus study website:
 
 <https://www.colaus-psycolaus.ch/>
 
 ## Expected files
 
-The pipeline (`02_scripts/_targets.R`) expects the following CSV files, referenced by the
-`path_targets` list at the top of that script:
+The pipeline (`02_scripts/_targets.R`) expects the following CSV files, referenced by the `path_targets` list at the top of that script:
 
 | File | Description |
-|---|---|
+|------------------------------------|------------------------------------|
 | `Dairy_sarcopenia_base.csv` | CoLaus baseline visit |
 | `Dairy_sarcopenia_FU1.csv` | CoLaus follow-up 1 |
 | `Dairy_sarcopenia_FU2.csv` | CoLaus follow-up 2 |
@@ -33,11 +36,8 @@ The pipeline (`02_scripts/_targets.R`) expects the following CSV files, referenc
 | `FU3_additionalFood.csv` | Additional food-frequency items, CoLaus follow-up 3 |
 | `Deaths.csv` | Mortality/censoring data |
 
-After obtaining access, place these files in this folder (or elsewhere and update the
-paths in `02_scripts/_targets.R` accordingly).
+After obtaining access, place these files in this folder — the pipeline looks here by default. If you keep the data elsewhere instead, set the `DAIRY_DATA_DIR` environment variable to that folder rather than editing `02_scripts/_targets.R` (copy `.Renviron.example` at the project root to `.Renviron` and edit it there; `.Renviron` is gitignored, so this is per-machine and never committed).
 
 ## Variable documentation
 
-See [05_supplements/variable_definitions.md](../05_supplements/variable_definitions.md) for
-a full description of source variables, derived variables, and how each was used in the
-analysis.
+See [05_supplements/variable_definitions.md](../05_supplements/variable_definitions.md) for a full description of source variables, derived variables, and how each was used in the analysis.
